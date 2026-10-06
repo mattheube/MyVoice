@@ -1,0 +1,2 @@
+<Project Sdk="Microsoft.NET.Sdk"><ItemGroup><PackageReference Include="NAudio" Version="2.2.1"/><ProjectReference Include="../MyVoice.Core/MyVoice.Core.csproj"/><ProjectReference Include="../MyVoice.Soundboard/MyVoice.Soundboard.csproj"/></ItemGroup></Project>
+

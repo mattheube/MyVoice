@@ -1,0 +1,2 @@
+<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><OutputType>Exe</OutputType></PropertyGroup><ItemGroup><ProjectReference Include="../../src/MyVoice.Core/MyVoice.Core.csproj"/><ProjectReference Include="../../src/MyVoice.Infrastructure/MyVoice.Infrastructure.csproj"/><ProjectReference Include="../../src/MyVoice.Audio/MyVoice.Audio.csproj"/><ProjectReference Include="../../src/MyVoice.AI/MyVoice.AI.csproj"/><ProjectReference Include="../../src/MyVoice.Updater/MyVoice.Updater.csproj"/></ItemGroup></Project>
+

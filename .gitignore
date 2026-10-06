@@ -1,0 +1,11 @@
+**/bin/
+**/obj/
+.vs/
+portable/
+*.user
+
+releases/
+**/__pycache__/
+*.pyc
+
+*_wpftmp.csproj
