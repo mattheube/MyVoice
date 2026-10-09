@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -8,6 +9,21 @@ using System.Windows.Media.Imaging;
 namespace MyVoice.App;
 public partial class App
 {
+    private void VerifyProductUi(string folder)
+    {
+        vm!.DesignerName="Smoke custom voice";vm.DesignerPitch=1.15;vm.DesignerBass=3;vm.SaveDesignedVoiceCommand.Execute(null);
+        var voice=vm.DesignedVoices[^1];vm.UseDesignedVoiceCommand.Execute(voice);
+        if(vm.DisplayVoice!=voice.Name||vm.Presets.Any(p=>p.Selected))throw new Exception("Custom selection is inconsistent");
+        vm.SelectPresetCommand.Execute(vm.Presets[0]);
+        if(vm.DisplayVoice!="Default Clean"||vm.LastVoiceName!=voice.Name)throw new Exception("Clean lost last custom voice");
+        vm.QuickSwitchVoiceCommand.Execute(null);
+        if(vm.DisplayVoice!=voice.Name)throw new Exception("Last custom voice not restored");
+        foreach(var theme in vm.Themes){vm.Theme=theme;if(vm.Theme!=theme)throw new Exception("Theme not applied");}
+        vm.Theme="Midnight";vm.MotionMode="Off";vm.ContinueLocallyCommand.Execute(null);
+        var reloaded=new MyVoice.Infrastructure.ProductStore(store!.Root).Load();
+        if(!reloaded.OnboardingCompleted||reloaded.Motion!="Off"||!reloaded.Presets.Any(p=>p.Id==voice.Id))throw new Exception("Product preferences not persistent");
+        File.WriteAllText(Path.Combine(folder,"product-result.txt"),"PASS: designer save, selection, Clean/last voice, four themes, reduced motion, onboarding and product persistence.");
+    }
     private async Task VerifyImageUi(Window owner,string folder)
     {
         if(vm!.SelectedSound!=null)

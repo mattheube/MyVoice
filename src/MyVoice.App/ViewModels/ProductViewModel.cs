@@ -51,6 +51,7 @@ public partial class MainViewModel
         if(!Settings.Animations&&Product.Motion=="Full")Product.Motion="Off";
         foreach(var preset in Product.Presets)DesignedVoices.Add(preset);
         graph.Processor.Designed=Product.Presets.FirstOrDefault(p=>p.Id==Settings.ActiveDesignedVoiceId);
+        foreach(var preset in Presets)preset.Selected=!Settings.ActiveAiVoice&&graph.Processor.Designed==null&&preset.Name==CurrentPreset;
         ProductAppearance.Apply(Product);
         ShowWelcome=!Product.OnboardingCompleted;
         InitializeCommunity();Page=4;
@@ -86,7 +87,8 @@ public partial class MainViewModel
     {
         if(voice==null)return;
         SelectPreset(Presets.FirstOrDefault(p=>p.Name==voice.Base)??Presets[0]);
-        graph.Processor.Designed=voice;Settings.LastDesignedVoiceId=voice.Id;Settings.ActiveDesignedVoiceId=voice.Id;
+        foreach(var preset in Presets)preset.Selected=false;
+        Settings.LastVoiceIsAi=false;graph.Processor.Designed=voice;Settings.LastDesignedVoiceId=voice.Id;Settings.ActiveDesignedVoiceId=voice.Id;
         OnPropertyChanged(nameof(DisplayVoice));OnPropertyChanged(nameof(VoiceSwitchLabel));Save();ShowToast(voice.Name+" activée");
     }
 }

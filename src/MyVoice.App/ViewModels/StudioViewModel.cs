@@ -303,7 +303,8 @@ public partial class MainViewModel
         if (preset == null)
             return;
         StopLive(); Settings.ActiveAiVoice=false;
-        graph.Processor.Designed=null;Settings.ActiveDesignedVoiceId=null;Settings.LastDesignedVoiceId=null;
+        graph.Processor.Designed=null;Settings.ActiveDesignedVoiceId=null;
+        if(preset.Name!="Clean")Settings.LastDesignedVoiceId=null;
         Settings.VoicePreset = preset.Name;
         if(preset.Name!="Clean"){Settings.LastModifiedVoice=preset.Name;Settings.LastVoiceIsAi=false;}
         OnPropertyChanged(nameof(VoiceSwitchLabel));
