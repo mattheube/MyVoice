@@ -2,7 +2,9 @@ name: Publish MyVoice website
 on:
   push:
     branches: [main]
-    paths: ['website/**', '.github/workflows/pages.yml']
+    paths: ['website/**', 'publishing/Prepare-Website.mjs', '.github/workflows/pages.yml']
+  release:
+    types: [published]
   workflow_dispatch:
 permissions:
   contents: read
@@ -19,6 +21,12 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: main
+      - name: Resolve official Beta channel
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node publishing/Prepare-Website.mjs
       - uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b
       - uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa
         with:
