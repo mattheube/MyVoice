@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 namespace MyVoice.Updater;
 public sealed record ReleaseManifest(string Version,string Installer="",string Sha256="")
 {
+    public string Tag {get;init;}="";
     public string DownloadUrl {get;init;}="";
     public string ReleaseUrl {get;init;}="";
     public string Channel {get;init;}="stable";
@@ -15,6 +16,7 @@ public sealed record DownloadProgress(long Received,long? Total);
 public static class DistributionDefaults
 {
     public const string Repository="mattheube/MyVoice";
+    public const string BetaManifestUrl="https://mattheube.github.io/MyVoice/updates/beta.json";
     public const string ManifestUrl="https://github.com/"+Repository+"/releases/latest/download/manifest.json";
 }
 /// <summary>Stages verified release files. Does not install or execute downloaded content.</summary>
@@ -46,13 +48,16 @@ public sealed class UpdateService : IDisposable
     public static ReleaseManifest Validate(ReleaseManifest release,string source)
     {
         if(!System.Version.TryParse(release.Version,out _)||!Regex.IsMatch(release.Version,@"^\d+\.\d+\.\d+(\.\d+)?$")||!Regex.IsMatch(release.Sha256??"","^[a-fA-F0-9]{64}$"))throw new InvalidDataException("Manifeste de version invalide");
-        if(release.Channel!="stable"||!System.Version.TryParse(release.MinimumVersion,out _))throw new InvalidDataException("Canal ou version minimale invalide");
+        if(release.Channel is not ("stable" or "beta")||!System.Version.TryParse(release.MinimumVersion,out _))throw new InvalidDataException("Canal ou version minimale invalide");
         release=release with{Installer=string.IsNullOrWhiteSpace(release.DownloadUrl)?release.Installer:release.DownloadUrl};
         if(string.IsNullOrWhiteSpace(release.Installer))throw new InvalidDataException("Fichier de mise à jour absent");
-        if(source==DistributionDefaults.ManifestUrl)
+        if(source==DistributionDefaults.ManifestUrl||source==DistributionDefaults.BetaManifestUrl)
         {
             var prefix="https://github.com/"+DistributionDefaults.Repository+"/releases/";
-            if(release.Installer!=prefix+"download/v"+release.Version+"/MyVoiceSetup.exe"||release.ReleaseUrl!=prefix+"tag/v"+release.Version)throw new InvalidDataException("La version ne correspond pas à la release officielle");
+            var tag=string.IsNullOrEmpty(release.Tag)?"v"+release.Version:release.Tag;
+            var beta=source==DistributionDefaults.BetaManifestUrl;
+            if(release.Channel!=(beta?"beta":"stable")||!(beta?Regex.IsMatch(tag,"^v"+Regex.Escape(release.Version)+@"-beta\.[1-9][0-9]*$"):tag=="v"+release.Version))throw new InvalidDataException("Canal de release incohérent");
+            if(release.Installer!=prefix+"download/"+tag+"/MyVoiceSetup.exe"||release.ReleaseUrl!=prefix+"tag/"+tag)throw new InvalidDataException("La version ne correspond pas à la release officielle");
         }
         return release;
     }

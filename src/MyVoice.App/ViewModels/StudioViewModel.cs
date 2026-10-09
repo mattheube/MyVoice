@@ -216,7 +216,7 @@ public partial class MainViewModel
         PresetView = CollectionViewSource.GetDefaultView(Presets);
         PresetView.Filter = o => o is PresetCard p && (!FavoritesOnly || Settings.FavoriteVoices.Contains(p.Name)) && (string.IsNullOrEmpty(VoiceSearch) || p.Name.Contains(VoiceSearch, StringComparison.OrdinalIgnoreCase));
         SoundView = CollectionViewSource.GetDefaultView(SoundCards);
-        SoundView.Filter = o => o is SoundCard card && (SelectedFolder == null || card.Folder == SelectedFolder.Name) && (string.IsNullOrWhiteSpace(Search) || card.Name.Contains(Search, StringComparison.OrdinalIgnoreCase));
+        SoundView.Filter = o => o is SoundCard card && (!FavoriteSoundsOnly||Product.FavoriteSounds.Contains(card.Item.Id)) && (SelectedFolder == null || card.Folder == SelectedFolder.Name) && (string.IsNullOrWhiteSpace(Search) || card.Name.Contains(Search, StringComparison.OrdinalIgnoreCase));
         RefreshOutputs();
         loadingStudio = false;
         ConfigureOutputs();
@@ -303,6 +303,7 @@ public partial class MainViewModel
         if (preset == null)
             return;
         StopLive(); Settings.ActiveAiVoice=false;
+        graph.Processor.Designed=null;Settings.ActiveDesignedVoiceId=null;Settings.LastDesignedVoiceId=null;
         Settings.VoicePreset = preset.Name;
         if(preset.Name!="Clean"){Settings.LastModifiedVoice=preset.Name;Settings.LastVoiceIsAi=false;}
         OnPropertyChanged(nameof(VoiceSwitchLabel));
@@ -396,7 +397,7 @@ public partial class MainViewModel
     [RelayCommand]
     private void ShowRouting()
     {
-        Page = 3;
+        Page = 6;
         Status = T["VirtualHelp"];
     }
     [RelayCommand] private void OpenCableWebsite() => System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("https://vb-audio.com/Cable/") { UseShellExecute = true });

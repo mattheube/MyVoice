@@ -3,6 +3,8 @@ using System.Text.Json.Serialization;
 namespace MyVoice.Core;
 public sealed partial class AppSettings
 {
+    public string? ActiveDesignedVoiceId {get;set;}
+    public string? LastDesignedVoiceId {get;set;}
     public bool LastVoiceIsAi {get;set;}
     public string? LastAiVoiceId {get;set;}
     public string AiModel { get; set; } = "conversation";
@@ -10,6 +12,7 @@ public sealed partial class AppSettings
     public bool DeveloperMode {get;set;}
     public DateTime? LastUpdateCheck {get;set;}
     public string LastKnownVersion {get;set;} = "";
+    public string LastKnownReleaseTag {get;set;} = "";
     public string LastUpdateSource {get;set;} = "";
     public string UpdateChannel {get;set;} = "stable";
     public string AiExpression { get; set; } = "adaptive";

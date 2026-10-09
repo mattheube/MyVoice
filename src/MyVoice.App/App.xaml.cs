@@ -42,7 +42,7 @@ public partial class App : Application
                 var original=Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),"MyVoice");
                 foreach(var folder in new[]{"config","soundboards","voices"})foreach(var file in Directory.GetFiles(Path.Combine(original,folder),"*.json"))File.Copy(file,Path.Combine(store.Root,folder,Path.GetFileName(file)),true);
             }
-            store.Log("Starting MyVoice 2.2.0");
+            store.Log("Starting MyVoice 2.3.0 beta");
             DispatcherUnhandledException += (_, args) => { store.Log(args.Exception.ToString()); MessageBox.Show(vm?.T["Error"] ?? "MyVoice could not continue.", "MyVoice"); args.Handled = true; ExitApplication(); };
             vm = new MainViewModel(store, new MicrophoneService(), !smoke);
             if(smoke && e.Args.Contains("--audio-startup")){vm.Settings.AutoStartAi=false;vm.StartServices();if(!vm.Running)throw new Exception("Automatic microphone failed");store.Log("PASS automatic microphone startup");}
@@ -84,7 +84,8 @@ public partial class App : Application
             await Task.Delay(700);
             var folder = args.SkipWhile(x => x != "--smoke-test").Skip(1).FirstOrDefault() ?? Path.GetTempPath();
             Directory.CreateDirectory(folder);
-            for (int page = 0; page < 4; page++)
+            vm!.ShowWelcome=false;
+            for (int page = 0; page < 8; page++)
             {
                 vm!.Page = page;
                 if (page == 1 && vm.SoundCards.Count > 0)
@@ -107,9 +108,9 @@ public partial class App : Application
                 encoder.Save(file);
             }
             if(args.Contains("--ui-details")) await VerifyImageUi(window,folder);
-            window.Width=1000;window.Height=700;vm!.UiScale=1.25;vm.Page=3;await Task.Delay(180);window.UpdateLayout();
+            window.Width=1000;window.Height=700;vm!.UiScale=1.5;vm.Page=3;await Task.Delay(180);window.UpdateLayout();
             var compact=new RenderTargetBitmap((int)window.ActualWidth,(int)window.ActualHeight,96,96,PixelFormats.Pbgra32);compact.Render(window);
-            var compactEncoder=new PngBitmapEncoder();compactEncoder.Frames.Add(BitmapFrame.Create(compact));using(var compactFile=File.Create(Path.Combine(folder,"compact-125.png")))compactEncoder.Save(compactFile);
+            var compactEncoder=new PngBitmapEncoder();compactEncoder.Frames.Add(BitmapFrame.Create(compact));using(var compactFile=File.Create(Path.Combine(folder,"compact-150.png")))compactEncoder.Save(compactFile);
             if(args.Contains("--engine-startup"))
             {
                 await vm!.StartAiCommand.ExecuteAsync(null);
@@ -148,7 +149,7 @@ public partial class App : Application
             window.Reveal();
             if (!window.IsVisible)
                 throw new Exception("Tray restore failed");
-            File.WriteAllText(Path.Combine(folder, "smoke-result.txt"), "PASS: 4 pages rendered; English loaded; settings round trip; global hotkey registered and conflict rejected; close-to-tray and restore; clean exit.\n" + store!.Root);
+            File.WriteAllText(Path.Combine(folder, "smoke-result.txt"), "PASS: 8 pages rendered; English loaded; settings round trip; global hotkey registered and conflict rejected; close-to-tray and restore; clean exit.\n" + store!.Root);
             store.Log("Smoke test passed");
             ExitApplication();
         }

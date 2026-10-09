@@ -23,11 +23,11 @@ public partial class MainWindow : Window
     }
     private void Changed(object? sender, PropertyChangedEventArgs e)
     {
-        if(e.PropertyName==nameof(vm.NowPlayingVisible)&&vm.NowPlayingVisible&&vm.Animations)PlayerPanel.BeginAnimation(OpacityProperty,new DoubleAnimation(0,1,TimeSpan.FromMilliseconds(180)));
+        if(e.PropertyName==nameof(vm.NowPlayingVisible)&&vm.NowPlayingVisible&&ProductAppearance.Animate)PlayerPanel.BeginAnimation(OpacityProperty,new DoubleAnimation(0,1,TimeSpan.FromMilliseconds(180)));
         if (e.PropertyName == nameof(vm.Page))
         {
             PageScroller.ScrollToTop();
-            if (vm.Animations)
+            if (ProductAppearance.Animate)
                 PageHost.BeginAnimation(OpacityProperty, new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(160)));
         }
     }
@@ -51,11 +51,14 @@ public partial class MainWindow : Window
         if (!((App)Application.Current).Exiting)
             ((App)Application.Current).ExitApplication();
     }
+    private void MinimizeClick(object sender,RoutedEventArgs e)=>SystemCommands.MinimizeWindow(this);
+    private void MaximizeClick(object sender,RoutedEventArgs e){if(WindowState==WindowState.Maximized)SystemCommands.RestoreWindow(this);else SystemCommands.MaximizeWindow(this);}
+    private void CloseClick(object sender,RoutedEventArgs e)=>Close();
     private void ExitClick(object sender, RoutedEventArgs e) => ((App)Application.Current).ExitApplication();
     public void Reveal()
     {
         Show();
-        WindowState = WindowState.Normal;
+        if(WindowState==WindowState.Minimized)WindowState = vm.Settings.WindowMaximized?WindowState.Maximized:WindowState.Normal;
         Activate();
     }
 }

@@ -43,7 +43,7 @@ public sealed partial class AppSettings
         MonitoringVolume = double.IsFinite(MonitoringVolume) ? Math.Max(0,MonitoringVolume) : .5;
         SoundboardVolume = double.IsFinite(SoundboardVolume) ? Math.Max(0,SoundboardVolume) : 1;
         VoiceIntensity = Math.Clamp(VoiceIntensity, 0, 1);
-        UiScale = Math.Clamp(UiScale, .85, 1.3);
+        UiScale = Math.Clamp(UiScale, .85, 1.5);
         Processing ??= new();
         FavoriteVoices ??= new();
         Shortcuts ??= new();

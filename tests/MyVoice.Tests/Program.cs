@@ -81,3 +81,5 @@ if (args.Contains("--hardware"))
 
 
 
+
+ProductTests.Run();

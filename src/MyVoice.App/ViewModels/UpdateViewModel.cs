@@ -10,16 +10,18 @@ using MyVoice.App.Services;
 namespace MyVoice.App.ViewModels;
 public partial class MainViewModel
 {
-    public string ApplicationVersion => "MyVoice · " + (Assembly.GetExecutingAssembly().GetName().Version?.ToString(3) ?? "2.0.1");
+    public string InstalledRelease => Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion.Split('+')[0]??"2.3.0-beta.1";
+    public string ApplicationVersion => "MyVoice · " + (Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion.Split('+')[0] ?? "2.3.0-beta.1");
     public string UpdateAvailability => string.IsNullOrWhiteSpace(UpdateSource) ? "Les mises à jour automatiques seront activées lorsque le dépôt de publication sera configuré." : "Distribution GitHub Releases · téléchargement vérifié, installation manuelle.";
     private string? downloadedUpdate;
     [ObservableProperty] private double updateProgress;
     public string LatestVersion=>string.IsNullOrEmpty(Settings.LastKnownVersion)?"Non vérifiée":Settings.LastKnownVersion;
     public string LastChecked=>Settings.LastUpdateCheck?.ToLocalTime().ToString("g")??"Jamais";
-    public string UpdateChannel=>"Stable";
+    public string[] UpdateChannels {get;}=["Stable","Beta"];
+    public string UpdateChannel {get=>Settings.UpdateChannel=="beta"?"Beta":"Stable";set{Settings.UpdateChannel=value=="Beta"?"beta":"stable";Changed(nameof(UpdateChannel));OnPropertyChanged(nameof(UpdateSource));}}
     public async Task CheckStartupUpdatesAsync()
     {
-        if(Settings.LastUpdateSource==UpdateSource && Settings.LastUpdateCheck is {} checkedAt && DateTime.UtcNow-checkedAt<TimeSpan.FromHours(6) && Version.TryParse(Settings.LastKnownVersion,out var last) && last<=(Assembly.GetExecutingAssembly().GetName().Version??new Version(0,0)))
+        if(Settings.LastUpdateSource==UpdateSource && Settings.LastUpdateCheck is {} checkedAt && DateTime.UtcNow-checkedAt<TimeSpan.FromHours(6) && Version.TryParse(Settings.LastKnownVersion,out _) && !ReleaseVersion.IsNewer(Settings.LastKnownVersion,Settings.LastKnownReleaseTag,InstalledRelease))
         {UpdateStatus="Dernière vérification : "+LastChecked+" · "+LatestVersion;return;}
         await CheckUpdatesCommand.ExecuteAsync(null);
     }
@@ -27,7 +29,7 @@ public partial class MainViewModel
     [ObservableProperty] private bool canInstallUpdate;
     public string UpdateSource
     {
-        get => string.IsNullOrWhiteSpace(Settings.UpdateManifestUrl)?DistributionDefaults.ManifestUrl:Settings.UpdateManifestUrl; set
+        get => Settings.UpdateChannel=="beta"?DistributionDefaults.BetaManifestUrl:DistributionDefaults.ManifestUrl; set
         {
             Settings.UpdateManifestUrl = value;
             Changed(nameof(UpdateSource));
@@ -53,7 +55,7 @@ public partial class MainViewModel
     {
         get => Settings.UiScale; set
         {
-            Settings.UiScale = Math.Clamp(value, .85, 1.3);
+            Settings.UiScale = Math.Clamp(value, .85, 1.5);
             Changed(nameof(UiScale));
         }
     }
@@ -73,9 +75,9 @@ public partial class MainViewModel
             using var updater=new UpdateService();
             var release=await updater.ReadManifestAsync(UpdateSource,lifetime.Token);
             var current=Assembly.GetExecutingAssembly().GetName().Version??new Version(0,0);
-            Settings.LastUpdateCheck=DateTime.UtcNow;Settings.LastKnownVersion=release.Version;Settings.LastUpdateSource=UpdateSource;
+            Settings.LastUpdateCheck=DateTime.UtcNow;Settings.LastKnownVersion=release.Version;Settings.LastKnownReleaseTag=release.Tag;Settings.LastUpdateSource=UpdateSource;
             OnPropertyChanged(nameof(LatestVersion));OnPropertyChanged(nameof(LastChecked));Save();
-            if(Version.Parse(release.Version)<=current){UpdateStatus="À jour · "+release.Version;return;}
+            if(!ReleaseVersion.IsNewer(release.Version,release.Tag,InstalledRelease)){UpdateStatus="Aucune mise à jour plus récente sur le canal "+UpdateChannel;return;}
             if(current<Version.Parse(release.MinimumVersion)){UpdateStatus="Version intermédiaire requise : "+release.MinimumVersion;return;}
             UpdateStatus="Téléchargement de MyVoice "+release.Version;
             downloadedUpdate=await updater.DownloadAsync(release,UpdateSource,Path.Combine(store.Root,"cache","updates"),lifetime.Token,

@@ -12,7 +12,7 @@ public static class UserDataBackup
         if (File.Exists(complete)) return destination;
         Directory.CreateDirectory(destination);
         var hashes = new Dictionary<string, string>();
-        foreach (var folder in new[] { "config", "soundboards", "sounds", "images", "voices", "voice-models", "datasets" })
+        foreach (var folder in new[] { "config", "soundboards", "sounds", "images", "voices", "voice-models", "datasets", "packages" })
         {
             var source = Path.Combine(root, folder);
             if (!Directory.Exists(source)) continue;

@@ -19,7 +19,7 @@ public sealed class SignalHistory : FrameworkElement
     public SignalHistory()
     {
         var timer = new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromMilliseconds(50) };
-        timer.Tick += (_, _) => { Array.Copy(levels, 1, levels, 0, 69); levels[69] = Math.Clamp(Level / 100, 0, 1); InvalidateVisual(); };
+        timer.Tick += (_, _) => { if(!IsVisible)return; Array.Copy(levels, 1, levels, 0, 69); levels[69] = Math.Clamp(Level / 100, 0, 1); InvalidateVisual(); };
         Loaded += (_, _) => timer.Start();
         Unloaded += (_, _) => timer.Stop();
     }
@@ -30,7 +30,7 @@ public sealed class SignalHistory : FrameworkElement
     {
         base.OnRender(dc);
         double center = ActualHeight / 2;
-        var pen = new Pen(new SolidColorBrush(Color.FromRgb(224, 173, 98)), 2);
+        var pen = new Pen((Brush)(TryFindResource("AccentBrush")??Brushes.MediumPurple), 2);
         var grid = new Pen(new SolidColorBrush(Color.FromRgb(54, 54, 56)), 1);
         dc.DrawLine(grid, new(0, center), new(ActualWidth, center));
         for (int i = 0; i < 70; i++)

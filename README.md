@@ -1,6 +1,13 @@
-# MyVoice 2.2
+# MyVoice 2.3 Beta
 
 Application Windows WPF de transformation vocale locale et soundboard.
+
+
+[Site officiel](https://mattheube.github.io/MyVoice/) · [Stable 2.2.0](https://github.com/mattheube/MyVoice/releases/tag/v2.2.0) · [Beta 2.3.0-beta.1](https://github.com/mattheube/MyVoice/releases/tag/v2.3.0-beta.1)
+
+La Beta introduit une nouvelle identité MV, huit espaces, quatre thèmes, un dock global et Voice Designer. Les moteurs IA existants sont conservés. Voir les [notes et limites de la Beta](publishing/Release-notes.md).
+
+**Community n’est pas encore en ligne.** L’interface locale, les migrations Supabase et la fonction de distribution de packages sont préparées. Le propriétaire doit connecter un projet avant d’activer les comptes, les suivis et les publications. [Procédure](backend/README.md).
 
 ## Trois modes IA
 

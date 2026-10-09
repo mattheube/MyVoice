@@ -4,6 +4,12 @@ namespace MyVoice.Audio;
 public sealed class VoiceProcessor
 {
     public ProcessingSettings Settings { get; set; } = new();
+    public DesignedVoice? Designed {get;set;}
+    private DesignedVoice? lastDesigned;
+    private BiQuadFilter? designedBass,designedMid,designedTreble;
+    private readonly SmbPitchShifter designedShifter=new();
+    private readonly float[] designedDelay=new float[48000];
+    private int designedPosition;
     public string Preset { get; set; } = "Clean";
     public bool Enabled { get; set; } = true;
     public double Intensity { get; set; } = 1;
@@ -61,8 +67,8 @@ public sealed class VoiceProcessor
             samples[i] = (float)x;
             dry[i] = (float)x;
         }
-        if (!effect || !Enabled || Preset == "Clean")
-            return;
+        if (!effect || !Enabled)return;
+        if(Preset=="Clean"){ApplyDesigned(samples);return;}
         var pitch = Preset switch
         {
             "Deep" => .75f,
@@ -93,6 +99,15 @@ public sealed class VoiceProcessor
                 x += echo * (Preset == "Echo" ? .45f : .18f);
             samples[i] = (float)(dry[i] * (1 - Intensity) + x * Intensity);
         }
+        ApplyDesigned(samples);
+    }
+    private void ApplyDesigned(float[] samples)
+    {
+        var d=Designed;if(d==null)return;
+        if(lastDesigned!=d){designedBass=BiQuadFilter.LowShelf(48000,180,1,(float)Math.Clamp(d.Bass,-12,12));designedMid=BiQuadFilter.PeakingEQ(48000,1400,.7f,(float)Math.Clamp(d.Mid,-12,12));designedTreble=BiQuadFilter.HighShelf(48000,5000,1,(float)Math.Clamp(d.Treble,-12,12));Array.Clear(designedDelay);lastDesigned=d;}
+        Array.Copy(samples,dry,samples.Length);
+        if(d.Pitch!=1)designedShifter.PitchShift((float)Math.Clamp(d.Pitch,.5,2),samples.Length,1024,4,48000,samples);
+        for(int i=0;i<samples.Length;i++){float x=designedTreble!.Transform(designedMid!.Transform(designedBass!.Transform(samples[i])));if(d.Distortion>0)x=(float)(Math.Tanh(x*(1+Math.Clamp(d.Distortion,0,1)*10))/(1+Math.Clamp(d.Distortion,0,1)*2));var echo=designedDelay[(designedPosition+33600)%48000];designedDelay[designedPosition]=x+echo*.2f;designedPosition=(designedPosition+1)%48000;x+=echo*(float)Math.Clamp(d.Delay,0,1);samples[i]=(float)(dry[i]*(1-Math.Clamp(d.Mix,0,1))+x*Math.Clamp(d.Mix,0,1));}
     }
 }
 /// <summary>Local spectral subtraction, 1024-point STFT / 256-sample hop. No model or cloud.</summary>

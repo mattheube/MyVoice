@@ -76,10 +76,7 @@ public sealed partial class AppSettings
     {
         get; set;
     }
-    public bool LaunchAtStartup
-    {
-        get; set;
-    }
+    public bool LaunchAtStartup {get;set;} = true;
     public bool Animations { get; set; } = true;
     public string Language { get; set; } = "fr";
     public uint HotkeyModifiers

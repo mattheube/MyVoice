@@ -5,6 +5,24 @@ using System.Windows.Media;
 namespace MyVoice.App.Services;
 public sealed class CoverImage : Image
 {
+    public static readonly DependencyProperty FilePathProperty=DependencyProperty.Register(nameof(FilePath),typeof(string),typeof(CoverImage),new PropertyMetadata(null,FileChanged));
+    public string? FilePath {get=>(string?)GetValue(FilePathProperty);set=>SetValue(FilePathProperty,value);}
+    private int generation;
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<string,System.Windows.Media.Imaging.BitmapImage> Thumbnails=new();
+    private static async void FileChanged(DependencyObject obj,DependencyPropertyChangedEventArgs args)
+    {
+        var image=(CoverImage)obj;var current=++image.generation;image.Source=null;
+        if(args.NewValue is not string file||!System.IO.File.Exists(file))return;
+        try{
+            var key=file+System.IO.File.GetLastWriteTimeUtc(file).Ticks;
+            if(!Thumbnails.TryGetValue(key,out var bitmap)){
+                bitmap=await System.Threading.Tasks.Task.Run(()=>{var b=new System.Windows.Media.Imaging.BitmapImage();b.BeginInit();b.CacheOption=System.Windows.Media.Imaging.BitmapCacheOption.OnLoad;b.DecodePixelWidth=384;b.UriSource=new Uri(System.IO.Path.GetFullPath(file));b.EndInit();b.Freeze();return b;});
+                if(Thumbnails.Count>96)Thumbnails.Clear();Thumbnails[key]=bitmap;
+            }
+            if(current==image.generation)image.Source=bitmap;
+        }catch{if(current==image.generation)image.Source=null;}
+    }
+
     public static readonly DependencyProperty CircularProperty = DependencyProperty.Register(nameof(Circular), typeof(bool), typeof(CoverImage), new FrameworkPropertyMetadata(false, FrameworkPropertyMetadataOptions.AffectsRender));
     public bool Circular { get => (bool)GetValue(CircularProperty); set => SetValue(CircularProperty, value); }
     protected override void OnRender(DrawingContext dc)

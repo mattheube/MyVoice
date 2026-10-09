@@ -9,3 +9,8 @@ releases/
 *.pyc
 
 *_wpftmp.csproj
+**/node_modules/
+*.myvoice
+*.session
+.env
+.env.*

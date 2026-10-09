@@ -109,6 +109,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
         timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(40) };
         timer.Tick += (_, _) => Tick();
         InitializeStudio();
+        InitializeProduct();
         timer.Start();
         mic.Faulted += OnFault;
         mic.DevicesChanged += OnDevicesChanged;
@@ -355,7 +356,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
             hotkey.Pressed -= OnHotkey;
         mic.Faulted -= OnFault;
         mic.DevicesChanged -= OnDevicesChanged;
-        DisposeStudio();
+        community?.Dispose();DisposeStudio();
         mic.Dispose();
         Save();
     }

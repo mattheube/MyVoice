@@ -1,0 +1,5 @@
+project_id = "myvoice"
+[functions.community-package]
+verify_jwt = false
+# The function validates the user with Auth before every mutation.
+# Anonymous GET is allowed only after the database authorizes public/unlisted content.
