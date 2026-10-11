@@ -6,15 +6,34 @@ on:
   release:
     types: [published]
   workflow_dispatch:
+    inputs:
+      refresh_from_release:
+        description: 'Test the release-to-main refresh path'
+        type: boolean
+        default: false
 permissions:
   contents: read
-  pages: write
-  id-token: write
 concurrency:
-  group: pages
+  group: pages-${{ (github.event_name == 'release' || inputs.refresh_from_release) && 'request' || 'deploy' }}
   cancel-in-progress: true
 jobs:
+  refresh:
+    if: github.event_name == 'release' || inputs.refresh_from_release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: write
+    steps:
+      - name: Request deployment from the authorized main branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run pages.yml --repo "$GITHUB_REPOSITORY" --ref main
   deploy:
+    if: github.event_name != 'release' && !inputs.refresh_from_release
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
     runs-on: ubuntu-latest
     environment:
       name: github-pages

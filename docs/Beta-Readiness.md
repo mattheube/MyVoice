@@ -1,8 +1,8 @@
-# État vérifié de la Beta 2.3
+# État vérifié de la Beta 2.4
 
 ## Disponible localement
 
-Nouvelle navigation, identité MV et dock ; thèmes, accents et mouvements ; profil local ; recadrage ; Mic Setup ; Voice Designer ; favoris Soundboard ; packages Soundboard et presets avec validation ; sélection Stable/Beta ; site GitHub Pages. Les trois moteurs IA restent ceux de 2.2.0.
+Mixer avec capture Windows, matrice, profils locaux et WAV (voir [architecture et validation](Mixer-Architecture.md)) ; nouveau symbole MyVoice ; navigation et dock ; thèmes, accents et mouvements ; profil local ; recadrage ; Mic Setup ; Voice Designer ; favoris Soundboard ; packages Soundboard et presets avec validation ; sélection Stable/Beta ; site GitHub Pages. Les trois moteurs IA restent ceux de 2.2.0.
 
 Les données utilisateur ne sont pas livrées avec les binaires. `config/product.json` est additif ; une copie des anciens catalogues précède sa création. Les packages installés sont désormais inclus dans les sauvegardes de version.
 
