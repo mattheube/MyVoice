@@ -21,6 +21,7 @@ public partial class App : Application
     }
     protected override async void OnStartup(StartupEventArgs e)
     {
+        Services.WindowsIdentity.Initialize();
         base.OnStartup(e);
         var smoke = e.Args.Contains("--smoke-test");
         instance = new Mutex(true, smoke ? "Local\\MyVoice.Smoke" : "Local\\MyVoice.App", out ownsMutex);
@@ -42,7 +43,7 @@ public partial class App : Application
                 var original=Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),"MyVoice");
                 foreach(var folder in new[]{"config","soundboards","voices"})foreach(var file in Directory.GetFiles(Path.Combine(original,folder),"*.json"))File.Copy(file,Path.Combine(store.Root,folder,Path.GetFileName(file)),true);
             }
-            store.Log("Starting MyVoice 2.3.0 beta");
+            store.Log("Starting MyVoice 2.4.0 beta");
             DispatcherUnhandledException += (_, args) => { store.Log(args.Exception.ToString()); MessageBox.Show(vm?.T["Error"] ?? "MyVoice could not continue.", "MyVoice"); args.Handled = true; ExitApplication(); };
             vm = new MainViewModel(store, new MicrophoneService(), !smoke);
             if(smoke && e.Args.Contains("--audio-startup")){vm.Settings.AutoStartAi=false;vm.StartServices();if(!vm.Running)throw new Exception("Automatic microphone failed");store.Log("PASS automatic microphone startup");}
@@ -58,7 +59,7 @@ public partial class App : Application
             }
             var window = new MainWindow(vm);
             MainWindow = window;
-            tray = new Forms.NotifyIcon { Icon = new System.Drawing.Icon(Path.Combine(AppContext.BaseDirectory, "MyVoice.ico")), Text = "MyVoice", Visible = true };
+            tray = new Forms.NotifyIcon { Icon = new System.Drawing.Icon(Path.Combine(AppContext.BaseDirectory, "MyVoice.Tray.ico")), Text = "MyVoice", Visible = true };
             vm.PropertyChanged += (_, args) => { if (args.PropertyName == nameof(vm.Muted) && vm.Running && vm.Notifications) { tray.Text = "MyVoice · " + vm.MicState; tray.ShowBalloonTip(1200, "MyVoice", vm.MicState, Forms.ToolTipIcon.None); } };
             var menu = new Forms.ContextMenuStrip();
             menu.Opening += (_, _) => { menu.Items.Clear(); menu.Items.Add(vm.T["Open"], null, (_, _) => window.Reveal()); var mute = menu.Items.Add(vm.MicState, null, (_, _) => vm.ToggleMute()); mute.Enabled = vm.Running; menu.Items.Add(vm.T["HearMyself"], null, (_, _) => vm.HearMyself = !vm.HearMyself); menu.Items.Add(vm.T["VoiceEnabled"], null, (_, _) => vm.VoiceEnabled = !vm.VoiceEnabled); menu.Items.Add(vm.T["StopAll"], null, (_, _) => vm.StopAllSounds()); menu.Items.Add(new Forms.ToolStripSeparator()); menu.Items.Add(vm.T["Exit"], null, (_, _) => ExitApplication()); };
@@ -85,7 +86,7 @@ public partial class App : Application
             var folder = args.SkipWhile(x => x != "--smoke-test").Skip(1).FirstOrDefault() ?? Path.GetTempPath();
             Directory.CreateDirectory(folder);
             vm!.ShowWelcome=false;
-            for (int page = 0; page < 8; page++)
+            for (int page = 0; page < 9; page++)
             {
                 vm!.Page = page;
                 if (page == 1 && vm.SoundCards.Count > 0)
@@ -107,7 +108,7 @@ public partial class App : Application
                 using var file = File.Create(Path.Combine(folder, $"page-{page}.png"));
                 encoder.Save(file);
             }
-            if(args.Contains("--ui-details")){await VerifyImageUi(window,folder);VerifyProductUi(folder);}
+            if(args.Contains("--ui-details")){await VerifyImageUi(window,folder);VerifyProductUi(folder);await VerifyMixerUi(window,folder);}
             window.Width=1000;window.Height=700;vm!.UiScale=1.5;vm.Page=3;await Task.Delay(180);window.UpdateLayout();
             var compact=new RenderTargetBitmap((int)window.ActualWidth,(int)window.ActualHeight,96,96,PixelFormats.Pbgra32);compact.Render(window);
             var compactEncoder=new PngBitmapEncoder();compactEncoder.Frames.Add(BitmapFrame.Create(compact));using(var compactFile=File.Create(Path.Combine(folder,"compact-150.png")))compactEncoder.Save(compactFile);
@@ -149,7 +150,7 @@ public partial class App : Application
             window.Reveal();
             if (!window.IsVisible)
                 throw new Exception("Tray restore failed");
-            File.WriteAllText(Path.Combine(folder, "smoke-result.txt"), "PASS: 8 pages rendered; English loaded; settings round trip; global hotkey registered and conflict rejected; close-to-tray and restore; clean exit.\n" + store!.Root);
+            File.WriteAllText(Path.Combine(folder, "smoke-result.txt"), "PASS: 9 pages rendered; English loaded; settings round trip; global hotkey registered and conflict rejected; close-to-tray and restore; clean exit.\n" + store!.Root);
             store.Log("Smoke test passed");
             ExitApplication();
         }

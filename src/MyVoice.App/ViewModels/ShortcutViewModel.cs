@@ -6,10 +6,10 @@ using MyVoice.App.Services;
 namespace MyVoice.App.ViewModels;
 public partial class MainViewModel
 {
-    public string[] HotkeyTargets { get; } = ["Mute microphone", "Hear myself", "Stop all sounds", "Voice on/off", "Next voice", "Previous voice", "Open MyVoice", "Selected sound", "Selected voice"];
+    public string[] HotkeyTargets { get; } = ["Mute microphone", "Hear myself", "Stop all sounds", "Voice on/off", "Next voice", "Previous voice", "Open MyVoice", "Selected sound", "Selected voice", "Mixer · mute canal", "Mixer · solo canal", "Mixer · volume +", "Mixer · volume −", "Mixer · mute sortie", "Mixer · profil suivant", "Mixer · enregistrer / arrêter"];
     [ObservableProperty] private string hotkeyTarget = "Mute microphone";
     partial void OnHotkeyTargetChanged(string value) => OnPropertyChanged(nameof(HotkeyLabel));
-    private string ShortcutAction => HotkeyTarget switch { "Hear myself" => "monitor", "Stop all sounds" => "stop", "Voice on/off" => "effects", "Next voice" => "next", "Previous voice" => "previous", "Open MyVoice" => "open", "Selected sound" => SelectedSound == null ? "none" : "sound:" + SelectedSound.Item.Id, "Selected voice" => "voice:" + CurrentPreset, _ => "mute" };
+    private string ShortcutAction => HotkeyTarget switch { "Mixer · mute canal"=>"mixer:mute:"+SelectedMixerChannel?.Id,"Mixer · solo canal"=>"mixer:solo:"+SelectedMixerChannel?.Id,"Mixer · volume +"=>"mixer:up:"+SelectedMixerChannel?.Id,"Mixer · volume −"=>"mixer:down:"+SelectedMixerChannel?.Id,"Mixer · mute sortie"=>"mixer:output-mute:"+SelectedMixerOutput?.Id,"Mixer · profil suivant"=>"mixer:profile","Mixer · enregistrer / arrêter"=>"mixer:record", "Hear myself" => "monitor", "Stop all sounds" => "stop", "Voice on/off" => "effects", "Next voice" => "next", "Previous voice" => "previous", "Open MyVoice" => "open", "Selected sound" => SelectedSound == null ? "none" : "sound:" + SelectedSound.Item.Id, "Selected voice" => "voice:" + CurrentPreset, _ => "mute" };
     private string ReadShortcutLabel()
     {
         if (ShortcutAction == "mute")
@@ -37,6 +37,7 @@ public partial class MainViewModel
     public void ReleaseSound(SoundCard card) => sounds.Stop(card.Item.Id);
     private void OnStudioHotkey(string action)
     {
+        if(action.StartsWith("mixer:")){OnMixerHotkey(action);return;}
         if (action.StartsWith("sound:") && Guid.TryParse(action[6..], out var id))
         {
             var card = SoundCards.FirstOrDefault(s => s.Item.Id == id);

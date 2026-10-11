@@ -136,7 +136,8 @@ public sealed class SoundboardService : ISoundboardService, IDisposable
             voices.Remove(id);
         }
     }
-    public void Mix(Span<float> monitor, Span<float> virtualOut)
+    public void Mix(Span<float> monitor, Span<float> virtualOut)=>MixChannels(monitor,virtualOut,Span<float>.Empty);
+    public void MixChannels(Span<float> monitor, Span<float> virtualOut, Span<float> all)
     {
         lock (gate)
         {
@@ -171,6 +172,7 @@ public sealed class SoundboardService : ISoundboardService, IDisposable
                     for (int i = 0; i < total; i++)
                     {
                         float x = p.Buffer[i];
+                        if(!all.IsEmpty)all[i]+=x;
                         if (p.Item.HearMyself)
                             monitor[i] += x;
                         if (p.Item.SendToMic)

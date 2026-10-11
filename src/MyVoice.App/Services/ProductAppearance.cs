@@ -34,11 +34,22 @@ public static class ProductAppearance
 
 public sealed class BrandMark : FrameworkElement
 {
-    private static readonly Geometry Mark=Geometry.Parse("M 5,29 L 5,7 15,22 25,7 25,29 M 31,8 L 39,29 47,8");
+    private static readonly Geometry Mark=Geometry.Parse("F0 M 7,18 L 22,9 L 32,28 L 42,9 L 57,18 L 38,55 L 26,55 Z M 20,24 L 32,47 L 44,24 L 38,28 L 32,39 L 26,28 Z");
     protected override void OnRender(DrawingContext dc)
     {
-        dc.PushTransform(new ScaleTransform(ActualWidth/52,ActualHeight/36));
-        var pen=new Pen((Brush)(TryFindResource("AccentBrush")??Brushes.MediumPurple),3.7){StartLineCap=PenLineCap.Round,EndLineCap=PenLineCap.Round,LineJoin=PenLineJoin.Round};
+        var scale=System.Math.Min(ActualWidth,ActualHeight)/64;
+        dc.PushTransform(new TranslateTransform((ActualWidth-64*scale)/2,(ActualHeight-64*scale)/2));
+        dc.PushTransform(new ScaleTransform(scale,scale));
+        dc.DrawGeometry(new SolidColorBrush(Color.FromRgb(187,169,255)),null,Mark);dc.Pop();dc.Pop();
+    }
+}
+public sealed class BrandWordmark : FrameworkElement
+{
+    private static readonly Geometry Mark=Geometry.Parse("M 3,35 V 9 L 15,24 L 27,9 V 35 M 39,19 L 47,35 L 55,19 M 47,35 L 42,45 M 68,9 L 80,35 L 92,9 M 113,18 C 99,18 99,35 113,35 C 127,35 127,18 113,18 M 137,19 V 35 M 137,10 L 137,10.5 M 166,21 C 149,10 147,43 166,32 M 180,27 H 198 C 198,12 177,17 178,27 C 178,39 193,35 198,32");
+    protected override void OnRender(DrawingContext dc)
+    {
+        dc.PushTransform(new ScaleTransform(ActualWidth/204,ActualHeight/50));
+        var pen=new Pen((Brush)(TryFindResource("TextBrush")??Brushes.WhiteSmoke),3.8){StartLineCap=PenLineCap.Round,EndLineCap=PenLineCap.Round,LineJoin=PenLineJoin.Round};
         dc.DrawGeometry(null,pen,Mark);dc.Pop();
     }
 }

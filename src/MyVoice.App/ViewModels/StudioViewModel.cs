@@ -248,7 +248,7 @@ public partial class MainViewModel
     }
     private void ConfigureOutputs()
     {
-        if (loadingStudio || !enableOutputs) return;
+        if (loadingStudio || !enableOutputs || mixerStore!=null) return;
         try
         {
             graph.Configure(string.IsNullOrEmpty(MonitoringDevice?.Id) ? null : MonitoringDevice.Id, string.IsNullOrEmpty(VirtualDevice?.Id) ? null : VirtualDevice.Id);
@@ -398,7 +398,7 @@ public partial class MainViewModel
     [RelayCommand]
     private void ShowRouting()
     {
-        Page = 6;
+        Page = 8;
         Status = T["VirtualHelp"];
     }
     [RelayCommand] private void OpenCableWebsite() => System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("https://vb-audio.com/Cable/") { UseShellExecute = true });

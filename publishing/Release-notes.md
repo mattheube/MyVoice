@@ -1,25 +1,24 @@
-# MyVoice 2.3.0 Beta 1
+# MyVoice 2.4.0 Beta 1
 
-Première Beta de la nouvelle interface. La version stable 2.2.0 reste le téléchargement par défaut.
+Cette Beta ajoute un Mixer à l’application Windows. La version stable 2.2.0 reste le téléchargement par défaut.
 
-- Nouvelle identité MV, fenêtre et dock repensés ; navigation Home, Voice, Soundboard, Community, Studio, Mic Setup, Profile et Settings.
-- Quatre thèmes, accent personnalisable, mouvements réduits et zoom jusqu’à 150 %.
-- Voice Designer : pitch, égalisation, saturation, écho et mélange ; presets locaux exportables.
-- Favoris Soundboard, import/export de packages vérifiés et profil local avec avatar recadré.
-- Mic Setup regroupe les périphériques et le traitement audio, avec aides et réinitialisations ciblées.
-- Canal Beta volontaire, source officielle fixe, téléchargement vérifié et conservation des bibliothèques existantes.
-- Site officiel GitHub Pages et backend communautaire préparé avec tests de permissions.
+- Mixer distinct de Mic Setup : sources physiques/virtuelles, applications Windows et audio système ; les nouvelles sources sont ajoutées à l’arrêt avec une commande Capture explicite.
+- Volumes numériques, mute/solo, balance, EQ, filtre, compression, delay/reverb, niveaux peak/RMS et matrice vers Headphones, Virtual Mic, Stream, Recording et Master.
+- Sorties WASAPI et MME ; ASIO proposé si un driver est installé. Limiteur sur chaque bus, détection des boucles et conservation des périphériques indisponibles.
+- Enregistrement WAV 48 kHz stéréo float32, avec choix du fichier avant démarrage et écriture sur un worker dédié.
+- Profils locaux : sauvegarde, chargement, duplication, renommage, suppression, import/export sans identifiants matériels. Raccourcis et MIDI Learn pour niveaux, mute/solo et profils.
+- Nouveau symbole et wordmark MyVoice, icônes Windows à neuf tailles et variante tray. Le site officiel utilise cette identité.
+- Recherche des périphériques en arrière-plan et correction du défilement horizontal des tranches.
 
-Les moteurs IA Direct, Conversation et Expressive sont conservés : cette Beta ne modifie pas leurs algorithmes. Les anciennes voix, références, sons et paramètres restent locaux. La migration ajoute un fichier de préférences et sauvegarde les métadonnées existantes.
+Les voix, sons, références et réglages existants restent locaux. Le fichier Mixer est additif et récupère les anciens réglages de monitoring. Les moteurs IA Direct, Conversation et Expressive conservent leurs algorithmes.
 
-Validation : 115 contrôles C#, 19 scénarios SQL locaux, huit pages Windows rendues, recadrage rond/carré, réglages persistants, raccourcis et zone de notification. Site vérifié sur formats ordinateur et mobile. Les tests SQL ne remplacent pas un essai sur un projet Supabase réel.
+Validation locale : 145 contrôles C#, capture Windows isolant deux applications, capture système, retour de périphérique, véritable trajet CABLE Input → CABLE Output et neuf pages WPF. Les profils, volumes, recadrages, raccourcis, zone de notification et persistance ont aussi été exercés dans une copie du profil utilisateur.
 
-## Limites de cette Beta
+## Limites
 
-- **Comptes et Community non activés** : aucun projet Supabase n’est encore connecté. L’audio local fonctionne sans ce service. Le backend et sa procédure de déploiement sont dans le dépôt.
-- L’installation des mises à jour reste **manuelle** après téléchargement vérifié. L’application ne se remplace pas et ne se relance pas automatiquement.
-- Les packages partagent Soundboards et Voice Presets. Les voix IA dépendant de références privées ne sont pas exportées automatiquement.
-- Modération complète, suppression de compte, édition des publications et aperçu audio communautaire restent à compléter avant ouverture générale.
-- Installateur non signé sous Windows ; VB-CABLE reste une installation depuis son site officiel si nécessaire. La désinstallation conserve les données utilisateur.
-
-Les sauvegardes existantes doivent être conservées pendant l’essai. Merci de signaler les problèmes reproductibles avec la version et les étapes concernées, sans joindre vos enregistrements privés.
+- ASIO et contrôleur MIDI physique n’ont pas été testés sur matériel dédié. La file MIDI est testée avec des événements synthétiques.
+- WAV uniquement ; arrêt explicite avant la limite RIFF de 4 Go. Pas d’annulation d’écho acoustique ni de WDM/KS dans cette Beta. Les entrées restent en WASAPI ; le choix MME/ASIO concerne les sorties.
+- Capture par application : Windows build 20348 ou supérieur. Une application inactive reste indisponible jusqu’à sa reprise audio.
+- L’estimation de tampon n’est pas une mesure de latence de bout en bout ; le matériel, les modèles IA et le réseau ajoutent leur délai.
+- Community reste hors ligne tant qu’un projet Supabase n’est pas connecté.
+- Les mises à jour officielles sont recherchées et téléchargées avec vérification d’intégrité. Leur installation reste manuelle. L’installateur n’est pas signé ; VB-CABLE s’installe depuis son site officiel.

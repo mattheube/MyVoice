@@ -1,6 +1,8 @@
 using MyVoice.Core;
 using MyVoice.Infrastructure;
 using MyVoice.Audio;
+if(args.FirstOrDefault()=="--mixer-probe"){await MixerHardwareTests.PlayProbe(args);return;}
+if(args.Contains("--mixer-hardware")){await MixerHardwareTests.Run();return;}
 int passed = 0;
 void Test(string name, Action action) { action(); passed++; Console.WriteLine("PASS " + name); }
 void Assert(bool condition, string message = "assertion failed") { if (!condition) throw new Exception(message); }
@@ -83,3 +85,4 @@ if (args.Contains("--hardware"))
 
 
 ProductTests.Run();
+await MixerTests.Run();

@@ -114,6 +114,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
         mic.Faulted += OnFault;
         mic.DevicesChanged += OnDevicesChanged;
         Refresh();
+        InitializeMixer();
         if (store.RecoveryMessage != null)
             Status = T["Recovered"];
     }
@@ -138,6 +139,9 @@ public partial class MainViewModel : ObservableObject, IDisposable
         Clipping = level.Clipping;
         TickStudio();
         TickRecovery();
+        TickMixer();
+        TickMixerRecording();
+        TickMixerMidi();
     }
     partial void OnRunningChanged(bool value)
     {
@@ -156,6 +160,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
     {
         if (refreshingDevices) return;
         if (value != null) Settings.InputDeviceId = value.Id;
+        if(mixerStore!=null&&value!=null)SetMixerProfile(mixerState.Current with{Channels=mixerState.Current.Channels.Select(c=>c.Id=="mic"?c with{DeviceId=value.Id,DeviceName=value.Name}:c).ToList()});
         if (Running)
         {
             mic.Stop();
@@ -186,10 +191,12 @@ public partial class MainViewModel : ObservableObject, IDisposable
             graph.FlushMicrophone();
         }
         OnPropertyChanged(nameof(MicState));
+        SyncMixerLegacy(nameof(Muted));
         ScheduleSave();
     }
     private void Changed(string name)
     {
+        SyncMixerLegacy(name);
         OnPropertyChanged(name);
         ScheduleSave();
     }
@@ -206,6 +213,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
         try
         {
             store.Save(Settings);
+            mixerStore?.Save(mixerState);
         }
         catch (Exception e) { Error(e); }
     }
@@ -231,7 +239,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
             {
                 foreach (var removed in Devices.Where(d => !available.Any(a => a.Id == d.Id)).ToArray()) Devices.Remove(removed);
                 foreach (var device in available) if (!Devices.Any(d => d.Id == device.Id)) Devices.Add(device);
-                var selected = DeviceSelection.Physical(available, Settings.InputDeviceId);
+                var selected = string.IsNullOrEmpty(Settings.InputDeviceId)?DeviceSelection.Physical(available,null):available.FirstOrDefault(d=>d.Id==Settings.InputDeviceId);
                 if (SelectedDevice?.Id != selected?.Id) { mic.Stop(); Running = false; }
                 SelectedDevice = Devices.FirstOrDefault(d => d.Id == selected?.Id);
                 if (string.IsNullOrEmpty(Settings.InputDeviceId) && SelectedDevice != null) Settings.InputDeviceId = SelectedDevice.Id;
@@ -239,6 +247,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
             finally { refreshingDevices = false; }
             if (automaticAudio) EnsureMicrophone();
             if (Devices.Count == 0) Status = T["NoInput"];
+            else if(SelectedDevice==null)Status="Microphone sauvegardé indisponible · reconnectez-le ou choisissez une autre entrée dans Mic Setup.";
             store.Log($"Device enumeration: {Devices.Count} active capture devices");
         }
         catch (Exception e) { Error(e); }
@@ -356,7 +365,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
             hotkey.Pressed -= OnHotkey;
         mic.Faulted -= OnFault;
         mic.DevicesChanged -= OnDevicesChanged;
-        community?.Dispose();DisposeStudio();
+        mixerMidi.Dispose();community?.Dispose();DisposeStudio();
         mic.Dispose();
         Save();
     }

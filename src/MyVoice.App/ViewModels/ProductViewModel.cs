@@ -25,7 +25,7 @@ public partial class MainViewModel
     public string? ProfileAvatar=>Product.Avatar;
     public string Welcome=>string.IsNullOrWhiteSpace(Product.DisplayName)?"Bienvenue chez vous.":"Bonjour, "+Product.DisplayName+".";
     public string LibrarySummary=>$"{SoundCards.Count} sons · {AiVoices.Count} voix IA · tout reste sur votre PC";
-    public string PageTitle=>Page switch{0=>"Voice",1=>"Soundboard",2=>"Studio",3=>"Settings",4=>"Home",5=>"Community",6=>"Mic Setup",7=>"Profile",_=>"MyVoice"};
+    public string PageTitle=>Page switch{0=>"Voice",1=>"Soundboard",2=>"Studio",3=>"Settings",4=>"Home",5=>"Community",6=>"Mic Setup",7=>"Profile",8=>"Mixer",_=>"MyVoice"};
     [ObservableProperty] private bool showWelcome;
     [ObservableProperty] private bool advancedMicrophone;
     [ObservableProperty] private bool favoriteSoundsOnly;

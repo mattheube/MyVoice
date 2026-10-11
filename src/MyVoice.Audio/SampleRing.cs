@@ -67,9 +67,10 @@ public sealed class SampleRing : ISampleProvider
             return n;
         }
     }
+    public long Underruns {get;private set;}
     public int Read(float[] buffer, int offset, int count)
     {
-        Take(buffer.AsSpan(offset, count));
+        if(Take(buffer.AsSpan(offset, count))<count)Underruns++;
         return count;
     }
     public void Clear()

@@ -12,9 +12,9 @@ public sealed class SplashWindow : Window
         Background=new SolidColorBrush(Color.FromRgb(16,17,23));
         var panel=new StackPanel { Margin=new Thickness(32) };
         var brand=new StackPanel { Orientation=Orientation.Horizontal };
-        var icon=new System.Windows.Media.Imaging.BitmapImage(new System.Uri(System.IO.Path.Combine(System.AppContext.BaseDirectory,"MyVoice.ico")));
+        var icon=new System.Windows.Media.Imaging.BitmapImage(new System.Uri(System.IO.Path.Combine(System.AppContext.BaseDirectory,"MyVoice.Signal.ico")));
         Icon=icon;brand.Children.Add(new Image { Source=icon,Width=42,Height=42,Margin=new Thickness(0,0,14,0) });panel.Children.Add(brand);
-        brand.Children.Add(new TextBlock { Text="MyVoice",FontSize=32,FontWeight=FontWeights.SemiBold,Foreground=new SolidColorBrush(Color.FromRgb(183,165,255)) });
+        brand.Children.Add(new Services.BrandWordmark { Width=160,Height=42 });
         status=new TextBlock { Text="Préparation…",Margin=new Thickness(0,24,0,18),Foreground=Brushes.WhiteSmoke };
         panel.Children.Add(status); panel.Children.Add(new ProgressBar { IsIndeterminate=true,Height=3 }); Content=panel;
     }

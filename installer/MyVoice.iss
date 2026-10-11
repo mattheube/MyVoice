@@ -1,4 +1,4 @@
-#define MyAppVersion "2.3.0"
+#define MyAppVersion "2.4.0"
 [Setup]
 AppId={{4197D906-B03B-48CD-997A-5A6389477F25}
 AppName=MyVoice
@@ -14,8 +14,8 @@ OutputBaseFilename=MyVoiceSetup
 Compression=lzma2
 SolidCompression=yes
 WizardStyle=modern
-SetupIconFile=..\assets\MyVoice.ico
-UninstallDisplayIcon={app}\MyVoice.exe
+SetupIconFile=..\assets\MyVoice.Signal.ico
+UninstallDisplayIcon={app}\MyVoice.Signal.ico
 CloseApplications=yes
 RestartApplications=no
 [Languages]
@@ -27,8 +27,8 @@ Name: "startup"; Description: "Lancer MyVoice avec Windows"
 [Files]
 Source: "..\portable\*"; DestDir: "{app}"; Excludes: "*.pdb,*.pyc,__pycache__\*"; Flags: ignoreversion recursesubdirs createallsubdirs
 [Icons]
-Name: "{group}\MyVoice"; Filename: "{app}\MyVoice.exe"
-Name: "{autodesktop}\MyVoice"; Filename: "{app}\MyVoice.exe"; Tasks: desktopicon
+Name: "{group}\MyVoice"; Filename: "{app}\MyVoice.exe"; IconFilename: "{app}\MyVoice.Signal.ico"; AppUserModelID: "MyVoice.App"
+Name: "{autodesktop}\MyVoice"; Filename: "{app}\MyVoice.exe"; IconFilename: "{app}\MyVoice.Signal.ico"; AppUserModelID: "MyVoice.App"; Tasks: desktopicon
 [Registry]
 Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueType: string; ValueName: "MyVoice"; ValueData: """{app}\MyVoice.exe"""; Flags: uninsdeletevalue; Tasks: startup
 [Run]
