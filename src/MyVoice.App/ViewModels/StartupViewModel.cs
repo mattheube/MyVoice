@@ -14,7 +14,7 @@ public partial class MainViewModel
     {
         automaticAudio = true;
         Refresh(); RefreshOutputs(); EnsureMicrophone();
-        if (Settings.AutoStartAi && File.Exists(AiPython)) _ = StartAiCommand.ExecuteAsync(null);
+        if (Settings.AutoStartAi && !AiBusy && !AiReady && File.Exists(AiPython)) _ = StartAiCommand.ExecuteAsync(null);
     }
     private void EnsureMicrophone()
     {

@@ -11,6 +11,7 @@ public sealed class ProductState
     public string Accent { get; set; } = "#B7A5FF";
     public string Motion { get; set; } = "Full";
     public string Background { get; set; } = "Balanced";
+    public string Density { get; set; } = "Comfortable";
     public List<Guid> FavoriteSounds { get; set; } = [];
     public List<string> FavoriteAiVoices { get; set; } = [];
     public List<DesignedVoice> Presets { get; set; } = [];

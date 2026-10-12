@@ -13,10 +13,12 @@ public partial class MainViewModel
 {
     private ProductStore productStore=null!;
     public ProductState Product {get;private set;}=new();
-    public string[] Themes {get;}=["Midnight","Graphite","Deep Ocean","Warm Dark"];
+    public string[] Themes {get;}=["Midnight","Graphite","Deep Ocean","Crimson","Emerald","Warm Dark"];
     public string[] MotionModes {get;}=["Full","Reduced","Off"];
     public string[] BackgroundModes {get;}=["Minimal","Balanced","Rich"];
-    public string Theme {get=>Product.Theme;set{Product.Theme=value;ApplyAppearance();}}
+    public string[] DensityModes {get;}=["Comfortable","Compact"];
+    public string Density {get=>Product.Density;set{Product.Density=value;ApplyAppearance();OnPropertyChanged();}}
+    public string Theme {get=>Product.Theme;set{Product.Theme=value;Product.Accent=value switch{"Graphite"=>"#BDCAD5","Deep Ocean"=>"#6ACDFA","Crimson"=>"#FF899B","Emerald"=>"#65DDB2","Warm Dark"=>"#E9BB88",_=>"#B7A5FF"};ApplyAppearance();}}
     public string Accent {get=>Product.Accent;set{if(!System.Text.RegularExpressions.Regex.IsMatch(value??"","^#[0-9a-fA-F]{6}$"))return;Product.Accent=value!;ApplyAppearance();}}
     public string MotionMode {get=>Product.Motion;set{Product.Motion=value;ApplyAppearance();}}
     public string BackgroundMode {get=>Product.Background;set{Product.Background=value;ApplyAppearance();}}
@@ -72,7 +74,7 @@ public partial class MainViewModel
     public double CompressorRelease {get=>Settings.Processing.CompressorReleaseMs;set=>ApplyProcessing(Settings.Processing with{CompressorReleaseMs=Math.Clamp(value,20,1000)},nameof(CompressorRelease));}
     public double MakeupGain {get=>Settings.Processing.MakeupDb;set=>ApplyProcessing(Settings.Processing with{MakeupDb=Math.Clamp(value,-12,18)},nameof(MakeupGain));}
     [RelayCommand] private void ResetMicControl(string name){switch(name){case "Bass":Bass=0;break;case "Mid":Mid=0;break;case "Treble":Treble=0;break;case "Gate":GateThreshold=-48;GateAttack=5;GateHold=100;GateRelease=120;break;case "Compressor":CompressorThreshold=-18;CompressorRatio=3;CompressorAttack=8;CompressorRelease=150;MakeupGain=0;break;}}
-    public string CableStatus=>VirtualDevice?.Name.Contains("CABLE",StringComparison.OrdinalIgnoreCase)==true && Devices.Any(d=>d.Name.Contains("CABLE Output",StringComparison.OrdinalIgnoreCase))?"Connecté · VB-Audio Virtual Cable":"Câble non détecté · vérifiez les deux périphériques";
+    public string CableStatus=>VirtualMicrophoneStatus;
     [RelayCommand] private void RefreshCable(){Refresh();RefreshOutputs();OnPropertyChanged(nameof(CableStatus));}
     [RelayCommand] private void PlayLastSound()=>PlaySound(SoundCards.FirstOrDefault(s=>s.Item.Id==Settings.LastSoundId));
     [RelayCommand] private void ToggleSoundFavorite(SoundCard? card){if(card==null)return;if(!Product.FavoriteSounds.Remove(card.Item.Id))Product.FavoriteSounds.Add(card.Item.Id);SaveProduct();ShowToast(Product.FavoriteSounds.Contains(card.Item.Id)?"Son ajouté aux favoris":"Favori retiré");SoundView.Refresh();}

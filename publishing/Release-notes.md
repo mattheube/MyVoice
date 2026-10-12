@@ -1,24 +1,23 @@
-# MyVoice 2.4.0 Beta 1
+# MyVoice 2.5.0 Beta 1
 
-Cette Beta ajoute un Mixer à l’application Windows. La version stable 2.2.0 reste le téléchargement par défaut.
+Cette bêta corrige le routage du microphone virtuel et améliore le démarrage et l’interface Windows. La stable 2.2.0 reste le téléchargement par défaut.
 
-- Mixer distinct de Mic Setup : sources physiques/virtuelles, applications Windows et audio système ; les nouvelles sources sont ajoutées à l’arrêt avec une commande Capture explicite.
-- Volumes numériques, mute/solo, balance, EQ, filtre, compression, delay/reverb, niveaux peak/RMS et matrice vers Headphones, Virtual Mic, Stream, Recording et Master.
-- Sorties WASAPI et MME ; ASIO proposé si un driver est installé. Limiteur sur chaque bus, détection des boucles et conservation des périphériques indisponibles.
-- Enregistrement WAV 48 kHz stéréo float32, avec choix du fichier avant démarrage et écriture sur un worker dédié.
-- Profils locaux : sauvegarde, chargement, duplication, renommage, suppression, import/export sans identifiants matériels. Raccourcis et MIDI Learn pour niveaux, mute/solo et profils.
-- Nouveau symbole et wordmark MyVoice, icônes Windows à neuf tailles et variante tray. Le site officiel utilise cette identité.
-- Recherche des périphériques en arrière-plan et correction du défilement horizontal des tranches.
+- Virtual Microphone : détection automatique de la paire VB-CABLE standard, réparation d’une ancienne sortie vers les haut-parleurs, reconnexion et diagnostics. Le bus virtuel est géré par MyVoice ; aucun périphérique physique n’est choisi à sa place. Le statut connecté dépend de la sortie réellement ouverte.
+- Démarrage : logo vectoriel, thème conservé, spinner et progression réelle du téléchargement, vérification d’intégrité, possibilité de continuer avec la version actuelle, récupération après échec. L’IA se prépare en arrière-plan.
+- Fenêtre : maximisation dans la zone de travail Windows, F11 et Échap, restauration de la taille et de l’état précédents, boutons redessinés.
+- Mixer : défilement à la molette dans les zones horizontales, événements horizontaux Windows, menus déroulants et contrôles accordés au thème.
+- Mic Setup : sections Input, Cleanup, Tone, Dynamics, Monitoring et Advanced ; six préréglages réels, aide et remise à zéro par section.
+- Apparence : six thèmes, accents dérivés, densité Compact/Comfortable, icônes de navigation vectorielles cohérentes, tooltips, sliders et boutons thématisés.
 
-Les voix, sons, références et réglages existants restent locaux. Le fichier Mixer est additif et récupère les anciens réglages de monitoring. Les moteurs IA Direct, Conversation et Expressive conservent leurs algorithmes.
+Les sons, voix, modèles, comptes locaux, raccourcis et réglages restent hors du dossier programme. Une sauvegarde de version précède le chargement de la bibliothèque. Les algorithmes IA sont conservés.
 
-Validation locale : 145 contrôles C#, capture Windows isolant deux applications, capture système, retour de périphérique, véritable trajet CABLE Input → CABLE Output et neuf pages WPF. Les profils, volumes, recadrages, raccourcis, zone de notification et persistance ont aussi été exercés dans une copie du profil utilisateur.
+## Vérification
 
-## Limites
+156 tests C# ; neuf pages WPF avec copie isolée des réglages ; limites physiques de fenêtre maximisée et plein écran ; retour à la taille précédente ; préréglages réels ; sauvegarde du thème et de la densité. La paire VB-CABLE est testée sur Windows avec un signal synthétique.
 
-- ASIO et contrôleur MIDI physique n’ont pas été testés sur matériel dédié. La file MIDI est testée avec des événements synthétiques.
-- WAV uniquement ; arrêt explicite avant la limite RIFF de 4 Go. Pas d’annulation d’écho acoustique ni de WDM/KS dans cette Beta. Les entrées restent en WASAPI ; le choix MME/ASIO concerne les sorties.
-- Capture par application : Windows build 20348 ou supérieur. Une application inactive reste indisponible jusqu’à sa reprise audio.
-- L’estimation de tampon n’est pas une mesure de latence de bout en bout ; le matériel, les modèles IA et le réseau ajoutent leur délai.
-- Community reste hors ligne tant qu’un projet Supabase n’est pas connecté.
-- Les mises à jour officielles sont recherchées et téléchargées avec vérification d’intégrité. Leur installation reste manuelle. L’installateur n’est pas signé ; VB-CABLE s’installe depuis son site officiel.
+## Limites explicites
+
+- Les mises à jour sont recherchées, téléchargées et vérifiées depuis les releases officielles. **L’installation reste manuelle** ; remplacement automatique et rollback ne sont pas livrés.
+- Le driver MyVoice propriétaire n’est pas développé. L’interface IVirtualAudioBackend prépare son intégration ; seul VB-CABLE standard est actuellement pris en charge automatiquement. VB-CABLE doit être installé depuis son site officiel.
+- Les transitions entre écrans de DPI différents et le touchpad physique nécessitent encore une validation matérielle. Les notes de version s’ouvrent sur GitHub.
+- Pas de Mica, annulation d’écho acoustique ou de-esser ajouté. ASIO et MIDI n’ont pas de nouveau test matériel. Community reste hors ligne sans projet Supabase connecté. L’installateur n’est pas signé.

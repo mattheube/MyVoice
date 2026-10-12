@@ -10,15 +10,15 @@ using MyVoice.App.Services;
 namespace MyVoice.App.ViewModels;
 public partial class MainViewModel
 {
-    public string InstalledRelease => Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion.Split('+')[0]??"2.3.0-beta.1";
-    public string ApplicationVersion => "MyVoice · " + (Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion.Split('+')[0] ?? "2.3.0-beta.1");
+    public string InstalledRelease => Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion.Split('+')[0]??"2.5.0-beta.1";
+    public string ApplicationVersion => "MyVoice · " + (Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion.Split('+')[0] ?? "2.5.0-beta.1");
     public string UpdateAvailability => string.IsNullOrWhiteSpace(UpdateSource) ? "Les mises à jour automatiques seront activées lorsque le dépôt de publication sera configuré." : "Distribution GitHub Releases · téléchargement vérifié, installation manuelle.";
     private string? downloadedUpdate;
     [ObservableProperty] private double updateProgress;
     public string LatestVersion=>string.IsNullOrEmpty(Settings.LastKnownVersion)?"Non vérifiée":Settings.LastKnownVersion;
     public string LastChecked=>Settings.LastUpdateCheck?.ToLocalTime().ToString("g")??"Jamais";
     public string[] UpdateChannels {get;}=["Stable","Beta"];
-    public string UpdateChannel {get=>Settings.UpdateChannel=="beta"?"Beta":"Stable";set{Settings.UpdateChannel=value=="Beta"?"beta":"stable";Changed(nameof(UpdateChannel));OnPropertyChanged(nameof(UpdateSource));}}
+    public string UpdateChannel {get=>Settings.UpdateChannel=="beta"?"Beta":"Stable";set{Settings.UpdateChannel=value=="Beta"?"beta":"stable";CanInstallUpdate=false;downloadedUpdate=null;Changed(nameof(UpdateChannel));OnPropertyChanged(nameof(UpdateSource));}}
     public async Task CheckStartupUpdatesAsync()
     {
         if(Settings.LastUpdateSource==UpdateSource && Settings.LastUpdateCheck is {} checkedAt && DateTime.UtcNow-checkedAt<TimeSpan.FromHours(6) && Version.TryParse(Settings.LastKnownVersion,out _) && !ReleaseVersion.IsNewer(Settings.LastKnownVersion,Settings.LastKnownReleaseTag,InstalledRelease))
@@ -59,33 +59,33 @@ public partial class MainViewModel
             Changed(nameof(UiScale));
         }
     }
+    [ObservableProperty] private bool updateIndeterminate;
+    [ObservableProperty] private string releaseNotesUrl="https://github.com/mattheube/MyVoice/releases";
+    private void ShowUpdateState(UpdateSnapshot value){UpdateStatus=value.Message;UpdateProgress=value.Percent??0;UpdateIndeterminate=value.Percent==null && value.Phase is UpdatePhase.Checking or UpdatePhase.Downloading or UpdatePhase.Verifying;}
+    public void AdoptUpdateSession(UpdateSession session)
+    {
+        if(session.Source!=UpdateSource)return;
+        ShowUpdateState(session.State);downloadedUpdate=session.DownloadedFile;CanInstallUpdate=downloadedUpdate!=null;
+        if(session.Release is {} release && session.CheckedAt is {} date)
+        {
+            Settings.LastUpdateCheck=date;Settings.LastKnownVersion=release.Version;Settings.LastKnownReleaseTag=release.Tag;Settings.LastUpdateSource=UpdateSource;
+            ReleaseNotesUrl=release.ReleaseUrl;OnPropertyChanged(nameof(LatestVersion));OnPropertyChanged(nameof(LastChecked));Save();
+        }
+    }
+    [RelayCommand] private void OpenReleaseNotes()
+    {
+        // The application only accepts release URLs under its fixed official repository.
+        var url=ReleaseNotesUrl.StartsWith("https://github.com/"+DistributionDefaults.Repository+"/releases/",StringComparison.Ordinal)?ReleaseNotesUrl:"https://github.com/"+DistributionDefaults.Repository+"/releases";
+        Process.Start(new ProcessStartInfo(url){UseShellExecute=true});
+    }
     [RelayCommand]
     private async Task CheckUpdatesAsync()
     {
-        CanInstallUpdate = false;
-        downloadedUpdate = null;
-        if (string.IsNullOrWhiteSpace(UpdateSource))
-        {
-            UpdateStatus = T["NoUpdateSource"];
-            return;
-        }
-        try
-        {
-            UpdateProgress=0;UpdateStatus="Recherche de mises à jour…";
-            using var updater=new UpdateService();
-            var release=await updater.ReadManifestAsync(UpdateSource,lifetime.Token);
-            var current=Assembly.GetExecutingAssembly().GetName().Version??new Version(0,0);
-            Settings.LastUpdateCheck=DateTime.UtcNow;Settings.LastKnownVersion=release.Version;Settings.LastKnownReleaseTag=release.Tag;Settings.LastUpdateSource=UpdateSource;
-            OnPropertyChanged(nameof(LatestVersion));OnPropertyChanged(nameof(LastChecked));Save();
-            if(!ReleaseVersion.IsNewer(release.Version,release.Tag,InstalledRelease)){UpdateStatus="Aucune mise à jour plus récente sur le canal "+UpdateChannel;return;}
-            if(current<Version.Parse(release.MinimumVersion)){UpdateStatus="Version intermédiaire requise : "+release.MinimumVersion;return;}
-            UpdateStatus="Téléchargement de MyVoice "+release.Version;
-            downloadedUpdate=await updater.DownloadAsync(release,UpdateSource,Path.Combine(store.Root,"cache","updates"),lifetime.Token,
-                new Progress<double>(value=>UpdateProgress=value*100),new Progress<DownloadProgress>(p=>UpdateStatus=$"MyVoice {release.Version} · {p.Received/1048576d:0.0} Mo"+(p.Total>0?$" / {p.Total/1048576d:0.0} Mo · {p.Received*100d/p.Total:0}%":"")));
-            CanInstallUpdate=true;UpdateStatus="MyVoice "+release.Version+" téléchargé et vérifié. Ouvrez le dossier pour lancer l’installation manuellement.";
-        }
-        catch(OperationCanceledException){UpdateStatus="Vérification ou téléchargement interrompu. La version installée reste utilisable.";}
-        catch(Exception e){UpdateStatus="Mise à jour indisponible : "+e.Message;store.Log(e.ToString());}
+        CanInstallUpdate=false;downloadedUpdate=null;
+        var session=new UpdateSession();
+        var source=UpdateSource;
+        await session.RunAsync(source,InstalledRelease,Path.Combine(store.Root,"cache","updates"),new Progress<UpdateSnapshot>(value=>{if(source==UpdateSource)ShowUpdateState(value);}),store.Log,lifetime.Token);
+        AdoptUpdateSession(session);
     }
     [RelayCommand]
     private void InstallUpdate()

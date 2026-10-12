@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Reflection;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -10,6 +11,7 @@ using System.Windows.Interop;
 using MyVoice.Audio;
 using MyVoice.Infrastructure;
 using MyVoice.App.ViewModels;
+using MyVoice.Updater;
 using Forms = System.Windows.Forms;
 namespace MyVoice.App;
 public partial class App : Application
@@ -32,31 +34,53 @@ public partial class App : Application
             return;
         }
         SplashWindow? splash=null;
-        if(!smoke) { splash=new SplashWindow(); splash.Show(); }
+        if(!smoke || e.Args.Contains("--startup-flow")) { splash=new SplashWindow(); splash.Show(); }
         try
         {
             store = new LocalStore(smoke ? Path.Combine(Path.GetTempPath(), "MyVoice-Smoke-" + Guid.NewGuid().ToString("N")) : null);
-            splash?.Stage("Sauvegarde et chargement de vos données…");
+            UpdateSession? startupUpdate=null;
+            if(!smoke || e.Args.Contains("--startup-flow"))
+            {
+                var preferences=await Task.Run(store.Load);
+                try { Services.ProductAppearance.Apply(await Task.Run(()=>new ProductStore(store.Root).Load())); } catch(Exception appearanceError) { store.Log("Early theme: "+appearanceError.Message); }
+                splash?.RefreshMotion();
+                if(preferences.CheckUpdatesAtStartup)
+                {
+                    splash?.Stage(StartupPhase.CheckingUpdates,"Vérification des mises à jour…");
+                    var source=preferences.UpdateChannel=="beta"?DistributionDefaults.BetaManifestUrl:DistributionDefaults.ManifestUrl;
+                    var installed=System.Reflection.Assembly.GetExecutingAssembly().GetCustomAttribute<System.Reflection.AssemblyInformationalVersionAttribute>()?.InformationalVersion.Split('+')[0]??"2.4.0-beta.1";
+                    bool recent=preferences.LastUpdateSource==source && preferences.LastUpdateCheck is {} at && DateTime.UtcNow-at>=TimeSpan.Zero && DateTime.UtcNow-at<TimeSpan.FromHours(6);
+                    if(recent && !string.IsNullOrEmpty(preferences.LastKnownVersion) && !ReleaseVersion.IsNewer(preferences.LastKnownVersion,preferences.LastKnownReleaseTag,installed))
+                        splash?.Update(new(UpdatePhase.Current,"MyVoice est à jour ✓"));
+                    else
+                    {
+                        startupUpdate=new UpdateSession();using var skip=new CancellationTokenSource();
+                        if(splash!=null)splash.ContinueRequested+=skip.Cancel;
+                        bool retry;
+                        do
+                        {
+                            startupUpdate=new UpdateSession();
+                            await startupUpdate.RunAsync(source,installed,Path.Combine(store.Root,"cache","updates"),new Progress<UpdateSnapshot>(value=>splash?.Update(value)),store.Log,skip.Token);
+                            retry=splash!=null && startupUpdate.State.Phase==UpdatePhase.Failed && startupUpdate.FailedAt!=UpdatePhase.Checking && await splash.OfferRetryAsync(startupUpdate.State.Message);
+                        }while(retry);
+                        if(splash!=null)splash.ContinueRequested-=skip.Cancel;
+                    }
+                }
+                splash?.Stage(StartupPhase.LoadingSettings,"Chargement de vos réglages…");
+            }
             if(!smoke) await Task.Run(()=>UserDataBackup.EnsureVersionBackup(store.Root,System.Reflection.Assembly.GetExecutingAssembly().GetName().Version!.ToString(3)));
             if(smoke && e.Args.Contains("--profile-copy"))
             {
                 var original=Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),"MyVoice");
                 foreach(var folder in new[]{"config","soundboards","voices"})foreach(var file in Directory.GetFiles(Path.Combine(original,folder),"*.json"))File.Copy(file,Path.Combine(store.Root,folder,Path.GetFileName(file)),true);
             }
-            store.Log("Starting MyVoice 2.4.0 beta");
+            store.Log("Starting MyVoice "+Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion);
             DispatcherUnhandledException += (_, args) => { store.Log(args.Exception.ToString()); MessageBox.Show(vm?.T["Error"] ?? "MyVoice could not continue.", "MyVoice"); args.Handled = true; ExitApplication(); };
+            splash?.Stage(StartupPhase.LoadingLibrary,"Chargement de vos sons et de vos voix…");
+            await Task.Yield();
             vm = new MainViewModel(store, new MicrophoneService(), !smoke);
+            if(startupUpdate!=null)vm.AdoptUpdateSession(startupUpdate);
             if(smoke && e.Args.Contains("--audio-startup")){vm.Settings.AutoStartAi=false;vm.StartServices();if(!vm.Running)throw new Exception("Automatic microphone failed");store.Log("PASS automatic microphone startup");}
-            if(!smoke && vm.CheckUpdatesAtStartup && !string.IsNullOrWhiteSpace(vm.UpdateSource))
-            {
-                splash?.Stage("Vérification des mises à jour…");
-                System.ComponentModel.PropertyChangedEventHandler progress=(_,args)=>{if(args.PropertyName==nameof(vm.UpdateStatus))splash?.Stage(vm.UpdateStatus);};
-                vm.PropertyChanged+=progress;
-                var checking=vm.CheckStartupUpdatesAsync();
-                await Task.WhenAny(checking,Task.Delay(3000));
-                vm.PropertyChanged-=progress;
-
-            }
             var window = new MainWindow(vm);
             MainWindow = window;
             tray = new Forms.NotifyIcon { Icon = new System.Drawing.Icon(Path.Combine(AppContext.BaseDirectory, "MyVoice.Tray.ico")), Text = "MyVoice", Visible = true };
@@ -65,9 +89,16 @@ public partial class App : Application
             menu.Opening += (_, _) => { menu.Items.Clear(); menu.Items.Add(vm.T["Open"], null, (_, _) => window.Reveal()); var mute = menu.Items.Add(vm.MicState, null, (_, _) => vm.ToggleMute()); mute.Enabled = vm.Running; menu.Items.Add(vm.T["HearMyself"], null, (_, _) => vm.HearMyself = !vm.HearMyself); menu.Items.Add(vm.T["VoiceEnabled"], null, (_, _) => vm.VoiceEnabled = !vm.VoiceEnabled); menu.Items.Add(vm.T["StopAll"], null, (_, _) => vm.StopAllSounds()); menu.Items.Add(new Forms.ToolStripSeparator()); menu.Items.Add(vm.T["Exit"], null, (_, _) => ExitApplication()); };
             tray.ContextMenuStrip = menu;
             tray.DoubleClick += (_, _) => window.Reveal();
-            if(!smoke) { splash?.Stage("Connexion audio et préparation du moteur local…"); await Task.Yield(); vm.StartServices(); }
+            if(!smoke)
+            {
+                splash?.Stage(StartupPhase.DetectingAudio,"Détection du microphone virtuel…");await Task.Yield();vm.RefreshCableCommand.Execute(null);
+                splash?.Stage(StartupPhase.StartingAudioEngine,"Connexion du microphone…");await Task.Yield();vm.StartServices();
+                while(!vm.Running && splash!=null && await splash.OfferRetryAsync("Le microphone n’est pas disponible. Vérifiez son branchement.",()=>vm.OpenLogsCommand.Execute(null)))
+                    vm.StartServices();
+                if(vm.Settings.AutoStartAi)splash?.Stage(StartupPhase.StartingAIEngine,"Préparation de l’IA en arrière-plan…");
+            }
             window.Show();
-            splash?.Close();
+            if(splash!=null)await splash.FinishAsync(vm.Running?"Prêt ✓":"MyVoice prêt · microphone indisponible");
             if (vm.StartMinimized && !smoke)
                 window.Hide();
             store.Log("Main window started");
@@ -108,7 +139,7 @@ public partial class App : Application
                 using var file = File.Create(Path.Combine(folder, $"page-{page}.png"));
                 encoder.Save(file);
             }
-            if(args.Contains("--ui-details")){await VerifyImageUi(window,folder);VerifyProductUi(folder);await VerifyMixerUi(window,folder);}
+            if(args.Contains("--ui-details")){await VerifyImageUi(window,folder);VerifyProductUi(folder);await VerifyMixerUi(window,folder);await VerifyStartupUi(window,folder);}
             window.Width=1000;window.Height=700;vm!.UiScale=1.5;vm.Page=3;await Task.Delay(180);window.UpdateLayout();
             var compact=new RenderTargetBitmap((int)window.ActualWidth,(int)window.ActualHeight,96,96,PixelFormats.Pbgra32);compact.Render(window);
             var compactEncoder=new PngBitmapEncoder();compactEncoder.Frames.Add(BitmapFrame.Create(compact));using(var compactFile=File.Create(Path.Combine(folder,"compact-150.png")))compactEncoder.Save(compactFile);

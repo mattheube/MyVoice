@@ -6,7 +6,7 @@ public static class DeviceSelection
     public static AudioDevice? Physical(IReadOnlyList<AudioDevice> devices, string? preferred) => devices.FirstOrDefault(d => d.Id.Length > 0 && d.Id == preferred) ?? devices.FirstOrDefault(d => !IsVirtual(d) && d.Id.Length > 0);
     public static AudioDevice? Virtual(IReadOnlyList<AudioDevice> devices, string? preferred)
     {
-        var prior = devices.FirstOrDefault(d => d.Id == preferred && d.Id.Length > 0);
+        var prior = devices.FirstOrDefault(d => d.Id == preferred && d.Id.Length > 0 && IsCableOutput(d));
         if (prior != null) return prior;
         var candidates = devices.Where(IsCableOutput).ToArray();
         return candidates.Length == 1 ? candidates[0] : null;

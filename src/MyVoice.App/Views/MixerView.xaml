@@ -19,7 +19,7 @@
   <Button Content="Ajouter cette source" Command="{Binding AddMixerSourceCommand}" HorizontalAlignment="Left"/>
  </StackPanel></Expander>
  <TextBlock Text="SOURCES" Style="{StaticResource Label}"/>
- <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled" Margin="0,8,0,18">
+ <ScrollViewer ui:HorizontalScroll.Enabled="True" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled" Margin="0,8,0,18">
  <ItemsControl ItemsSource="{Binding MixerChannels}"><ItemsControl.ItemsPanel><ItemsPanelTemplate><StackPanel Orientation="Horizontal"/></ItemsPanelTemplate></ItemsControl.ItemsPanel>
  <ItemsControl.ItemTemplate><DataTemplate><Border Style="{StaticResource Card}" Width="226" Margin="0,0,12,4" Padding="17"><StackPanel>
   <TextBlock Text="{Binding Kind}" Style="{StaticResource Label}"/>
@@ -35,17 +35,17 @@
   <TextBlock Text="{Binding State}" Style="{StaticResource MutedText}" FontSize="10" Margin="0,8,0,0"/>
  </StackPanel></Border></DataTemplate></ItemsControl.ItemTemplate></ItemsControl></ScrollViewer>
  <DockPanel><Button DockPanel.Dock="Right" Content="+ Sortie" Command="{Binding AddMixerOutputCommand}"/><TextBlock Text="SORTIES ET BUS" Style="{StaticResource Label}" VerticalAlignment="Center"/></DockPanel>
- <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled"><ItemsControl ItemsSource="{Binding MixerOutputs}"><ItemsControl.ItemsPanel><ItemsPanelTemplate><StackPanel Orientation="Horizontal"/></ItemsPanelTemplate></ItemsControl.ItemsPanel><ItemsControl.ItemTemplate><DataTemplate>
+ <ScrollViewer ui:HorizontalScroll.Enabled="True" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled"><ItemsControl ItemsSource="{Binding MixerOutputs}"><ItemsControl.ItemsPanel><ItemsPanelTemplate><StackPanel Orientation="Horizontal"/></ItemsPanelTemplate></ItemsControl.ItemsPanel><ItemsControl.ItemTemplate><DataTemplate>
  <Border Style="{StaticResource Card}" Width="226" Margin="0,8,12,8" Padding="17"><StackPanel>
   <Button Content="{Binding Name}" Command="{Binding DataContext.SelectMixerOutputCommand,RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" HorizontalContentAlignment="Left"/>
-  <ComboBox ItemsSource="{Binding Choices}" SelectedValuePath="Id" ItemTemplate="{StaticResource DeviceTemplate}" SelectedValue="{Binding Device}" ToolTip="Bus interne, périphérique fixe ou périphérique Windows par défaut."/>
+  <ComboBox ItemsSource="{Binding Choices}" SelectedValuePath="Id" ItemTemplate="{StaticResource DeviceTemplate}" SelectedValue="{Binding Device}" ToolTip="Bus interne, périphérique fixe ou périphérique Windows par défaut."><ComboBox.Style><Style TargetType="ComboBox" BasedOn="{StaticResource {x:Type ComboBox}}"><Style.Triggers><DataTrigger Binding="{Binding Id}" Value="virtual"><Setter Property="Visibility" Value="Collapsed"/></DataTrigger></Style.Triggers></Style></ComboBox.Style></ComboBox><TextBlock Text="Géré automatiquement par MyVoice"><TextBlock.Style><Style TargetType="TextBlock" BasedOn="{StaticResource MutedText}"><Setter Property="Visibility" Value="Collapsed"/><Style.Triggers><DataTrigger Binding="{Binding Id}" Value="virtual"><Setter Property="Visibility" Value="Visible"/></DataTrigger></Style.Triggers></Style></TextBlock.Style></TextBlock>
   <ProgressBar Value="{Binding Level,Mode=OneWay}" Margin="0,12"/><TextBlock Text="{Binding Meter}" FontSize="10" Foreground="{DynamicResource MutedBrush}"/>
   <Slider Value="{Binding VolumeSlider}" Maximum="150"/><TextBox Text="{Binding Volume,StringFormat=F0,ValidatesOnExceptions=True}" ToolTip="Volume de cette sortie (%) · limiteur toujours actif"/>
   <CheckBox Content="Mute output" IsChecked="{Binding Mute}"/><TextBlock Text="{Binding State}" Style="{StaticResource MutedText}" FontSize="10"/>
  </StackPanel></Border></DataTemplate></ItemsControl.ItemTemplate></ItemsControl></ScrollViewer>
  <Border Style="{StaticResource Card}" Margin="0,18"><StackPanel>
   <DockPanel><ui:HelpButton DockPanel.Dock="Right" ToolTip="Une ligne est une source ; une colonne est une sortie. Un interrupteur activé envoie ce son vers cette destination. Stream et Recording peuvent rester internes."/><TextBlock Text="Routing Matrix" FontSize="22"/></DockPanel>
-  <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled" Margin="0,14,0,0"><StackPanel>
+  <ScrollViewer ui:HorizontalScroll.Enabled="True" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled" Margin="0,14,0,0"><StackPanel>
    <ItemsControl Margin="174,0,0,0" ItemsSource="{Binding MixerOutputs}"><ItemsControl.ItemsPanel><ItemsPanelTemplate><StackPanel Orientation="Horizontal"/></ItemsPanelTemplate></ItemsControl.ItemsPanel><ItemsControl.ItemTemplate><DataTemplate><TextBlock Width="118" Text="{Binding Name}" FontWeight="SemiBold" TextAlignment="Center" TextWrapping="Wrap"/></DataTemplate></ItemsControl.ItemTemplate></ItemsControl>
    <ItemsControl ItemsSource="{Binding MixerRows}"><ItemsControl.ItemTemplate><DataTemplate><StackPanel Orientation="Horizontal" Margin="0,12"><TextBlock Text="{Binding Name}" Width="174" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/><ItemsControl ItemsSource="{Binding Cells}"><ItemsControl.ItemsPanel><ItemsPanelTemplate><StackPanel Orientation="Horizontal"/></ItemsPanelTemplate></ItemsControl.ItemsPanel><ItemsControl.ItemTemplate><DataTemplate><Grid Width="118"><CheckBox IsChecked="{Binding Enabled}" ToolTip="{Binding Label}" AutomationProperties.Name="{Binding Label}" HorizontalAlignment="Center"/></Grid></DataTemplate></ItemsControl.ItemTemplate></ItemsControl></StackPanel></DataTemplate></ItemsControl.ItemTemplate></ItemsControl>
   </StackPanel></ScrollViewer>

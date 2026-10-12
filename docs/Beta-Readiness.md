@@ -1,4 +1,8 @@
-# État vérifié de la Beta 2.4
+# État vérifié de la Beta 2.5
+
+## Ajouts 2.5
+
+Microphone virtuel automatique, démarrage à états réels, récupération des erreurs, fenêtre maximisée/F11, Mixer scroll, Mic Setup par sections, six thèmes et densité. Voir [audit et limites](Startup-Audit.md). L’installation des mises à jour reste manuelle.
 
 ## Disponible localement
 

@@ -26,9 +26,11 @@ Test("Unknown config version falls back", () => { var store = new LocalStore(fol
 Console.WriteLine($"{passed} deterministic tests passed.");
 await StudioTests.Run();
 V2Tests.Run();
+VirtualBackendTests.Run();
 QualityTests.Run();
 StreamingQueueTests.Run();
 await UpdateTransportTests.Run();
+await UpdateSessionTests.Run();
 if(args.Contains("--expressive"))await ExpressiveTests.Run(args.Contains("--cpu"),args.Contains("--style-only"));
 if(args.Contains("--virtual"))await VirtualRoutingTests.Run();
 if (args.Contains("--ai")) await AiIntegrationTests.Run(args.Contains("--cpu") ? "cpu" : "auto");

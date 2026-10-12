@@ -3,7 +3,7 @@
 Application Windows WPF de transformation vocale locale et soundboard.
 
 
-[Site officiel](https://mattheube.github.io/MyVoice/) · [Stable 2.2.0](https://github.com/mattheube/MyVoice/releases/tag/v2.2.0) · [Beta 2.4.0-beta.1](https://github.com/mattheube/MyVoice/releases/tag/v2.4.0-beta.1)
+[Site officiel](https://mattheube.github.io/MyVoice/) · [Stable 2.2.0](https://github.com/mattheube/MyVoice/releases/tag/v2.2.0) · [Beta 2.5.0-beta.1](https://github.com/mattheube/MyVoice/releases/tag/v2.5.0-beta.1)
 
 La Beta ajoute un Mixer à neuf espaces : sources Windows, routage, profils, enregistrement WAV et commandes MIDI. Elle apporte un nouveau symbole MyVoice, quatre thèmes, un dock global et Voice Designer. Voir [l’architecture du Mixer et ses limites](docs/Mixer-Architecture.md). Les moteurs IA existants sont conservés. Voir les [notes et limites de la Beta](publishing/Release-notes.md).
 

@@ -12,6 +12,7 @@ public partial class MainWindow : Window
     public MainWindow(MainViewModel vm)
     {
         InitializeComponent();
+        InitializePlacement();
         this.vm = vm;
         DataContext = vm;
         Width=Math.Clamp(vm.Settings.WindowWidth,MinWidth,Math.Max(MinWidth,SystemParameters.WorkArea.Width));
@@ -33,8 +34,9 @@ public partial class MainWindow : Window
     }
     protected override void OnClosing(CancelEventArgs e)
     {
-        vm.Settings.WindowMaximized=WindowState==WindowState.Maximized;
-        if(WindowState==WindowState.Normal){vm.Settings.WindowWidth=ActualWidth;vm.Settings.WindowHeight=ActualHeight;}
+        vm.Settings.WindowMaximized=(fullscreen?beforeFullscreenState:WindowState)==WindowState.Maximized;
+        if(fullscreen){vm.Settings.WindowWidth=beforeFullscreen.Width;vm.Settings.WindowHeight=beforeFullscreen.Height;}
+        else if(WindowState==WindowState.Normal){vm.Settings.WindowWidth=ActualWidth;vm.Settings.WindowHeight=ActualHeight;}
         vm.Save();
         if (vm.CloseToTray && !((App)Application.Current).Exiting)
         {
@@ -52,7 +54,7 @@ public partial class MainWindow : Window
             ((App)Application.Current).ExitApplication();
     }
     private void MinimizeClick(object sender,RoutedEventArgs e)=>SystemCommands.MinimizeWindow(this);
-    private void MaximizeClick(object sender,RoutedEventArgs e){if(WindowState==WindowState.Maximized)SystemCommands.RestoreWindow(this);else SystemCommands.MaximizeWindow(this);}
+    private void MaximizeClick(object sender,RoutedEventArgs e){if(fullscreen){ToggleFullscreen();return;}if(WindowState==WindowState.Maximized)SystemCommands.RestoreWindow(this);else SystemCommands.MaximizeWindow(this);}
     private void CloseClick(object sender,RoutedEventArgs e)=>Close();
     private void ExitClick(object sender, RoutedEventArgs e) => ((App)Application.Current).ExitApplication();
     public void Reveal()

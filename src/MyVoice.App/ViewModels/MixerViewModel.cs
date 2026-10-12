@@ -38,7 +38,7 @@ public partial class MainViewModel
         mixerStore=new(store.Root);mixerState=mixerStore.Load(Settings);
         mixerState.Current=mixerState.Current with{Channels=mixerState.Current.Channels.Select(c=>c.Id=="mic"?c with{DeviceId=Settings.InputDeviceId,DeviceName=SelectedDevice?.Name}:c).ToList()};
         foreach(var profile in mixerState.Profiles)AudioProfiles.Add(profile);
-        LoadMixerCards(mixerState.Current);RefreshMixerDevices();ApplyMixer();InitializeMixerControls();
+        LoadMixerCards(mixerState.Current);RefreshMixerDevices();ReconcileVirtualMicrophone();ApplyMixer();InitializeMixerControls();
         if(mixerStore.Recovery!=null)MixerStatus=mixerStore.Recovery;
     }
     private void LoadMixerCards(AudioProfile profile)
@@ -50,6 +50,7 @@ public partial class MainViewModel
             MixerChannels.Clear();MixerOutputs.Clear();MixerRows.Clear();
             foreach(var c in profile.Channels)MixerChannels.Add(new(c,MixerEdited));
             foreach(var b in profile.Outputs)MixerOutputs.Add(new(b,MixerEdited));
+            foreach(var b in MixerOutputs)RefreshOutputChoices(b);
             foreach(var c in profile.Channels)MixerRows.Add(new(c.Name,profile.Outputs.Select(b=>new MixerRouteCell(c.Id,b.Id,c.Name+" → "+b.Name,profile.Routes.Any(r=>r.ChannelId==c.Id&&r.BusId==b.Id&&r.Enabled),MixerEdited)).ToList()));
             MixerProfileName=profile.Name;SelectedMixerChannel=MixerChannels.FirstOrDefault(c=>c.Id==channelId)??MixerChannels.FirstOrDefault();SelectedMixerOutput=MixerOutputs.FirstOrDefault(b=>b.Id==busId)??MixerOutputs.FirstOrDefault();RefreshRecordingSources();
         }
@@ -61,7 +62,7 @@ public partial class MainViewModel
         bool backendChanged=MixerOutputs.Any(b=>mixerState.Current.Outputs.FirstOrDefault(old=>old.Id==b.Id)?.Backend!=b.Backend);
         mixerState.Current=mixerState.Current with{Channels=MixerChannels.Select(c=>c.Value).ToList(),Outputs=MixerOutputs.Select(b=>b.Value).ToList(),Routes=MixerRows.SelectMany(r=>r.Cells).Select(c=>new AudioRoute(c.ChannelId,c.BusId,c.Enabled)).ToList()};
         if(backendChanged)foreach(var b in MixerOutputs)RefreshOutputChoices(b);
-        ApplyMixer();ScheduleSave();
+        ReconcileVirtualMicrophone();ApplyMixer();ScheduleSave();
     }
     private void ApplyMixer()
     {
@@ -142,7 +143,7 @@ public partial class MainViewModel
             if(automaticAudio)EnsureMicrophone();
         }
         profile=profile with{Channels=profile.Channels.Select(c=>c.Id=="mic"?c with{DeviceId=Settings.InputDeviceId,DeviceName=SelectedDevice?.Name}:c).ToList()};
-        mixerState.Current=profile;LoadMixerCards(profile);RefreshMixerDevices();ApplyMixer();ScheduleSave();
+        mixerState.Current=profile;LoadMixerCards(profile);RefreshMixerDevices();ReconcileVirtualMicrophone();ApplyMixer();ScheduleSave();
     }
     [RelayCommand] private void SelectMixerChannel(MixerChannelCard? channel)=>SelectedMixerChannel=channel;
     [RelayCommand] private void SelectMixerOutput(MixerOutputCard? output){SelectedMixerOutput=output;if(output!=null)RefreshOutputChoices(output);}

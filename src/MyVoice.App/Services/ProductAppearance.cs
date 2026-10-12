@@ -16,6 +16,8 @@ public static class ProductAppearance
         {
             "Graphite"=>new[]{"#191C20","#23272D","#2D333B","#3A414B"},
             "Deep Ocean"=>new[]{"#081820","#102732","#193542","#2B4854"},
+            "Crimson"=>new[]{"#1D1119","#2D1B28","#3F2836","#60404E"},
+            "Emerald"=>new[]{"#0C1B18","#152D26","#213D34","#365C4F"},
             "Warm Dark"=>new[]{"#1C1615","#2A2220","#372C28","#514038"},
             _=>new[]{"#101117","#191B25","#242735","#353948"}
         };
@@ -24,6 +26,15 @@ public static class ProductAppearance
         for(int i=0;i<keys.Length;i++)resources[keys[i]]=Brush(palette[i]);
         Color accent;try{accent=(Color)ColorConverter.ConvertFromString(state.Accent);}catch{accent=(Color)ColorConverter.ConvertFromString("#B7A5FF");}
         resources["AccentBrush"]=new SolidColorBrush(accent);
+        resources["Accent"]=new SolidColorBrush(accent);
+        resources["AccentColor"]=accent;
+        resources["AccentHoverBrush"]=new SolidColorBrush(Color.FromRgb((byte)(accent.R*.85+38),(byte)(accent.G*.85+38),(byte)(accent.B*.85+38)));
+        resources["AccentPressedBrush"]=new SolidColorBrush(Color.FromRgb((byte)(accent.R*.8),(byte)(accent.G*.8),(byte)(accent.B*.8)));
+        resources["AccentGlowBrush"]=new SolidColorBrush(Color.FromArgb(80,accent.R,accent.G,accent.B));
+        var canvas=(Color)ColorConverter.ConvertFromString(palette[0]);
+        resources["OverlayBrush"]=new SolidColorBrush(Color.FromArgb(235,canvas.R,canvas.G,canvas.B));
+        resources["CardPadding"]=new Thickness(state.Density=="Compact"?12:18);
+        resources["NavPadding"]=new Thickness(14,state.Density=="Compact"?9:13,14,state.Density=="Compact"?9:13);
         resources["AccentSoftBrush"]=new SolidColorBrush(Color.FromArgb(32,accent.R,accent.G,accent.B));
         var brightness=.2126*accent.R+.7152*accent.G+.0722*accent.B;
         resources["AccentInkBrush"]=Brush(brightness>145?"#101117":"#FFFFFF");
@@ -40,7 +51,7 @@ public sealed class BrandMark : FrameworkElement
         var scale=System.Math.Min(ActualWidth,ActualHeight)/64;
         dc.PushTransform(new TranslateTransform((ActualWidth-64*scale)/2,(ActualHeight-64*scale)/2));
         dc.PushTransform(new ScaleTransform(scale,scale));
-        dc.DrawGeometry(new SolidColorBrush(Color.FromRgb(187,169,255)),null,Mark);dc.Pop();dc.Pop();
+        dc.DrawGeometry((Brush)(TryFindResource("AccentBrush")??Brushes.MediumPurple),null,Mark);dc.Pop();dc.Pop();
     }
 }
 public sealed class BrandWordmark : FrameworkElement

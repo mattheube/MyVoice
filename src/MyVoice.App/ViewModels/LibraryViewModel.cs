@@ -240,7 +240,7 @@ public partial class MainViewModel
         Settings.Processing = new();
         graph.Processor.Settings = Settings.Processing;
         GainDb = 0;
-        foreach (var name in new[] { nameof(Gate), nameof(GateThreshold), nameof(GateAttack), nameof(GateRelease), nameof(NoiseSuppression), nameof(Compressor), nameof(CompressorThreshold), nameof(CompressorRatio), nameof(AutoGain), nameof(Bass), nameof(Mid), nameof(Treble) })
+        foreach (var name in new[] { nameof(Gate), nameof(GateThreshold), nameof(GateAttack), nameof(GateHold), nameof(GateRelease), nameof(NoiseSuppression), nameof(Compressor), nameof(CompressorThreshold), nameof(CompressorRatio), nameof(CompressorAttack), nameof(CompressorRelease), nameof(MakeupGain), nameof(AutoGain), nameof(Bass), nameof(Mid), nameof(Treble) })
             OnPropertyChanged(name);
         Save();
     }

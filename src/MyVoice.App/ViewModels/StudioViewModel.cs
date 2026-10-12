@@ -245,6 +245,7 @@ public partial class MainViewModel
         catch (Exception e) { Error(e); }
         finally { loadingStudio = prior; }
         if (!prior) ConfigureOutputs();
+        ReconcileVirtualMicrophone();
     }
     private void ConfigureOutputs()
     {
@@ -285,6 +286,7 @@ public partial class MainViewModel
         ProcessedMeter = Math.Clamp((graph.ProcessedPeak + 60) / 60 * 100, 0, 100);
         MonitorMeter = Math.Clamp((graph.MonitorPeak + 60) / 60 * 100, 0, 100);
         OutputMeter = Math.Clamp((graph.OutputPeak + 60) / 60 * 100, 0, 100);
+        NotifyVirtualMicrophone();
         if (SelectedSound != null)
         {
             var state = sounds.State(SelectedSound.Item.Id);

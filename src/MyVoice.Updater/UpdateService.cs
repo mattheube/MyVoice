@@ -84,7 +84,7 @@ public sealed class UpdateService : IDisposable
         if(current<Version.Parse(release.MinimumVersion))throw new InvalidDataException("Cette mise à jour nécessite une version intermédiaire : "+release.MinimumVersion);
         return Version.Parse(release.Version)>current?release:null;
     }
-    public async Task<string> DownloadAsync(ReleaseManifest release,string source,string cache,CancellationToken token,IProgress<double>? progress=null,IProgress<DownloadProgress>? bytes=null)
+    public async Task<string> DownloadAsync(ReleaseManifest release,string source,string cache,CancellationToken token,IProgress<double>? progress=null,IProgress<DownloadProgress>? bytes=null,Action? verifying=null)
     {
         release=Validate(release,source);Directory.CreateDirectory(cache);
         var dest=Path.Combine(cache,"MyVoiceSetup-"+release.Version+".exe");var temp=dest+"."+Guid.NewGuid().ToString("N")+".part";
@@ -113,7 +113,7 @@ public sealed class UpdateService : IDisposable
                 if(new FileInfo(local).Length>MaxDownload)throw new InvalidDataException("Mise à jour trop volumineuse");File.Copy(local,temp,true);
             }
             else throw new InvalidDataException("Le téléchargement doit utiliser HTTPS");
-            await VerifyAsync(temp,release.Sha256,token);File.Move(temp,dest,true);progress?.Report(1);return dest;
+            verifying?.Invoke();await VerifyAsync(temp,release.Sha256,token);File.Move(temp,dest,true);progress?.Report(1);return dest;
         }
         finally{if(File.Exists(temp))File.Delete(temp);}
     }
