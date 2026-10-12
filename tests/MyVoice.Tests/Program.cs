@@ -31,6 +31,7 @@ QualityTests.Run();
 StreamingQueueTests.Run();
 await UpdateTransportTests.Run();
 await UpdateSessionTests.Run();
+await UpdateTransactionTests.Run();
 if(args.Contains("--expressive"))await ExpressiveTests.Run(args.Contains("--cpu"),args.Contains("--style-only"));
 if(args.Contains("--virtual"))await VirtualRoutingTests.Run();
 if (args.Contains("--ai")) await AiIntegrationTests.Run(args.Contains("--cpu") ? "cpu" : "auto");

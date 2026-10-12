@@ -1,9 +1,9 @@
-# MyVoice 2.4 Beta
+# MyVoice 2.6 Beta
 
 Application Windows WPF de transformation vocale locale et soundboard.
 
 
-[Site officiel](https://mattheube.github.io/MyVoice/) · [Stable 2.2.0](https://github.com/mattheube/MyVoice/releases/tag/v2.2.0) · [Beta 2.5.0-beta.1](https://github.com/mattheube/MyVoice/releases/tag/v2.5.0-beta.1)
+[Site officiel](https://mattheube.github.io/MyVoice/) · [Stable 2.2.0](https://github.com/mattheube/MyVoice/releases/tag/v2.2.0) · [Beta 2.6.0-beta.1](https://github.com/mattheube/MyVoice/releases/tag/v2.6.0-beta.1)
 
 La Beta ajoute un Mixer à neuf espaces : sources Windows, routage, profils, enregistrement WAV et commandes MIDI. Elle apporte un nouveau symbole MyVoice, quatre thèmes, un dock global et Voice Designer. Voir [l’architecture du Mixer et ses limites](docs/Mixer-Architecture.md). Les moteurs IA existants sont conservés. Voir les [notes et limites de la Beta](publishing/Release-notes.md).
 
@@ -29,7 +29,7 @@ Les paramètres, sons, voix et datasets restent dans le profil local Windows. Gi
 
 L'adresse officielle GitHub Releases est préconfigurée. Le téléchargement est vérifié par SHA-256 et ne remplace pas les bibliothèques utilisateur. La consultation réseau est limitée dans le temps ; l'application continue hors ligne. Les informations de version sont mises en cache six heures.
 
-**Limite de cette version : l'installation et le redémarrage ne sont pas automatiques.** Une fois le fichier vérifié, « Afficher le téléchargement » ouvre son dossier ; l'installation reste manuelle. Le mécanisme autonome de remplacement n'a pas été livré.
+À partir de 2.6, les mises à jour sont installées au démarrage avec redémarrage automatique, si les deux options de recherche et d’installation sont activées. Le composant séparé vérifie le paquet officiel, conserve les anciens fichiers et restaure la version précédente si le nouveau programme ne confirme pas son démarrage. Le canal Stable/Beta choisi est respecté. Les versions antérieures doivent installer 2.6 une première fois manuellement. Voir [fonctionnement et limites](docs/Automatic-Updates.md).
 
 Le dépôt prépare un workflow de build/test et de release en brouillon avec attestation. La publication stable doit porter un nouveau numéro de version ; les releases immuables ne sont pas remplacées. `soundpacks.json` réserve un catalogue officiel vide ; il n'y a pas encore de navigateur de packs.
 

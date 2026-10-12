@@ -1,8 +1,8 @@
-# État vérifié de la Beta 2.5
+# État vérifié de la Beta 2.6
 
 ## Ajouts 2.5
 
-Microphone virtuel automatique, démarrage à états réels, récupération des erreurs, fenêtre maximisée/F11, Mixer scroll, Mic Setup par sections, six thèmes et densité. Voir [audit et limites](Startup-Audit.md). L’installation des mises à jour reste manuelle.
+Microphone virtuel automatique, démarrage à états réels, récupération des erreurs, fenêtre maximisée/F11, Mixer scroll, Mic Setup par sections, six thèmes et densité. Voir [audit et limites](Startup-Audit.md). La 2.6 ajoute le remplacement automatique et le redémarrage avec restauration en cas d’échec ; voir [architecture et limites](Automatic-Updates.md).
 
 ## Disponible localement
 
@@ -22,6 +22,6 @@ Authentification, session Windows DPAPI, profils privés, suivi/amis/blocage, r�
 - Format autonome de voix IA partageable sans dataset ni références d’origine.
 - Favoris/recherche unifiés de toutes les catégories de voix, collections officielles illustrées et traduction intégrale des nouveaux écrans.
 - Tests Windows sur plusieurs écrans/DPI, Narrateur et Snap Layouts ; codecs de covers WEBP à vérifier.
-- Signature des binaires et mise à jour avec remplacement automatique (non livrée ; l’installation actuelle reste manuelle).
+- Signature Windows des binaires (la vérification SHA-256 et le remplacement automatique sont livrés).
 
 Ce fichier distingue une Beta distribuable d’un produit communautaire totalement ouvert. Aucun faux compte ni faux contenu n’est présenté comme réel.

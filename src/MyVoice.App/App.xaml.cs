@@ -26,6 +26,10 @@ public partial class App : Application
         Services.WindowsIdentity.Initialize();
         base.OnStartup(e);
         var smoke = e.Args.Contains("--smoke-test");
+        var updateJob=e.Args.SkipWhile(x=>x!="--update-job").Skip(1).FirstOrDefault();
+        var rollbackJob=e.Args.SkipWhile(x=>x!="--update-rollback").Skip(1).FirstOrDefault();
+        if(updateJob==null&&rollbackJob==null&&UpdateHandoff.IsBusy(AppContext.BaseDirectory))
+        {MessageBox.Show("MyVoice est en cours de mise à jour. Il se rouvrira automatiquement.","MyVoice");Shutdown();return;}
         instance = new Mutex(true, smoke ? "Local\\MyVoice.Smoke" : "Local\\MyVoice.App", out ownsMutex);
         if (!ownsMutex)
         {
@@ -38,13 +42,13 @@ public partial class App : Application
         try
         {
             store = new LocalStore(smoke ? Path.Combine(Path.GetTempPath(), "MyVoice-Smoke-" + Guid.NewGuid().ToString("N")) : null);
-            UpdateSession? startupUpdate=null;
+            UpdateSession? startupUpdate=null;string? updateProblem=null;
             if(!smoke || e.Args.Contains("--startup-flow"))
             {
                 var preferences=await Task.Run(store.Load);
                 try { Services.ProductAppearance.Apply(await Task.Run(()=>new ProductStore(store.Root).Load())); } catch(Exception appearanceError) { store.Log("Early theme: "+appearanceError.Message); }
                 splash?.RefreshMotion();
-                if(preferences.CheckUpdatesAtStartup)
+                if(preferences.CheckUpdatesAtStartup && updateJob==null && rollbackJob==null)
                 {
                     splash?.Stage(StartupPhase.CheckingUpdates,"Vérification des mises à jour…");
                     var source=preferences.UpdateChannel=="beta"?DistributionDefaults.BetaManifestUrl:DistributionDefaults.ManifestUrl;
@@ -66,6 +70,20 @@ public partial class App : Application
                         if(splash!=null)splash.ContinueRequested-=skip.Cancel;
                     }
                 }
+                if(!smoke && preferences.AutomaticUpdates && startupUpdate?.DownloadedFile is {} package && startupUpdate.Release is {} release && !string.IsNullOrEmpty(release.PackageUrl))
+                {
+                    if(UpdateHandoff.IsBlocked(release.Tag)){updateProblem="Cette mise à jour a échoué précédemment. Vous pouvez réessayer dans les réglages.";store.Log("Automatic update paused for failed release "+release.Tag);}
+                    else
+                    {
+                        try
+                        {
+                            splash?.Stage(StartupPhase.InstallingUpdate,"Installation de la mise à jour…");
+                            await UpdateHandoff.LaunchAsync(AppContext.BaseDirectory,package,startupUpdate.Source,release,CancellationToken.None);
+                            splash?.Close();Shutdown();return;
+                        }
+                        catch(Exception handoffError){updateProblem="Mise à jour reportée : "+handoffError.Message;store.Log("Update handoff failed: "+handoffError);}
+                    }
+                }
                 splash?.Stage(StartupPhase.LoadingSettings,"Chargement de vos réglages…");
             }
             if(!smoke) await Task.Run(()=>UserDataBackup.EnsureVersionBackup(store.Root,System.Reflection.Assembly.GetExecutingAssembly().GetName().Version!.ToString(3)));
@@ -80,6 +98,7 @@ public partial class App : Application
             await Task.Yield();
             vm = new MainViewModel(store, new MicrophoneService(), !smoke);
             if(startupUpdate!=null)vm.AdoptUpdateSession(startupUpdate);
+            if(updateProblem!=null)vm.UpdateStatus=updateProblem;
             if(smoke && e.Args.Contains("--audio-startup")){vm.Settings.AutoStartAi=false;vm.StartServices();if(!vm.Running)throw new Exception("Automatic microphone failed");store.Log("PASS automatic microphone startup");}
             var window = new MainWindow(vm);
             MainWindow = window;
@@ -93,11 +112,18 @@ public partial class App : Application
             {
                 splash?.Stage(StartupPhase.DetectingAudio,"Détection du microphone virtuel…");await Task.Yield();vm.RefreshCableCommand.Execute(null);
                 splash?.Stage(StartupPhase.StartingAudioEngine,"Connexion du microphone…");await Task.Yield();vm.StartServices();
-                while(!vm.Running && splash!=null && await splash.OfferRetryAsync("Le microphone n’est pas disponible. Vérifiez son branchement.",()=>vm.OpenLogsCommand.Execute(null)))
+                while(!vm.Running && updateJob==null && splash!=null && await splash.OfferRetryAsync("Le microphone n’est pas disponible. Vérifiez son branchement.",()=>vm.OpenLogsCommand.Execute(null)))
                     vm.StartServices();
                 if(vm.Settings.AutoStartAi)splash?.Stage(StartupPhase.StartingAIEngine,"Préparation de l’IA en arrière-plan…");
             }
             window.Show();
+            if(updateJob!=null)
+            {
+                UpdateHandoff.MarkHealthy(updateJob,vm.InstalledRelease);
+                vm.UpdateStatus="MyVoice mis à jour · "+vm.InstalledRelease;
+                vm.ShowToast(vm.UpdateStatus);
+            }
+            if(rollbackJob!=null){vm.UpdateStatus="La mise à jour a échoué. La version précédente a été restaurée.";vm.ShowToast(vm.UpdateStatus);}
             if(splash!=null)await splash.FinishAsync(vm.Running?"Prêt ✓":"MyVoice prêt · microphone indisponible");
             if (vm.StartMinimized && !smoke)
                 window.Hide();
@@ -116,6 +142,16 @@ public partial class App : Application
             await Task.Delay(700);
             var folder = args.SkipWhile(x => x != "--smoke-test").Skip(1).FirstOrDefault() ?? Path.GetTempPath();
             Directory.CreateDirectory(folder);
+            if(args.Contains("--exercise-update"))
+            {
+                // Explicit integration test: only this isolated smoke profile and program copy are used.
+                using var updater=new UpdateService();
+                var release=await updater.ReadManifestAsync(DistributionDefaults.BetaManifestUrl,CancellationToken.None);
+                var package=await updater.DownloadPackageAsync(release,DistributionDefaults.BetaManifestUrl,Path.Combine(store!.Root,"cache","updates"),CancellationToken.None);
+                await UpdateHandoff.LaunchAsync(AppContext.BaseDirectory,package,DistributionDefaults.BetaManifestUrl,release,CancellationToken.None,true);
+                File.WriteAllText(Path.Combine(folder,"handoff.txt"),"accepted "+release.Tag);
+                ExitApplication();return;
+            }
             vm!.ShowWelcome=false;
             for (int page = 0; page < 9; page++)
             {

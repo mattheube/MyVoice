@@ -22,11 +22,13 @@ public sealed class UpdateSession
             var numeric=installed.Split('-')[0];
             if(Version.Parse(numeric)<Version.Parse(Release.MinimumVersion))throw new InvalidDataException("Version intermédiaire requise : "+Release.MinimumVersion);
             Report(new(UpdatePhase.Downloading,"Téléchargement de MyVoice "+Release.Tag));
-            DownloadedFile=await service.DownloadAsync(Release,source,cache,token,null,
+            if(!string.IsNullOrEmpty(Release.PackageUrl))
+                DownloadedFile=await service.DownloadPackageAsync(Release,source,cache,token,new InlineProgress<DownloadProgress>(p=>Report(new(UpdatePhase.Downloading,$"MyVoice {Release.Tag} · {p.Received/1048576d:0.0} Mo"+(p.Total>0?$" / {p.Total/1048576d:0.0} Mo":""),p.Total>0?p.Received*100d/p.Total:null))),()=>{log("Update verifying package SHA-256");Report(new(UpdatePhase.Verifying,"Vérification du téléchargement…"));});
+            else DownloadedFile=await service.DownloadAsync(Release,source,cache,token,null,
                 new InlineProgress<DownloadProgress>(p=>Report(new(UpdatePhase.Downloading,$"MyVoice {Release.Tag} · {p.Received/1048576d:0.0} Mo"+(p.Total>0?$" / {p.Total/1048576d:0.0} Mo":""),p.Total>0?p.Received*100d/p.Total:null))),
                 ()=>{log("Update verifying SHA-256");Report(new(UpdatePhase.Verifying,"Vérification du téléchargement…"));});
             log("Update SHA-256 verified; staged="+DownloadedFile);
-            Report(new(UpdatePhase.Ready,"Mise à jour vérifiée · prête à installer manuellement"));
+            Report(new(UpdatePhase.Ready,"Mise à jour vérifiée · prête à installer"));
         }
         catch(OperationCanceledException){log("Update cancelled or timed out");Report(new(UpdatePhase.Cancelled,"Vérification interrompue · démarrage de la version actuelle"));}
         catch(Exception e){FailedAt=State.Phase;log("Update failed: "+e.Message);Report(new(UpdatePhase.Failed,"Mise à jour indisponible : "+e.Message));}

@@ -35,6 +35,7 @@ public sealed partial class AppSettings
     }
     public string UpdateManifestUrl { get; set; } = "";
     public bool CheckUpdatesAtStartup {get;set;} = true;
+    public bool AutomaticUpdates {get;set;} = true;
     public bool Notifications { get; set; } = true;
     public double UiScale { get; set; } = 1;
     public Dictionary<string, HotkeyBinding> Shortcuts { get; set; } = new();

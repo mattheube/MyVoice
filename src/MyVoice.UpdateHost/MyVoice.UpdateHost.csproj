@@ -1,0 +1,1 @@
+<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><OutputType>WinExe</OutputType><UseWPF>true</UseWPF><AssemblyName>MyVoice.UpdateHost</AssemblyName><ApplicationIcon>../../assets/MyVoice.Signal.ico</ApplicationIcon></PropertyGroup><ItemGroup><ProjectReference Include="../MyVoice.Updater/MyVoice.Updater.csproj"/></ItemGroup></Project>

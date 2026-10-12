@@ -11,6 +11,8 @@ public sealed record ReleaseManifest(string Version,string Installer="",string S
     public string Channel {get;init;}="stable";
     public string MinimumVersion {get;init;}="0.0.0";
     public bool Mandatory {get;init;}
+    public string PackageUrl {get;init;}="";
+    public string PackageSha256 {get;init;}="";
 }
 public sealed record DownloadProgress(long Received,long? Total);
 public static class DistributionDefaults
@@ -20,7 +22,7 @@ public static class DistributionDefaults
     public const string ManifestUrl="https://github.com/"+Repository+"/releases/latest/download/manifest.json";
 }
 /// <summary>Stages verified release files. Does not install or execute downloaded content.</summary>
-public sealed class UpdateService : IDisposable
+public sealed partial class UpdateService : IDisposable
 {
     private readonly HttpClient http;
     private const long MaxDownload=1024L*1024*1024;
@@ -58,6 +60,7 @@ public sealed class UpdateService : IDisposable
             var beta=source==DistributionDefaults.BetaManifestUrl;
             if(release.Channel!=(beta?"beta":"stable")||!(beta?Regex.IsMatch(tag,"^v"+Regex.Escape(release.Version)+@"-beta\.[1-9][0-9]*$"):tag=="v"+release.Version))throw new InvalidDataException("Canal de release incohérent");
             if(release.Installer!=prefix+"download/"+tag+"/MyVoiceSetup.exe"||release.ReleaseUrl!=prefix+"tag/"+tag)throw new InvalidDataException("La version ne correspond pas à la release officielle");
+            if(!string.IsNullOrEmpty(release.PackageUrl) && (release.PackageUrl!=prefix+"download/"+tag+"/MyVoice-"+release.Version+"-win-x64.zip" || !Regex.IsMatch(release.PackageSha256??"","^[a-fA-F0-9]{64}$")))throw new InvalidDataException("Package automatique non officiel ou empreinte invalide");
         }
         return release;
     }

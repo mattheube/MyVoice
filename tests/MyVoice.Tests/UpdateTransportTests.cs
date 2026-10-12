@@ -39,5 +39,16 @@ public static class UpdateTransportTests
         try{UpdateService.Validate(release,DistributionDefaults.ManifestUrl);throw new Exception("Wrong official origin accepted");}catch(InvalidDataException){Console.WriteLine("PASS Official download must match repository and release tag");}
         var official=release with{DownloadUrl="https://github.com/mattheube/MyVoice/releases/download/v2.2.0/MyVoiceSetup.exe",ReleaseUrl="https://github.com/mattheube/MyVoice/releases/tag/v2.2.0"};Check(UpdateService.Validate(official,DistributionDefaults.ManifestUrl).Installer==official.DownloadUrl,"Official manifest schema accepted");
         var protectedFile=Path.Combine(root,"personal-library.json");await File.WriteAllTextAsync(protectedFile,"{\"voices\":[\"private\"]}");var before=File.ReadAllBytes(protectedFile);await ok.DownloadAsync(release,source,root,CancellationToken.None);Check(File.ReadAllBytes(protectedFile).SequenceEqual(before),"Staging leaves personal catalog unchanged");
+        byte[] package=[80,75,3,4,1,2,3];
+        var packaged=official with{Tag="v2.2.0",PackageUrl="https://github.com/mattheube/MyVoice/releases/download/v2.2.0/MyVoice-2.2.0-win-x64.zip",PackageSha256=Convert.ToHexString(SHA256.HashData(package))};
+        using var packageService=new UpdateService(new FakeHandler((r,t)=>Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK){Content=new ByteArrayContent(package)})));
+        var verified=await packageService.DownloadPackageAsync(packaged,DistributionDefaults.ManifestUrl,root,CancellationToken.None);
+        Check(File.ReadAllBytes(verified).SequenceEqual(package),"Automatic package download verifies SHA before staging");
+        await Reject(()=>packageService.DownloadPackageAsync(packaged with{PackageSha256=new string('0',64)},DistributionDefaults.ManifestUrl,root,CancellationToken.None),"Automatic package rejects wrong SHA");
+        await Reject(()=>interrupted.DownloadPackageAsync(packaged,DistributionDefaults.ManifestUrl,root,CancellationToken.None),"Automatic package interruption is recoverable");
+        await Reject(()=>packageService.DownloadPackageAsync(packaged,DistributionDefaults.ManifestUrl,root,cancellation.Token),"Automatic package cancellation preserves previous download");
+        using var truncated=new UpdateService(new FakeHandler((r,t)=>{var content=new ByteArrayContent(package);content.Headers.ContentLength=package.Length+10;return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK){Content=content});}));
+        await Reject(()=>truncated.DownloadPackageAsync(packaged,DistributionDefaults.ManifestUrl,root,CancellationToken.None),"Automatic package refuses truncated response");
+        Check(File.ReadAllBytes(verified).SequenceEqual(package)&&!Directory.GetFiles(root,"*.part").Any(),"Failed automatic downloads preserve verified cache and remove partial files");
     }
 }

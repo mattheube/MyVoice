@@ -1,4 +1,4 @@
-#define MyAppVersion "2.5.0"
+#define MyAppVersion "2.6.0"
 [Setup]
 AppId={{4197D906-B03B-48CD-997A-5A6389477F25}
 AppName=MyVoice

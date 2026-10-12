@@ -4,7 +4,7 @@ Utilisez MyVoiceSetup.exe pour installer, ou extrayez entièrement le ZIP portab
 
 Les paramètres et bibliothèques restent dans %APPDATA%/MyVoice. Le moteur IA est dans %LOCALAPPDATA%/MyVoice/AI. Ne déplacez ni ne supprimez ces dossiers lors d’une mise à jour. Une sauvegarde par version est créée avant leur chargement. La désinstallation conserve les données.
 
-L’audio local fonctionne sans compte. Community est préparé mais son serveur n’est pas encore connecté. L’installation d’une mise à jour reste manuelle après téléchargement vérifié. Aucun enregistrement ni dataset n’est envoyé automatiquement.
+L’audio local fonctionne sans compte. Community est préparé mais son serveur n’est pas encore connecté. À partir de 2.6, les mises à jour officielles peuvent être installées automatiquement au démarrage, avec redémarrage et sauvegarde de la version précédente. Les versions antérieures nécessitent une première installation manuelle de 2.6. Aucun enregistrement ni dataset n’est envoyé automatiquement.
 
 Site : https://mattheube.github.io/MyVoice/
 Releases : https://github.com/mattheube/MyVoice/releases

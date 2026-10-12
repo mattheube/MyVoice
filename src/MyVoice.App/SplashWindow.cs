@@ -7,7 +7,7 @@ using System.Windows.Media.Animation;
 using MyVoice.App.Services;
 using MyVoice.Updater;
 namespace MyVoice.App;
-public enum StartupPhase { Initialize, CheckingUpdates, DownloadingUpdate, VerifyingUpdate, LoadingSettings, DetectingAudio, StartingAudioEngine, StartingAIEngine, LoadingLibrary, Ready, Error }
+public enum StartupPhase { Initialize, CheckingUpdates, DownloadingUpdate, VerifyingUpdate, InstallingUpdate, LoadingSettings, DetectingAudio, StartingAudioEngine, StartingAIEngine, LoadingLibrary, Ready, Error }
 public sealed class SplashWindow : Window
 {
     private readonly TextBlock status;

@@ -10,9 +10,11 @@ using MyVoice.App.Services;
 namespace MyVoice.App.ViewModels;
 public partial class MainViewModel
 {
-    public string InstalledRelease => Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion.Split('+')[0]??"2.5.0-beta.1";
-    public string ApplicationVersion => "MyVoice · " + (Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion.Split('+')[0] ?? "2.5.0-beta.1");
-    public string UpdateAvailability => string.IsNullOrWhiteSpace(UpdateSource) ? "Les mises à jour automatiques seront activées lorsque le dépôt de publication sera configuré." : "Distribution GitHub Releases · téléchargement vérifié, installation manuelle.";
+    public string InstalledRelease => Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion.Split('+')[0]??"2.6.0-beta.1";
+    public string ApplicationVersion => "MyVoice · " + (Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion.Split('+')[0] ?? "2.6.0-beta.1");
+    public string UpdateAvailability => "Releases officielles · téléchargement vérifié, installation et redémarrage avec retour à la version précédente en cas d’échec.";
+    private UpdateSession? preparedUpdate;
+    public bool AutomaticUpdates {get=>Settings.AutomaticUpdates;set{Settings.AutomaticUpdates=value;Changed(nameof(AutomaticUpdates));}}
     private string? downloadedUpdate;
     [ObservableProperty] private double updateProgress;
     public string LatestVersion=>string.IsNullOrEmpty(Settings.LastKnownVersion)?"Non vérifiée":Settings.LastKnownVersion;
@@ -65,6 +67,7 @@ public partial class MainViewModel
     public void AdoptUpdateSession(UpdateSession session)
     {
         if(session.Source!=UpdateSource)return;
+        preparedUpdate=session;
         ShowUpdateState(session.State);downloadedUpdate=session.DownloadedFile;CanInstallUpdate=downloadedUpdate!=null;
         if(session.Release is {} release && session.CheckedAt is {} date)
         {
@@ -88,11 +91,18 @@ public partial class MainViewModel
         AdoptUpdateSession(session);
     }
     [RelayCommand]
-    private void InstallUpdate()
+    private async Task InstallUpdateAsync()
     {
         if(downloadedUpdate==null||!CanInstallUpdate)return;
-        try{Process.Start(new ProcessStartInfo("explorer.exe"){Arguments="/select,\""+downloadedUpdate+"\"",UseShellExecute=true});}
-        catch(Exception e){Error(e);}
+        try
+        {
+            if(preparedUpdate?.Release is not {} release||string.IsNullOrEmpty(release.PackageUrl))
+            {Process.Start(new ProcessStartInfo("explorer.exe"){Arguments="/select,\""+downloadedUpdate+"\"",UseShellExecute=true});return;}
+            store.Save(Settings);mixerStore?.Save(mixerState);UpdateStatus="Préparation de l’installation…";
+            await UpdateHandoff.LaunchAsync(AppContext.BaseDirectory,downloadedUpdate,preparedUpdate.Source,release,lifetime.Token);
+            ((App)System.Windows.Application.Current).ExitApplication();
+        }
+        catch(Exception e){UpdateStatus="Installation impossible : "+e.Message;Error(e);}
     }
     [RelayCommand]
     private void ResetAll()
