@@ -22,12 +22,12 @@ public partial class MainViewModel
     public string Accent {get=>Product.Accent;set{if(!System.Text.RegularExpressions.Regex.IsMatch(value??"","^#[0-9a-fA-F]{6}$"))return;Product.Accent=value!;ApplyAppearance();}}
     public string MotionMode {get=>Product.Motion;set{Product.Motion=value;ApplyAppearance();}}
     public string BackgroundMode {get=>Product.Background;set{Product.Background=value;ApplyAppearance();}}
-    public string ProfileName {get=>Product.DisplayName;set{Product.DisplayName=value;SaveProduct();OnPropertyChanged(nameof(Welcome));}}
-    public string ProfileBio {get=>Product.Bio;set{Product.Bio=value;SaveProduct();}}
+    public string ProfileName {get=>Product.DisplayName;set{Product.DisplayName=value;SaveProduct();OnPropertyChanged(nameof(ProfileName));OnPropertyChanged(nameof(Welcome));OnPropertyChanged(nameof(AccountLabel));}}
+    public string ProfileBio {get=>Product.Bio;set{Product.Bio=value;SaveProduct();OnPropertyChanged(nameof(ProfileBio));}}
     public string? ProfileAvatar=>Product.Avatar;
     public string Welcome=>string.IsNullOrWhiteSpace(Product.DisplayName)?"Bienvenue chez vous.":"Bonjour, "+Product.DisplayName+".";
     public string LibrarySummary=>$"{SoundCards.Count} sons · {AiVoices.Count} voix IA · tout reste sur votre PC";
-    public string PageTitle=>Page switch{0=>"Voice",1=>"Soundboard",2=>"Studio",3=>"Settings",4=>"Home",5=>"Community",6=>"Mic Setup",7=>"Profile",8=>"Mixer",_=>"MyVoice"};
+    public string PageTitle=>T[Page switch{0=>"Voice",1=>"Soundboard",2=>"Studio",3=>"Settings",4=>"Home",5=>"Community",6=>"Mic Setup",7=>"Profile",8=>"Mixer",_=>"MyVoice"}];
     [ObservableProperty] private bool showWelcome;
     [ObservableProperty] private bool advancedMicrophone;
     [ObservableProperty] private bool favoriteSoundsOnly;
@@ -56,7 +56,7 @@ public partial class MainViewModel
         foreach(var preset in Presets)preset.Selected=!Settings.ActiveAiVoice&&graph.Processor.Designed==null&&preset.Name==CurrentPreset;
         ProductAppearance.Apply(Product);
         ShowWelcome=!Product.OnboardingCompleted;
-        InitializeCommunity();Page=4;
+        InitializeCommunity();InitializeLibraryCollections();Page=4;
     }
     private void SaveProduct(){try{productStore?.Save(Product);}catch(Exception e){Error(e);}}
     private void ApplyAppearance(){ProductAppearance.Apply(Product);Settings.Animations=ProductAppearance.Animate;SaveProduct();OnPropertyChanged(nameof(Theme));OnPropertyChanged(nameof(Accent));OnPropertyChanged(nameof(MotionMode));OnPropertyChanged(nameof(BackgroundMode));}
@@ -68,7 +68,7 @@ public partial class MainViewModel
     [RelayCommand] private void OpenBoard(SoundFolder? folder){SelectedFolder=folder;Page=1;}
     [RelayCommand] private void QuitApplication()=>((App)Application.Current).ExitApplication();
     [RelayCommand] private void ChangeAvatar(){try{var path=ImportCover(true,Product.Avatar);if(path==null)return;Product.Avatar=path;SaveProduct();OnPropertyChanged(nameof(ProfileAvatar));}catch(Exception e){Error(e);}}
-    [RelayCommand] private void CopyCableName(){Clipboard.SetText("CABLE Output (VB-Audio Virtual Cable)");ShowToast("Nom du microphone copié.");}
+    [RelayCommand] private void CopyCableName(){Clipboard.SetText(VirtualCaptureName);ShowToast("Nom du microphone copié.");}
     public double GateHold {get=>Settings.Processing.GateHoldMs;set=>ApplyProcessing(Settings.Processing with{GateHoldMs=Math.Clamp(value,0,500)},nameof(GateHold));}
     public double CompressorAttack {get=>Settings.Processing.CompressorAttackMs;set=>ApplyProcessing(Settings.Processing with{CompressorAttackMs=Math.Clamp(value,1,100)},nameof(CompressorAttack));}
     public double CompressorRelease {get=>Settings.Processing.CompressorReleaseMs;set=>ApplyProcessing(Settings.Processing with{CompressorReleaseMs=Math.Clamp(value,20,1000)},nameof(CompressorRelease));}
@@ -77,8 +77,8 @@ public partial class MainViewModel
     public string CableStatus=>VirtualMicrophoneStatus;
     [RelayCommand] private void RefreshCable(){Refresh();RefreshOutputs();OnPropertyChanged(nameof(CableStatus));}
     [RelayCommand] private void PlayLastSound()=>PlaySound(SoundCards.FirstOrDefault(s=>s.Item.Id==Settings.LastSoundId));
-    [RelayCommand] private void ToggleSoundFavorite(SoundCard? card){if(card==null)return;if(!Product.FavoriteSounds.Remove(card.Item.Id))Product.FavoriteSounds.Add(card.Item.Id);SaveProduct();ShowToast(Product.FavoriteSounds.Contains(card.Item.Id)?"Son ajouté aux favoris":"Favori retiré");SoundView.Refresh();}
-    public void ShowToast(string text){ToastText=text;var timer=new System.Windows.Threading.DispatcherTimer{Interval=TimeSpan.FromSeconds(4)};timer.Tick+=(_,_)=>{if(ToastText==text)ToastText="";timer.Stop();};timer.Start();}
+    [RelayCommand] private void ToggleSoundFavorite(SoundCard? card){if(card!=null)ToggleEntryLike(new("sound",card.Item.Id.ToString()));}
+    public void ShowToast(string text){RecordNotification(text);ToastText=text;var timer=new System.Windows.Threading.DispatcherTimer{Interval=TimeSpan.FromSeconds(4)};timer.Tick+=(_,_)=>{if(ToastText==text)ToastText="";timer.Stop();};timer.Start();}
     [RelayCommand] private void SaveDesignedVoice()
     {
         if(string.IsNullOrWhiteSpace(DesignerName)){ShowToast("Donnez un nom à votre voix.");return;}

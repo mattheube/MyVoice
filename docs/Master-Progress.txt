@@ -1,0 +1,11 @@
+MYVOICE — AVANCEMENT DU MASTER, 13 OCTOBRE 2026
+
+Livré dans cette phase : corrections VB-CABLE et menus du mixeur ; brouillons de publication hors ligne ; chargement des voix protégé contre les requêtes obsolètes ; cartes de sons, menus contextuels, préécoute, collections et Likes indépendants ; éditeur audio non destructif ; recherche Ctrl+K et notifications locales ; lien Discord officiel ; GIF/WebP et recadrage animé ; virtualisation des lignes ; localisation des nouveaux formulaires ; métadonnées et provenance côté serveur.
+
+Préservé : catalogue existant, fichiers son et voix, modèles IA, réglages, thèmes, moteur audio et composant de mise à jour 2.6. Aucune suppression de média d’origine dans l’éditeur ou les collections.
+
+Restant : connexion/déploiement Supabase, authentification et publication réelles de bout en bout ; harmonisation de tous les anciens textes FR/EN et panneaux secondaires ; enrichissement du centre de notifications (filtres/catégories et événements distants) ; recherche globale dans les réglages détaillés et la communauté ; inspection/édition de toutes les métadonnées pour chaque type de voix ; nouvelles validations de changements rapides de voix avec plusieurs modèles réellement chargés. Les champs prénom/nom restent privés sur le PC.
+
+Contrôles d’empreintes : protègent les fichiers audio strictement identiques. Ne constituent pas une preuve de droits d’auteur et ne reconnaissent pas un réencodage. Les créations importées avant cette version peuvent ne pas disposer de provenance complète.
+
+Preuves locales : work/master-final-tests.log, work/master-final-ui, work/master-backend-tests.log. La matrice Master-Audit conserve l’état initial et les annotations de validation. Aucun statut de fonctionnalités restant partiel n’est présenté comme achevé.

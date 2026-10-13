@@ -59,7 +59,9 @@ public sealed class SoundboardService : ISoundboardService, IDisposable
     {
         return await Task.Run(() => { token.ThrowIfCancellationRequested(); using var probe = new AudioFileReader(file); if (probe.TotalTime.TotalSeconds <= 0) throw new InvalidDataException("Empty audio"); var id = Guid.NewGuid(); var dest = Path.Combine(root, "sounds", id + Path.GetExtension(file).ToLowerInvariant()); File.Copy(file, dest); var item = new SoundItem { Id = id, File = dest, Name = Path.GetFileNameWithoutExtension(file) }; lock (gate) Library.Sounds.Add(item); return id; }, token);
     }
-    public void Play(Guid id)
+    public void Play(Guid id)=>Play(id,false);
+    public void Preview(Guid id)=>Play(id,true);
+    private void Play(Guid id,bool preview)
     {
         lock (gate)
         {
@@ -68,6 +70,7 @@ public sealed class SoundboardService : ISoundboardService, IDisposable
                 StopAllLocked(id);
             if (voices.TryGetValue(id, out var existing))
             {
+                existing.Preview=preview;
                 if (item.PlaybackMode == "Toggle" && !existing.Paused)
                 {
                     existing.Paused = true;
@@ -78,7 +81,7 @@ public sealed class SoundboardService : ISoundboardService, IDisposable
             }
             if (voices.Count >= 16)
                 throw new InvalidOperationException("Maximum: 16 sounds");
-            voices[id] = new(item);
+            voices[id] = new(item){Preview=preview};
         }
     }
     public void Pause(Guid id)
@@ -172,10 +175,10 @@ public sealed class SoundboardService : ISoundboardService, IDisposable
                     for (int i = 0; i < total; i++)
                     {
                         float x = p.Buffer[i];
-                        if(!all.IsEmpty)all[i]+=x;
-                        if (p.Item.HearMyself)
+                        if(!all.IsEmpty&&!p.Preview)all[i]+=x;
+                        if (p.Preview||p.Item.HearMyself)
                             monitor[i] += x;
-                        if (p.Item.SendToMic)
+                        if (!p.Preview&&p.Item.SendToMic)
                             virtualOut[i] += x;
                     }
                 }
@@ -209,7 +212,7 @@ public sealed class SoundboardService : ISoundboardService, IDisposable
         }
         public SoundToneProcessor Tone {get;} = new();
         public float[] Buffer { get; } = new float[960];
-        public bool Paused, Finished;
+        public bool Paused, Finished, Preview;
         public Playback(SoundItem item)
         {
             Item = item;

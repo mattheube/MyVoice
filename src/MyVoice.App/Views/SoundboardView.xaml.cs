@@ -14,6 +14,8 @@ public partial class SoundboardView : UserControl
         if (e.Data.GetData(DataFormats.FileDrop) is string[] paths)
             await ((MainViewModel)DataContext).ImportPathsAsync(paths);
     }
+    private void LayoutChanged(object sender,SizeChangedEventArgs e){if(DataContext is MainViewModel vm)vm.SetSoundColumns((int)(System.Math.Max(176,e.NewSize.Width-20)/176));}
+    private void OpenMenu(object sender,ContextMenuEventArgs e){if(sender is FrameworkElement element&&DataContext is MainViewModel vm){element.ContextMenu=Services.LibraryContextMenu.Build(vm,element.DataContext);}}
     private void SelectCard(object sender, MouseButtonEventArgs e)
     { if(sender is FrameworkElement {DataContext:SoundCard card}) ((MainViewModel)DataContext).SelectSoundCommand.Execute(card); }
     private void HoldStart(object sender, MouseButtonEventArgs e)

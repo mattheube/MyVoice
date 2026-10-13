@@ -7,20 +7,46 @@ public sealed class CoverImage : Image
 {
     public static readonly DependencyProperty FilePathProperty=DependencyProperty.Register(nameof(FilePath),typeof(string),typeof(CoverImage),new PropertyMetadata(null,FileChanged));
     public string? FilePath {get=>(string?)GetValue(FilePathProperty);set=>SetValue(FilePathProperty,value);}
-    private int generation;
-    private static readonly System.Collections.Concurrent.ConcurrentDictionary<string,System.Windows.Media.Imaging.BitmapImage> Thumbnails=new();
-    private static async void FileChanged(DependencyObject obj,DependencyPropertyChangedEventArgs args)
+    private int generation,frame;
+    private CoverFrames? frames;
+    private readonly System.Windows.Threading.DispatcherTimer timer=new();
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<string,CoverFrames> Thumbnails=new();
+    private static readonly System.Threading.SemaphoreSlim DecodeGate=new(2,2);
+    public CoverImage()
     {
-        var image=(CoverImage)obj;var current=++image.generation;image.Source=null;
-        if(args.NewValue is not string file||!System.IO.File.Exists(file))return;
-        try{
+        Loaded+=(_,_)=>Load();Unloaded+=(_,_)=>{++generation;timer.Stop();frames=null;Source=null;};
+        IsVisibleChanged+=(_,_)=>{if(IsVisible)Load();else timer.Stop();};
+        timer.Tick+=(_,_)=>{if(frames==null||!IsVisible||!ProductAppearance.Animate){timer.Stop();return;}frame=(frame+1)%frames.Frames.Length;Source=frames.Frames[frame];timer.Interval=TimeSpan.FromMilliseconds(frames.Delays[frame]);};
+    }
+    private static void FileChanged(DependencyObject obj,DependencyPropertyChangedEventArgs args)=>((CoverImage)obj).Load();
+    private async void Load()
+    {
+        int current=++generation;timer.Stop();Source=null;frames=null;frame=0;
+        if(!IsLoaded||!IsVisible||FilePath is not string file||!System.IO.File.Exists(file))return;
+        try
+        {
             var key=file+System.IO.File.GetLastWriteTimeUtc(file).Ticks;
-            if(!Thumbnails.TryGetValue(key,out var bitmap)){
-                bitmap=await System.Threading.Tasks.Task.Run(()=>{var b=new System.Windows.Media.Imaging.BitmapImage();b.BeginInit();b.CacheOption=System.Windows.Media.Imaging.BitmapCacheOption.OnLoad;b.DecodePixelWidth=384;b.UriSource=new Uri(System.IO.Path.GetFullPath(file));b.EndInit();b.Freeze();return b;});
-                if(Thumbnails.Count>96)Thumbnails.Clear();Thumbnails[key]=bitmap;
+            if(!Thumbnails.TryGetValue(key,out var decoded))
+            {
+                await DecodeGate.WaitAsync();
+                try
+                {
+                    if(current!=generation)return;
+                    if(!Thumbnails.TryGetValue(key,out decoded))
+                    {
+                        decoded=await System.Threading.Tasks.Task.Run(()=>CoverDecoder.Read(file));
+                        long bytes=0;foreach(var cached in Thumbnails.Values)foreach(var bitmap in cached.Frames)bytes+=(long)bitmap.PixelWidth*bitmap.PixelHeight*4;
+                        long added=0;foreach(var bitmap in decoded.Frames)added+=(long)bitmap.PixelWidth*bitmap.PixelHeight*4;
+                        if(Thumbnails.Count>=96||bytes+added>64*1024*1024)Thumbnails.Clear();Thumbnails[key]=decoded;
+                    }
+                }
+                finally{DecodeGate.Release();}
             }
-            if(current==image.generation)image.Source=bitmap;
-        }catch{if(current==image.generation)image.Source=null;}
+            if(current!=generation)return;
+            frames=decoded;Source=frames.Frames[0];
+            if(frames.Frames.Length>1&&ProductAppearance.Animate){timer.Interval=TimeSpan.FromMilliseconds(frames.Delays[0]);timer.Start();}
+        }
+        catch{if(current==generation)Source=null;}
     }
 
     public static readonly DependencyProperty CircularProperty = DependencyProperty.Register(nameof(Circular), typeof(bool), typeof(CoverImage), new FrameworkPropertyMetadata(false, FrameworkPropertyMetadataOptions.AffectsRender));

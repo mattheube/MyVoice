@@ -88,7 +88,7 @@ public partial class MainViewModel
         {
             Settings.VoiceEnabled = value;
             graph.Processor.Enabled = value;
-            if(!value) StopLive(); else if(Settings.ActiveAiVoice&&!AiLive) _=UseAiVoiceCommand.ExecuteAsync(SelectedAiVoice);
+            if(!value){++voiceSwitchRevision;StopLive();} else if(Settings.ActiveAiVoice&&!AiLive) _=UseAiVoiceCommand.ExecuteAsync(SelectedAiVoice);
             OnPropertyChanged(nameof(DisplayVoice));OnPropertyChanged(nameof(DisplayVoiceCover));
             Changed(nameof(VoiceEnabled));
         }
@@ -216,8 +216,9 @@ public partial class MainViewModel
         PresetView = CollectionViewSource.GetDefaultView(Presets);
         PresetView.Filter = o => o is PresetCard p && (!FavoritesOnly || Settings.FavoriteVoices.Contains(p.Name)) && (string.IsNullOrEmpty(VoiceSearch) || p.Name.Contains(VoiceSearch, StringComparison.OrdinalIgnoreCase));
         SoundView = CollectionViewSource.GetDefaultView(SoundCards);
-        SoundView.Filter = o => o is SoundCard card && (!FavoriteSoundsOnly||Product.FavoriteSounds.Contains(card.Item.Id)) && (SelectedFolder == null || card.Folder == SelectedFolder.Name) && (string.IsNullOrWhiteSpace(Search) || card.Name.Contains(Search, StringComparison.OrdinalIgnoreCase));
+        SoundView.Filter = o => o is SoundCard card && SoundInCollection(card) && (!FavoriteSoundsOnly||Product.FavoriteSounds.Contains(card.Item.Id)) && (SelectedFolder == null || card.Folder == SelectedFolder.Name) && (string.IsNullOrWhiteSpace(Search) || card.Name.Contains(Search, StringComparison.OrdinalIgnoreCase));
         RefreshOutputs();
+        SoundView.CollectionChanged+=(_,_)=>RefreshSoundRows();RefreshSoundRows();
         loadingStudio = false;
         ConfigureOutputs();
         InitializeAi();
@@ -265,8 +266,10 @@ public partial class MainViewModel
     { if(loadingStudio) return; Settings.MonitoringDeviceId=value?.Id; ConfigureOutputs(); }
     partial void OnVirtualDeviceChanged(AudioDevice? value)
     { if(loadingStudio) return; Settings.VirtualDeviceId=value?.Id; ConfigureOutputs(); }
-    partial void OnSelectedFolderChanged(SoundFolder? value) => SoundView?.Refresh();
-    partial void OnSearchChanged(string value) => SoundView?.Refresh();
+    partial void OnSelectedFolderChanged(SoundFolder? value){if(value!=null)SelectedCollection=null;SoundView?.Refresh();}
+    private System.Windows.Threading.DispatcherTimer? soundSearchTimer;
+    partial void OnSearchChanged(string value){soundSearchTimer??=new(){Interval=TimeSpan.FromMilliseconds(150)};soundSearchTimer.Stop();soundSearchTimer.Tick-=RefreshSoundSearch;soundSearchTimer.Tick+=RefreshSoundSearch;soundSearchTimer.Start();}
+    private void RefreshSoundSearch(object? sender,EventArgs e){soundSearchTimer!.Stop();SoundView?.Refresh();}
     partial void OnSelectedSoundChanged(SoundCard? value)
     {
         NowPlayingVisible = value != null;
@@ -304,7 +307,7 @@ public partial class MainViewModel
     {
         if (preset == null)
             return;
-        StopLive(); Settings.ActiveAiVoice=false;
+        ++voiceSwitchRevision;StopLive(); Settings.ActiveAiVoice=false;
         graph.Processor.Designed=null;Settings.ActiveDesignedVoiceId=null;
         if(preset.Name!="Clean")Settings.LastDesignedVoiceId=null;
         Settings.VoicePreset = preset.Name;

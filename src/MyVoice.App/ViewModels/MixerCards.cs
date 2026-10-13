@@ -49,15 +49,23 @@ public sealed class MixerOutputCard : ObservableObject
     private readonly Action changed;
     public AudioOutputBus Value {get;private set;}
     public ObservableCollection<AudioDevice> Choices {get;}=[];
+    private bool refreshingChoices;
+    public void SetChoices(IEnumerable<AudioDevice> choices)
+    {
+        refreshingChoices=true;
+        try{MyVoice.App.Services.CollectionSync.ByKey(Choices,choices,d=>d.Id);}
+        finally{refreshingChoices=false;RefreshDevice();}
+    }
+    public void ReplaceValue(AudioOutputBus value){if(Value==value)return;Value=value;OnPropertyChanged(string.Empty);}
     public MixerOutputCard(AudioOutputBus value,Action changed){Value=value;this.changed=changed;}
-    private void Set(AudioOutputBus value,string name){Value=value;OnPropertyChanged(name);changed();}
+    private void Set(AudioOutputBus value,string name){if(Value==value)return;Value=value;OnPropertyChanged(name);changed();}
     public string Id=>Value.Id;
     public bool CanRemove=>Id is not("monitor" or "virtual" or "stream" or "recording" or "master");
     public string Name{get=>Value.Name;set{if(!string.IsNullOrWhiteSpace(value))Set(Value with{Name=value[..Math.Min(value.Length,80)]},nameof(Name));}}
     public double Volume{get=>Value.Volume*100;set{if(double.IsFinite(value)){Set(Value with{Volume=Math.Clamp(value/100,0,1e6)},nameof(Volume));OnPropertyChanged(nameof(VolumeSlider));}}}
     public double VolumeSlider{get=>Math.Min(150,Volume);set{if(Math.Abs(value-Math.Min(150,Volume))>.01)Volume=value;}}
     public bool Mute{get=>Value.Mute;set=>Set(Value with{Mute=value},nameof(Mute));}
-    public string Device{get=>Value.DeviceMode=="Internal"?"@internal":Value.DeviceMode=="Default"?"@default":Value.DeviceId??"@missing";set{if(value==null)return;Set(Value with{DeviceMode=value=="@internal"?"Internal":value=="@default"?"Default":"Fixed",DeviceId=value.StartsWith('@')?null:value,DeviceName=Choices.FirstOrDefault(d=>d.Id==value)?.Name},nameof(Device));}}
+    public string Device{get=>Value.DeviceMode=="Internal"?"@internal":Value.DeviceMode=="Default"?"@default":Value.DeviceId??"@missing";set{if(value==null||refreshingChoices)return;Set(Value with{DeviceMode=value=="@internal"?"Internal":value=="@default"?"Default":"Fixed",DeviceId=value.StartsWith('@')?null:value,DeviceName=Choices.FirstOrDefault(d=>d.Id==value)?.Name},nameof(Device));}}
     public void RefreshDevice()=>OnPropertyChanged(nameof(Device));
     public string Backend{get=>Value.Backend;set{if(value==null||Value.Backend==value)return;Set(Value with{Backend=value,DeviceId=null,DeviceMode="Internal"},nameof(Backend));OnPropertyChanged(nameof(Device));}}
     public int BufferMs{get=>Value.BufferMs;set=>Set(Value with{BufferMs=Math.Clamp(value,10,200)},nameof(BufferMs));}

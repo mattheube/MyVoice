@@ -129,7 +129,7 @@ public partial class MainViewModel
         else{choices.Add(new("@default","Suivre la sortie Windows par défaut"));choices.AddRange(mixerOutputCache);}
         if(!choices.Any(d=>d.Id==selected))choices.Add(new(selected,(output.Value.DeviceName??"Périphérique sauvegardé")+" · indisponible"));
         if(output.Choices.SequenceEqual(choices))return;
-        output.Choices.Clear();foreach(var d in choices)output.Choices.Add(d);output.RefreshDevice();
+        output.SetChoices(choices);
     }
     private void SetMixerProfile(AudioProfile profile)
     {

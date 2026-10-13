@@ -4,7 +4,7 @@ using System.Text.Json;
 using MyVoice.Core;
 namespace MyVoice.Infrastructure;
 
-public sealed record PackageSound(string Name,string File,string? Cover,double Volume,bool Loop,string Category,double BassDb=0,double Saturation=0);
+public sealed record PackageSound(string Name,string File,string? Cover,double Volume,bool Loop,string Category,double BassDb=0,double Saturation=0,string? SourceContentId=null,string Description="",string[]? Tags=null);
 public sealed class CreationManifest
 {
     public int SchemaVersion {get;set;}=1;
@@ -20,7 +20,7 @@ public sealed class CreationManifest
 public static class CreationPackage
 {
     public const long MaxArchive=128L*1024*1024,MaxExpanded=256L*1024*1024;
-    private static readonly HashSet<string> Allowed=new(StringComparer.OrdinalIgnoreCase){".json",".wav",".mp3",".flac",".ogg",".m4a",".png",".jpg",".jpeg",".webp"};
+    private static readonly HashSet<string> Allowed=new(StringComparer.OrdinalIgnoreCase){".json",".wav",".mp3",".flac",".ogg",".m4a",".png",".jpg",".jpeg",".webp",".gif"};
     private static readonly JsonSerializerOptions Json=new(){PropertyNameCaseInsensitive=true,WriteIndented=true};
     public static bool SafePath(string name)=>!string.IsNullOrWhiteSpace(name)&&!name.StartsWith('/')&&!name.Contains('\\')&&!name.Contains(':')&&!name.Contains('\0')&&!name.Split('/').Any(p=>p is "" or "." or ".." || p.EndsWith('.') || p.EndsWith(' ') || System.Text.RegularExpressions.Regex.IsMatch(p,@"^(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])(\.|$)",System.Text.RegularExpressions.RegexOptions.IgnoreCase));
     public static CreationManifest Inspect(string file)
@@ -33,7 +33,7 @@ public static class CreationPackage
         {
             if(!SafePath(entry.FullName)||!Allowed.Contains(Path.GetExtension(entry.FullName))||!names.Add(entry.FullName)||((entry.ExternalAttributes>>16)&0xF000)==0xA000)throw new InvalidDataException("Chemin ou type de fichier interdit.");
             size=checked(size+entry.Length);
-            if(size>MaxExpanded||entry.Length>64L*1024*1024)throw new InvalidDataException("Taille décompressée excessive.");
+            if(size>MaxExpanded||entry.Length>64L*1024*1024)throw new InvalidDataException("Taille dÃ©compressÃ©e excessive.");
         }
         var descriptor=archive.GetEntry("manifest.json")??throw new InvalidDataException("Manifeste absent.");
         if(descriptor.Length>1024*1024)throw new InvalidDataException("Manifeste excessif.");
@@ -42,15 +42,15 @@ public static class CreationPackage
         if(m.Kind=="voice-preset" && (m.Preset==null||!Finite(m.Preset)))throw new InvalidDataException("Preset invalide.");
         foreach(var entry in archive.Entries.Where(e=>e.FullName!="manifest.json"))
         {
-            if(!m.Files.TryGetValue(entry.FullName,out var expected))throw new InvalidDataException("Fichier non déclaré.");
-            using var bytes=entry.Open();if(!Convert.ToHexString(SHA256.HashData(bytes)).Equals(expected,StringComparison.OrdinalIgnoreCase))throw new InvalidDataException("Fichier altéré.");
+            if(!m.Files.TryGetValue(entry.FullName,out var expected))throw new InvalidDataException("Fichier non dÃ©clarÃ©.");
+            using var bytes=entry.Open();if(!Convert.ToHexString(SHA256.HashData(bytes)).Equals(expected,StringComparison.OrdinalIgnoreCase))throw new InvalidDataException("Fichier altÃ©rÃ©.");
         }
         foreach(var name in m.Files.Keys)if(!SafePath(name)||archive.GetEntry(name)==null)throw new InvalidDataException("Fichier manquant.");
-        foreach(var sound in m.Sounds){Reference(sound.File,m);if(sound.Cover!=null)Reference(sound.Cover,m);if(!double.IsFinite(sound.Volume)||sound.Volume<0||!double.IsFinite(sound.BassDb)||!double.IsFinite(sound.Saturation))throw new InvalidDataException("Réglage invalide.");}
+        foreach(var sound in m.Sounds){Reference(sound.File,m);if(sound.Cover!=null)Reference(sound.Cover,m);if(!double.IsFinite(sound.Volume)||sound.Volume<0||!double.IsFinite(sound.BassDb)||!double.IsFinite(sound.Saturation))throw new InvalidDataException("RÃ©glage invalide.");}
         if(m.Cover!=null)Reference(m.Cover,m);return m;
     }
     private static bool Finite(DesignedVoice v)=>new[]{v.Pitch,v.Bass,v.Mid,v.Treble,v.Delay,v.Distortion,v.Mix}.All(double.IsFinite)&&v.Pitch is >=.5 and <=2&&v.Mix is >=0 and <=1;
-    private static void Reference(string path,CreationManifest m){if(!SafePath(path)||!m.Files.ContainsKey(path))throw new InvalidDataException("Référence invalide.");}
+    private static void Reference(string path,CreationManifest m){if(!SafePath(path)||!m.Files.ContainsKey(path))throw new InvalidDataException("RÃ©fÃ©rence invalide.");}
     public static (CreationManifest Manifest,string Directory) Extract(string file,string parent)
     {
         var manifest=Inspect(file);var destination=Path.Combine(Path.GetFullPath(parent),Guid.NewGuid().ToString("N"));Directory.CreateDirectory(destination);
@@ -59,7 +59,7 @@ public static class CreationPackage
         {
             var path=Path.GetFullPath(Path.Combine(destination,entry.FullName));
             if(!path.StartsWith(destination+Path.DirectorySeparatorChar,StringComparison.OrdinalIgnoreCase))throw new InvalidDataException("Chemin interdit.");
-            Directory.CreateDirectory(Path.GetDirectoryName(path)!);using var input=entry.Open();using var output=new FileStream(path,FileMode.CreateNew);var buffer=new byte[65536];long written=0;int read;while((read=input.Read(buffer))>0){written+=read;if(written>entry.Length||written>64L*1024*1024)throw new InvalidDataException("Taille extraite incohérente.");output.Write(buffer,0,read);}if(written!=entry.Length)throw new InvalidDataException("Fichier incomplet.");
+            Directory.CreateDirectory(Path.GetDirectoryName(path)!);using var input=entry.Open();using var output=new FileStream(path,FileMode.CreateNew);var buffer=new byte[65536];long written=0;int read;while((read=input.Read(buffer))>0){written+=read;if(written>entry.Length||written>64L*1024*1024)throw new InvalidDataException("Taille extraite incohÃ©rente.");output.Write(buffer,0,read);}if(written!=entry.Length)throw new InvalidDataException("Fichier incomplet.");
         }
         return(manifest,destination);
     }
@@ -71,7 +71,7 @@ public static class CreationPackage
         foreach(var sound in sounds)
         {
             var audio=Add(sound.File,"sounds/"+(++i));var cover=sound.Cover!=null&&File.Exists(sound.Cover)?Add(sound.Cover,"covers/"+i):null;
-            m.Sounds.Add(new(sound.Name,audio,cover,sound.Volume,sound.Loop,sound.Folder,sound.BassDb,sound.Saturation));
+            m.Sounds.Add(new(sound.Name,audio,cover,sound.Volume,sound.Loop,sound.Category,sound.BassDb,sound.Saturation,sound.SourceContentId,sound.Description,sound.Tags.ToArray()));
         }
         Write(file,m,files);
     }

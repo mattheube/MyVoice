@@ -15,6 +15,7 @@ public partial class MainWindow : Window
         InitializePlacement();
         this.vm = vm;
         DataContext = vm;
+        PreviewKeyDown+=(_,e)=>{if(e.Key==System.Windows.Input.Key.K && System.Windows.Input.Keyboard.Modifiers==System.Windows.Input.ModifierKeys.Control){ShowSearch();e.Handled=true;}};
         Width=Math.Clamp(vm.Settings.WindowWidth,MinWidth,Math.Max(MinWidth,SystemParameters.WorkArea.Width));
         Height=Math.Clamp(vm.Settings.WindowHeight,MinHeight,Math.Max(MinHeight,SystemParameters.WorkArea.Height));
         if(vm.Settings.WindowMaximized)WindowState=WindowState.Maximized;

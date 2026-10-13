@@ -47,10 +47,15 @@ public partial class MainViewModel
     partial void OnMixerSourceTypeChanged(string value){OnPropertyChanged(nameof(IsApplicationSource));OnPropertyChanged(nameof(IsSystemSource));OnPropertyChanged(nameof(IsDeviceSource));}
     private void RefreshMixerSourceChoices()
     {
-        MixerInputs.Clear();MixerInputs.Add(new("@default","Microphone Windows par défaut"));foreach(var d in mixerInputCache)MixerInputs.Add(d);
-        MixerSystemInputs.Clear();MixerSystemInputs.Add(new("@default","Sortie Windows par défaut"));foreach(var d in mixerOutputCache)MixerSystemInputs.Add(d);
-        MixerInput=MixerInputs.FirstOrDefault();MixerSystemInput=MixerSystemInputs.FirstOrDefault();
-        MixerApplications.Clear();foreach(var app in mixerApplicationCache)MixerApplications.Add(app);MixerApplication=MixerApplications.FirstOrDefault();
+        var input=MixerInput;var system=MixerSystemInput;var app=MixerApplication;
+        var inputs=new[]{new AudioDevice("@default","Microphone Windows par défaut")}.Concat(mixerInputCache).ToList();
+        var outputs=new[]{new AudioDevice("@default","Sortie Windows par défaut")}.Concat(mixerOutputCache).ToList();
+        if(input!=null&&!inputs.Any(d=>d.Id==input.Id))inputs.Add(input with{Name=input.Name.Replace(" · indisponible","")+" · indisponible"});
+        if(system!=null&&!outputs.Any(d=>d.Id==system.Id))outputs.Add(system with{Name=system.Name.Replace(" · indisponible","")+" · indisponible"});
+        Services.CollectionSync.ByKey(MixerInputs,inputs,d=>d.Id);Services.CollectionSync.ByKey(MixerSystemInputs,outputs,d=>d.Id);
+        Services.CollectionSync.ByKey(MixerApplications,mixerApplicationCache,d=>d.Name);
+        MixerInput=MixerInputs.FirstOrDefault(d=>d.Id==input?.Id)??MixerInputs.FirstOrDefault();MixerSystemInput=MixerSystemInputs.FirstOrDefault(d=>d.Id==system?.Id)??MixerSystemInputs.FirstOrDefault();
+        MixerApplication=app==null?MixerApplications.FirstOrDefault():MixerApplications.FirstOrDefault(d=>d.Name==app.Name);
     }
     private void RefreshRecordingSources()
     {

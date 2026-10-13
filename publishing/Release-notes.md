@@ -1,16 +1,19 @@
-# MyVoice 2.6.0 Beta 1
+# MyVoice 2.7.0 Beta 1
 
-Cette version ajoute l’installation automatique des mises à jour officielles au démarrage, suivie du redémarrage de MyVoice. Le canal Stable/Beta reste réglable. La stable 2.2.0 reste le téléchargement par défaut.
+Corrections du routage VB-CABLE et des menus du mixeur, nouveau Soundboard et préparation des publications.
 
-- Téléchargement avec progression réelle et vérification SHA-256 du paquet officiel.
-- Programme séparé pour préparer et remplacer les fichiers après la fermeture de MyVoice.
-- Sauvegarde de l’ancienne version ; restauration et relance si la nouvelle application ne confirme pas son démarrage.
-- Refus des archives incomplètes, des liens et chemins sortant du dossier prévu ; verrou contre deux installations simultanées.
-- Échec réseau récupérable et nouvelle tentative manuelle dans les réglages.
-- Réglages, sons, voix et moteur IA conservés dans leurs dossiers actuels.
+- Bouton Rétablir VB-CABLE : restaure les routes micro/sons et affiche le périphérique à sélectionner dans les autres applications.
+- Menus déroulants : sélection conservée pendant un rafraîchissement ; la molette ne change plus un périphérique au passage.
+- Cartes de sons jouables, menu contextuel, préécoute casque isolée du micro virtuel, collections mixtes et favoris indépendants.
+- Éditeur de sons : découpage, fondus, normalisation, description, catégorie et tags ; fichier original conservé.
+- GIF et WebP, recadrage animé, chargement différé et cache borné. Limites : 20 Mo, 16 mégapixels et 120 images par animation.
+- Recherche Ctrl+K, historique des notifications, accès compte/aide/Discord, nouveaux formulaires français et anglais.
+- Brouillon de publication persistant ; provenance conservée dans les packages. Backend préparé avec contrôles d’accès et détection des fichiers audio identiques appartenant à un autre compte.
+- Chargement des voix sérialisé : un choix obsolète ne doit plus remplacer la dernière voix demandée. Aucun nouveau modèle IA ajouté.
+- Mises à jour automatiques officielles conservées, avec sauvegarde et retour à l’ancienne version en cas d’échec.
 
-**Une première installation de cette 2.6 est nécessaire depuis les versions précédentes**, qui ne possèdent pas le nouveau composant. Ensuite, les futures mises à jour compatibles s’installent au démarrage lorsque les options de recherche et d’installation automatique sont activées.
+Community et les comptes en ligne restent indisponibles sans projet Supabase connecté. Les formulaires permettent de préparer le profil et les brouillons sur le PC. Les contrôles de propriété par empreinte ne détectent pas un audio réencodé ou modifié.
 
-Validation : 177 tests C# réussis avant publication. Le programme conserve les sauvegardes et journaux pour diagnostic. Voir [fonctionnement et limites](https://github.com/mattheube/MyVoice/blob/v2.6.0-beta.1/docs/Automatic-Updates.md).
+Cette Beta livre les corrections et les phases décrites dans docs/Master-Progress.txt ; elle ne prétend pas terminer tous les points du master prompt. Les éléments encore partiels figurent dans docs/Master-Audit.txt.
 
-Les binaires ne sont pas encore signés Windows. Les dossiers protégés peuvent nécessiter une installation manuelle. Une coupure de courant peut nécessiter une restauration manuelle depuis la sauvegarde. Community reste hors ligne sans projet Supabase connecté. Les moteurs IA et le routage VB-CABLE de 2.5 sont conservés.
+Tests locaux : routage CABLE Input → CABLE Output réel, préécoute isolée, conservation des originaux, collections, menus ouverts pendant rafraîchissement, images GIF/WebP, 600 cartes supplémentaires et lancement des neuf pages. Installation automatique à valider avec le paquet GitHub construit pour cette release.

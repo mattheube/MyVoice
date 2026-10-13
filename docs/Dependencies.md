@@ -28,3 +28,4 @@ Le code V2 provient du même commit Seed-VC épinglé. L'adaptateur `voice-engin
 Hydra/OmegaConf construisent les modules depuis la configuration amont V2. Les dépendances sont déjà verrouillées dans `requirements-lock.txt`. La conversion MyVoice collecte le PCM directement ; elle ne requiert pas un encodage MP3 intermédiaire par ffmpeg.
 
 Conversation utilise WebRTC VAD via webrtcvad-wheels 2.0.14 (https://pypi.org/project/webrtcvad-wheels/2.0.14/). Le module Python et le code WebRTC conservent leurs licences séparées (voir les notices du paquet). Aucun modèle personnel ne figure dans les assets publics.
+SkiaSharp 4.153.1 : décodage GIF/WebP, licence MIT et notices natives fournies par le paquet. Documentation : https://learn.microsoft.com/en-us/dotnet/api/skiasharp.skcodec . Les bibliothèques natives Windows sont distribuées avec l’application.

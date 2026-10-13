@@ -25,6 +25,7 @@ Test("Recovery does not replace good backup with corruption", () => { var store 
 Test("Unknown config version falls back", () => { var store = new LocalStore(folder); File.WriteAllText(Path.Combine(folder, "config", "config.json"), "{\"ConfigVersion\":999}"); Assert(store.Load().ConfigVersion == 1); });
 Console.WriteLine($"{passed} deterministic tests passed.");
 await StudioTests.Run();
+await LibraryRevisionTests.Run();
 V2Tests.Run();
 VirtualBackendTests.Run();
 QualityTests.Run();

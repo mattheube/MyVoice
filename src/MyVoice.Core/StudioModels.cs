@@ -93,6 +93,10 @@ public sealed record ProcessingSettings
 }
 public sealed class SoundItem
 {
+    public string? SourceContentId {get;set;}
+    public string Description {get;set;}="";
+    public string Category {get;set;}="Other";
+    public List<string> Tags {get;set;}=[];
     [System.Text.Json.Serialization.JsonExtensionData] public Dictionary<string,System.Text.Json.JsonElement>? AdditionalData {get;set;}
     public Guid Id { get; set; } = Guid.NewGuid();
     public string Name { get; set; } = "Sound";

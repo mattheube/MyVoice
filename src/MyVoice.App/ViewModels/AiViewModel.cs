@@ -139,8 +139,6 @@ public partial class MainViewModel
         OnPropertyChanged(nameof(DisplayVoiceCover));OnPropertyChanged(nameof(DisplayVoice));
         ConvertFileCommand.NotifyCanExecuteChanged();
         AiDetails = value == null ? "" : $"{value.Duration:0.0}s · Peak {value.PeakDb:0.0} dB · RMS {value.RmsDb:0.0} dB";
-        if (AiLive)
-            StopLive();
         ScheduleSave();
     }
     [RelayCommand]
@@ -242,7 +240,7 @@ public partial class MainViewModel
     [RelayCommand]
     public void StopAi()
     {
-        aiManualStop=true;
+        ++voiceSwitchRevision;aiManualStop=true;
         if (installerProcess != null && !installerProcess.HasExited)
             installerProcess.Kill(true);
         StopLive();
@@ -299,18 +297,21 @@ public partial class MainViewModel
             return;
         }
         if(ai.Device=="CPU") Status="CPU : conversion par phrases, qualité conservée. Le calcul peut dépasser dix secondes.";
+        var requestedVoice=SelectedAiVoice;var request=voiceSwitchRevision;
         AiBusy = true;
         try
         {
             if(liveWorker!=null)await liveWorker;
-            ai.ReferenceFiles=SelectedAiVoice.Samples.Where(s=>!s.Excluded).SelectMany(s=>s.Segments.OrderByDescending(x=>x.Score).Take(3)).Select(s=>s.File).Where(File.Exists).ToArray();
-            await ai.LoadAsync(SelectedAiVoice.ReferenceFile, lifetime.Token);
+            ai.ReferenceFiles=requestedVoice.Samples.Where(s=>!s.Excluded).SelectMany(s=>s.Segments.OrderByDescending(x=>x.Score).Take(3)).Select(s=>s.File).Where(File.Exists).ToArray();
+            await ai.LoadAsync(requestedVoice.ReferenceFile, lifetime.Token);
+            if(request!=voiceSwitchRevision)return;
             OnPropertyChanged(nameof(AiAdvancedMetrics));
             aiInput.Clear();conversationInput.Clear();
             graph.FlushMicrophone();
             liveCancel = CancellationTokenSource.CreateLinkedTokenSource(lifetime.Token);
             AiLive = true;
             graph.AiLive = true;
+            ConfirmActiveAiVoice(requestedVoice);
             var liveToken = liveCancel.Token;
             liveWorker = Task.Run(() => LiveLoop(liveToken));
         }

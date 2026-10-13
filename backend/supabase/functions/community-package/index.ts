@@ -7,7 +7,7 @@ const server=createClient(url,Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,{auth:{
 const cors={'Access-Control-Allow-Origin':Deno.env.get('MYVOICE_SITE_ORIGIN')||'https://mattheube.github.io','Access-Control-Allow-Headers':'authorization,apikey,content-type','Access-Control-Allow-Methods':'GET,POST,OPTIONS'};
 const response=(value:unknown,status=200)=>new Response(JSON.stringify(value),{status,headers:{...cors,'Content-Type':'application/json','Cache-Control':'no-store'}});
 const hex=(b:ArrayBuffer)=>Array.from(new Uint8Array(b),v=>v.toString(16).padStart(2,'0')).join('');
-const safe=(name:string)=>!name.startsWith('/')&&!/[\\:\x00]/.test(name)&&name.split('/').every(p=>p&&p!=='.'&&p!=='..'&&!/[. ]$/.test(p)&&!/^(con|prn|aux|nul|com[1-9]|lpt[1-9])(\.|$)/i.test(p))&&/\.(json|wav|mp3|flac|ogg|m4a|png|jpg|jpeg|webp)$/i.test(name);
+const safe=(name:string)=>!name.startsWith('/')&&!/[\\:\x00]/.test(name)&&name.split('/').every(p=>p&&p!=='.'&&p!=='..'&&!/[. ]$/.test(p)&&!/^(con|prn|aux|nul|com[1-9]|lpt[1-9])(\.|$)/i.test(p))&&/\.(json|wav|mp3|flac|ogg|m4a|png|jpg|jpeg|webp|gif)$/i.test(name);
 
 Deno.serve(async req=>{
  if(req.method==='OPTIONS')return new Response(null,{headers:cors});
@@ -54,16 +54,22 @@ Deno.serve(async req=>{
   if(!Array.isArray(m.sounds)||m.sounds.length>200)throw Error('Invalid sounds');
   for(const rawSound of m.sounds){const sound=normalize(rawSound);if(!sound||!reference(sound.file)||(sound.cover!=null&&!reference(sound.cover))||typeof sound.name!=='string'||sound.name.length>200||!Number.isFinite(sound.volume)||Number(sound.volume)<0||!Number.isFinite(sound.bassdb)||!Number.isFinite(sound.saturation))throw Error('Invalid sound');}
   if(m.kind==='voice-preset'){const preset=normalize(m.preset);if(!preset||!['pitch','bass','mid','treble','delay','distortion','mix'].every(k=>Number.isFinite(preset[k]))||Number(preset.pitch)<.5||Number(preset.pitch)>2||Number(preset.mix)<0||Number(preset.mix)>1)throw Error('Invalid preset');}
+  if(m.sounds.some((s:any)=>normalize(s)?.sourcecontentid)||normalize(m.preset)?.sourcecontentid)throw Error('Imported content cannot be republished');
   const description=String(info.description||'').slice(0,2000),tags=Array.isArray(info.tags)?info.tags.slice(0,8).map((x:unknown)=>String(x).slice(0,30)):[];
+  const category=['Meme','SFX','Gaming','Anime','Reaction','Music','Voice','Ambient','Movie/TV','Other'].includes(info.category)?info.category:'Other';
   const id=crypto.randomUUID();const objectPath=`${user.id}/${id}/${m.version}.zip`;
   const sha256=hex(await crypto.subtle.digest('SHA-256',bytes));
   const upload=await server.storage.from('community').upload(objectPath,bytes,{contentType:'application/zip',upsert:false});if(upload.error)throw Error('Upload failed');
   // Roll back storage on a failed metadata transaction. Only server can publish.
-  const insert=await server.from('content').insert({id,owner_id:user.id,kind:m.kind,title:m.title,description,tags,language:String(info.language||'und').slice(0,12),visibility:info.visibility,status:'draft'});
+  const insert=await server.from('content').insert({id,owner_id:user.id,kind:m.kind,title:m.title,description,tags,category,language:String(info.language||'und').slice(0,12),visibility:info.visibility,status:'draft'});
   if(insert.error){await server.storage.from('community').remove([objectPath]);throw Error('Metadata rejected');}
   const version=await server.from('content_versions').insert({content_id:id,version:m.version,object_path:objectPath,sha256,size:bytes.length});
   if(version.error){await server.from('content').delete().eq('id',id);await server.storage.from('community').remove([objectPath]);throw Error('Version rejected');}
-  const publish=await server.from('content').update({status:'published'}).eq('id',id);if(publish.error)throw Error('Publication incomplete');
+  const hashes=m.kind==='soundboard'?m.sounds.map((s:any)=>String(m.files[normalize(s)!.file as string]).toLowerCase()):[];
+  const claims=await server.rpc('claim_publication_assets',{p_owner:user.id,p_hashes:hashes});
+  if(claims.error){await server.from('content').delete().eq('id',id);await server.storage.from('community').remove([objectPath]);throw Error('Asset ownership conflict');}
+  const publish=await server.from('content').update({status:'published'}).eq('id',id);
+  if(publish.error){await server.from('content').delete().eq('id',id);await server.storage.from('community').remove([objectPath]);throw Error('Publication incomplete');}
   return response({id,version:m.version,url:`https://mattheube.github.io/MyVoice/#content/${id}`},201);
  }catch{return response({error:'Package rejected or service unavailable'},400);}
 });

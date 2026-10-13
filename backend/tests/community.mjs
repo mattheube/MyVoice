@@ -4,6 +4,7 @@ const db=new PGlite();
 await db.exec(`create role anon; create role authenticated; create role service_role bypassrls; create schema auth;create schema storage;create table auth.users(id uuid primary key,raw_user_meta_data jsonb,email_confirmed_at timestamptz);create function auth.uid()returns uuid language sql stable as $$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$;grant usage on schema auth to anon,authenticated;grant execute on function auth.uid() to anon,authenticated;create table storage.buckets(id text primary key,name text,public boolean,file_size_limit bigint,allowed_mime_types text[]);`);
 await db.exec(fs.readFileSync('backend/supabase/migrations/202610090001_community.sql','utf8'));
 await db.exec(fs.readFileSync('backend/supabase/migrations/202610090002_social_overview.sql','utf8'));
+await db.exec(fs.readFileSync('backend/supabase/migrations/202610130001_publication_ownership.sql','utf8'));
 const ids=['00000000-0000-0000-0000-000000000001','00000000-0000-0000-0000-000000000002','00000000-0000-0000-0000-000000000003'];
 for(let i=0;i<3;i++)await db.query('insert into auth.users values($1,$2,now())',[ids[i],JSON.stringify({username:['ALICE','bobby','carol'][i],display_name:'Same display name'})]);
 const eq=(ok,name)=>{if(!ok)throw Error(name);console.log('PASS '+name)};
@@ -31,4 +32,13 @@ await as(2);await db.exec('reset role');await db.query('update auth.users set em
 await as(0);for(let i=0;i<3;i++)await db.query('select public.allow_publication()');await denied('select public.allow_publication()',[],'publication rate limit');
 await denied('select public.moderation_overview()',[],'reports hidden from ordinary users');
 await denied("select public.admin_creator($1,'verify')",[ids[1]],'users cannot verify creators');
+
+
+await db.exec('reset role');
+await db.query('select public.claim_publication_assets($1,$2)',[ids[0],['a'.repeat(64)]]);
+await db.query('select public.claim_publication_assets($1,$2)',[ids[0],['a'.repeat(64)]]);
+eq(true,'same creator may reuse their own asset');
+await denied('select public.claim_publication_assets($1,$2)',[ids[1],['a'.repeat(64)]],'another creator cannot claim the same audio hash');
+await as(1);await denied('select public.claim_publication_assets($1,$2)',[ids[1],['b'.repeat(64)]],'client cannot directly assign asset ownership');
+
 await db.close();

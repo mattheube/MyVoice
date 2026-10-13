@@ -66,7 +66,7 @@ public partial class MainViewModel
         var folder = new SoundFolder { Name = name, Cover = SelectedFolder.Cover };
         foreach (var source in SoundCards.Where(c => c.Folder == SelectedFolder.Name).ToArray())
         {
-            var copy = new SoundItem { Name = source.Name, File = source.Item.File, Folder = name, Cover = source.Cover, Volume = source.Item.Volume };
+            var copy = new SoundItem { Name = source.Name, File = source.Item.File, Folder = name, Cover = source.Cover, Volume = source.Item.Volume, SourceContentId=source.Item.SourceContentId, Description=source.Item.Description, Category=source.Item.Category, Tags=[..source.Item.Tags], Loop=source.Item.Loop, BassDb=source.Item.BassDb, Saturation=source.Item.Saturation, HearMyself=source.Item.HearMyself, SendToMic=source.Item.SendToMic, PlaybackMode=source.Item.PlaybackMode };
             sounds.Library.Sounds.Add(copy);
             SoundCards.Add(new(copy));
         }
@@ -126,21 +126,18 @@ public partial class MainViewModel
         if (source != null && File.Exists(source + ".source.txt")) source = File.ReadAllText(source + ".source.txt");
         if (source == null || !File.Exists(source))
         {
-            var dialog = new OpenFileDialog { Filter = "Image|*.png;*.jpg;*.jpeg" };
+            var dialog = new OpenFileDialog { Filter = "Image|*.png;*.jpg;*.jpeg;*.webp;*.gif" };
             if (dialog.ShowDialog() != true) return null;
             source = dialog.FileName;
         }
         var crop = new MyVoice.App.ImageCropWindow(source, circular) { Owner = System.Windows.Application.Current.MainWindow };
         if (crop.ShowDialog() != true || crop.Result == null) return null;
         var id = Guid.NewGuid().ToString("N");
-        var dest = Path.Combine(store.Root, "images", id + ".png");
+        var dest = crop.SaveExport(Path.Combine(store.Root, "images", id));
         var originals = Path.Combine(store.Root, "images", "originals");
         Directory.CreateDirectory(originals);
         var original = Path.Combine(originals, id + Path.GetExtension(crop.SourceFile));
         File.Copy(crop.SourceFile, original);
-        var encoder = new System.Windows.Media.Imaging.PngBitmapEncoder();
-        encoder.Frames.Add(System.Windows.Media.Imaging.BitmapFrame.Create(crop.Result));
-        using (var stream = File.Create(dest)) encoder.Save(stream);
         File.WriteAllText(dest + ".source.txt", original);
         return dest;
     }

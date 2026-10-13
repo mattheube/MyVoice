@@ -9,6 +9,10 @@ namespace MyVoice.App.ViewModels;
 public partial class MainViewModel
 {
     private bool aiManualStop, aiActivating;
+    private readonly System.Threading.SemaphoreSlim voiceSwitchGate=new(1,1);
+    private int voiceSwitchRevision;
+    private string? activeAiVoiceId;
+    private VoiceReference? ActiveAiVoice=>AiVoices.FirstOrDefault(v=>v.Id==activeAiVoiceId);
     private int aiRestarts;
     private DateTime nextAiRetry;
     [ObservableProperty] private double conversionProgress;
@@ -17,26 +21,40 @@ public partial class MainViewModel
     public bool AiReduceArtifacts { get=>Settings.AiReduceArtifacts;set{Settings.AiReduceArtifacts=value;ai.ReduceArtifacts=value;Changed(nameof(AiReduceArtifacts));} }
     public int AiCpuThreads { get=>Settings.AiCpuThreads;set{Settings.AiCpuThreads=Math.Clamp(value,1,Math.Max(1,Environment.ProcessorCount-1));ai.CpuThreads=Settings.AiCpuThreads;Changed(nameof(AiCpuThreads));} }
     public string AiAdvancedMetrics => $"{(AiModel=="studio" ? "Seed-VC V2 · phrases" : AiModel=="conversation"?"Seed-VC V2 · continu":"Seed-VC classique")} · VRAM {ai.VramMb:0} Mo · références {ai.ReferenceCount}";
-    public string? DisplayVoiceCover => VoiceEnabled && Settings.ActiveAiVoice ? SelectedAiVoice?.Cover : null;
+    public string? DisplayVoiceCover => VoiceEnabled && AiLive ? ActiveAiVoice?.Cover : null;
     public string LastVoiceName => Product.Presets.FirstOrDefault(p=>p.Id==Settings.LastDesignedVoiceId)?.Name ?? (Settings.LastVoiceIsAi ? AiVoices.FirstOrDefault(v=>v.Id==Settings.LastAiVoiceId)?.Name??Settings.LastModifiedVoice : Settings.LastModifiedVoice);
     public string VoiceSwitchLabel => "Default Clean ↔ " + LastVoiceName;
-    public string DisplayVoice => !VoiceEnabled ? "Default Clean" : Settings.ActiveAiVoice ? SelectedAiVoice?.Name ?? "Default Clean" : graph.Processor.Designed is {} designed?designed.Name:CurrentPreset=="Clean"?"Default Clean":CurrentPreset;
-    [RelayCommand] private async Task UseAiVoiceAsync(VoiceReference? voice)
+    public string DisplayVoice => !VoiceEnabled ? "Default Clean" : AiLive ? ActiveAiVoice?.Name ?? "Default Clean" : graph.Processor.Designed is {} designed?designed.Name:CurrentPreset=="Clean"?"Default Clean":CurrentPreset;
+    [RelayCommand(AllowConcurrentExecutions=true)] private async Task UseAiVoiceAsync(VoiceReference? voice)
     {
         if(voice==null||!voice.Ready){Status=T["FileMissing"];return;}
-        foreach(var preset in Presets)preset.Selected=false;
-        graph.Processor.Designed=null;Settings.ActiveDesignedVoiceId=null;Settings.LastDesignedVoiceId=null;Settings.LastVoiceIsAi=true;Settings.LastAiVoiceId=voice.Id;OnPropertyChanged(nameof(VoiceSwitchLabel));SelectedAiVoice=voice;graph.Processor.Preset="Clean";Settings.ActiveAiVoice=true;Settings.VoiceEnabled=true;graph.Processor.Enabled=true;
-        OnPropertyChanged(nameof(VoiceEnabled));OnPropertyChanged(nameof(DisplayVoice));OnPropertyChanged(nameof(DisplayVoiceCover));ScheduleSave();
-        if(aiActivating||AiBusy)return;
-        aiActivating=true;aiManualStop=false;
+        if(AiBusy&&!aiActivating){Status="Une opération IA est déjà en cours.";return;}
+        var request=++voiceSwitchRevision;
+        try{await voiceSwitchGate.WaitAsync(lifetime.Token);}catch(OperationCanceledException){return;}
         try
         {
-            StopLive();if(liveWorker!=null)await liveWorker;
-            EnsureMicrophone();
-            if(!ai.Ready)await StartAiAsync();
-            if(AiReady&&!AiLive)await ToggleAiLiveAsync();
+            if(request!=voiceSwitchRevision)return;
+            aiActivating=true;aiManualStop=false;StopLive();if(liveWorker!=null)await liveWorker;
+            if(request!=voiceSwitchRevision)return;
+            SelectedAiVoice=voice;graph.Processor.Designed=null;graph.Processor.Preset="Clean";Settings.VoicePreset="Clean";Settings.ActiveDesignedVoiceId=null;Settings.ActiveAiVoice=false;
+            OnPropertyChanged(nameof(DisplayVoice));OnPropertyChanged(nameof(DisplayVoiceCover));
+            EnsureMicrophone();if(!ai.Ready)await StartAiAsync();
+            if(request!=voiceSwitchRevision)return;
+            if(!AiReady||!Running)throw new InvalidOperationException("La voix IA n’est pas prête. Default Clean reste actif.");
+            await ToggleAiLiveAsync();
+            if(request!=voiceSwitchRevision)return;
+            if(!AiLive)throw new InvalidOperationException("Le chargement de la voix a échoué. Default Clean reste actif.");
         }
-        finally{aiActivating=false;}
+        catch(OperationCanceledException){}
+        catch(Exception e){if(request==voiceSwitchRevision){SelectPreset(Presets.First(p=>p.Name=="Clean"));Status=e.Message;}}
+        finally{aiActivating=false;voiceSwitchGate.Release();}
+    }
+    private void ConfirmActiveAiVoice(VoiceReference voice)
+    {
+        activeAiVoiceId=voice.Id;foreach(var preset in Presets)preset.Selected=false;
+        Settings.ActiveAiVoice=true;Settings.VoiceEnabled=true;graph.Processor.Enabled=true;
+        Settings.LastDesignedVoiceId=null;Settings.LastVoiceIsAi=true;Settings.LastAiVoiceId=voice.Id;
+        OnPropertyChanged(nameof(VoiceEnabled));OnPropertyChanged(nameof(DisplayVoice));OnPropertyChanged(nameof(DisplayVoiceCover));OnPropertyChanged(nameof(VoiceSwitchLabel));ScheduleSave();
     }
     [RelayCommand] private void ToggleVoice() => VoiceEnabled=!VoiceEnabled;
     [RelayCommand] private void ToggleMonitoring() => HearMyself=!HearMyself;

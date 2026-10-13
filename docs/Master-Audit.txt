@@ -1,0 +1,231 @@
+MYVOICE — AUDIT DU MASTER PROMPT — 12 octobre 2026
+Base : release 2.6.0-beta.1 + corrections VB-CABLE/menus/profil en cours avant réception de la pièce jointe.
+Baseline : compilation sans avertissement/erreur ; 177 tests C# ; boucle matérielle CABLE Input → CABLE Output vérifiée.
+Source : solution .NET 10, WPF/MVVM ; Core, Infrastructure, Audio, Soundboard, AI, Updater, UpdateHost.
+Données : C:\Users\matth\Documents\Codex\MyVoice\files-pasted-by-the-user-projet\work\master-backup-20261012-202714
+Les moteurs/modèles IA restent inchangés. Supabase non créé : préparer et tester localement, aucun faux service connecté.
+Discord autorisé : https://discord.gg/SDhAJgvxzq
+
+MATRICE AVANT NOUVELLE IMPLÉMENTATION (EXISTING = implémenté ; validations matériel/en ligne précisées séparément)
+000 | PARTIAL        | MÉTHODE DE TRAVAIL OBLIGATOIRE — AVANT DE CODER | Lecture complète de la pièce jointe ; corrections initiales antérieures conservées.
+001 | PARTIAL        | AUDIT COMPLET DU PROJET AVANT MODIFICATION | À comparer et valider pendant la phase correspondante.
+002 | PARTIAL        | CRÉER UNE MATRICE D'ÉTAT AVANT IMPLÉMENTATION | À comparer et valider pendant la phase correspondante.
+003 | PARTIAL        | PLAN D'IMPLÉMENTATION AVANT MODIFICATIONS | À comparer et valider pendant la phase correspondante.
+004 | EXISTING       | RÈGLE ABSOLUE : PRÉSERVER LES DONNÉES | Réutiliser le composant existant ; non-régression.
+005 | EXISTING       | MIGRATIONS | Réutiliser le composant existant ; non-régression.
+006 | EXISTING       | OBJECTIF GLOBAL | Réutiliser le composant existant ; non-régression.
+007 | EXISTING       | DEUX NIVEAUX DE COMPLEXITÉ | Réutiliser le composant existant ; non-régression.
+008 | PARTIAL        | REFONTE DU LOGO MYVOICE | Symbole vectoriel Signal déjà livré ; vérifier variantes/résolutions plutôt que remplacer à nouveau.
+009 | PARTIAL        | DIRECTION DU LOGO | À comparer et valider pendant la phase correspondante.
+010 | PARTIAL        | MONOGRAMME OPTIONNEL | À comparer et valider pendant la phase correspondante.
+011 | PARTIAL        | VERSIONS DU LOGO | À comparer et valider pendant la phase correspondante.
+012 | PARTIAL        | WORDMARK | À comparer et valider pendant la phase correspondante.
+013 | PARTIAL        | MYVOICE.ICO | ICO Signal/Tray existants ; contrôler tailles et alias MyVoice.ico.
+014 | PARTIAL        | REMPLACER L'ANCIEN LOGO PARTOUT | À comparer et valider pendant la phase correspondante.
+015 | PARTIAL        | BUG ANCIEN LOGO WINDOWS | À comparer et valider pendant la phase correspondante.
+016 | PARTIAL        | DESIGN SYSTEM | À comparer et valider pendant la phase correspondante.
+017 | PARTIAL        | COMPOSANTS RÉUTILISABLES | À comparer et valider pendant la phase correspondante.
+018 | PARTIAL        | STYLE GLOBAL | À comparer et valider pendant la phase correspondante.
+019 | PARTIAL        | BACKGROUND | À comparer et valider pendant la phase correspondante.
+020 | PARTIAL        | CUSTOM TITLE BAR | À comparer et valider pendant la phase correspondante.
+021 | PARTIAL        | WINDOW BUTTONS | À comparer et valider pendant la phase correspondante.
+022 | EXISTING       | COMPORTEMENT WINDOWS NATIF | Réutiliser le composant existant ; non-régression.
+023 | PARTIAL        | COINS ARRONDIS | À comparer et valider pendant la phase correspondante.
+024 | EXISTING       | MAXIMIZE | Réutiliser le composant existant ; non-régression.
+025 | EXISTING       | F11 FULLSCREEN | Réutiliser le composant existant ; non-régression.
+026 | MISSING        | MENU "..." | À comparer et valider pendant la phase correspondante.
+027 | MISSING        | ACCOUNT MENU | À comparer et valider pendant la phase correspondante.
+028 | MISSING        | HELP MENU | À comparer et valider pendant la phase correspondante.
+029 | MISSING        | TOP RIGHT ICONS | À comparer et valider pendant la phase correspondante.
+030 | MISSING        | NOTIFICATION CENTER | À comparer et valider pendant la phase correspondante.
+031 | MISSING        | DISCORD | À comparer et valider pendant la phase correspondante.
+032 | MISSING        | SEARCH | À comparer et valider pendant la phase correspondante.
+033 | PARTIAL        | SIDEBAR | À comparer et valider pendant la phase correspondante.
+034 | PARTIAL        | SIDEBAR HOVER | À comparer et valider pendant la phase correspondante.
+035 | PARTIAL        | ACTIVE ITEM | À comparer et valider pendant la phase correspondante.
+036 | EXISTING       | NAVIGATION PROPOSÉE | Réutiliser le composant existant ; non-régression.
+037 | PARTIAL        | AUTH SCREEN | Remplacer les termes profil local / Continue Locally par Invité.
+038 | PARTIAL        | GUEST | À comparer et valider pendant la phase correspondante.
+039 | MISSING        | CREATE ACCOUNT | Prénom/nom manquent ; backend non connecté par choix utilisateur.
+040 | EXISTING       | USERNAME | Réutiliser le composant existant ; non-régression.
+041 | PARTIAL        | DISPLAY NAME | À comparer et valider pendant la phase correspondante.
+042 | BROKEN         | BUG "NON AFFICHÉ" | À comparer et valider pendant la phase correspondante.
+043 | NEEDS REFACTOR | ACCOUNTSTATE UNIQUE | MainViewModel/ProductState communs ; propriétés profil à notifier et session à synchroniser.
+044 | EXISTING       | PASSWORD | Réutiliser le composant existant ; non-régression.
+045 | EXISTING       | THEMES | Réutiliser le composant existant ; non-régression.
+046 | EXISTING       | ACCENT COLOR | Réutiliser le composant existant ; non-régression.
+047 | PARTIAL        | PAS DE HARD-CODED COLORS | À comparer et valider pendant la phase correspondante.
+048 | EXISTING       | APPEARANCE | Réutiliser le composant existant ; non-régression.
+049 | EXISTING       | PERSISTENCE | Réutiliser le composant existant ; non-régression.
+050 | EXISTING       | DOCK LAYOUT | Réutiliser le composant existant ; non-régression.
+051 | EXISTING       | DOCK CONTROLS | Réutiliser le composant existant ; non-régression.
+052 | EXISTING       | HEAR MYSELF | Réutiliser le composant existant ; non-régression.
+053 | BROKEN         | LAST VOICE | Auditer le chargement IA asynchrone et le quick switch.
+054 | BROKEN         | BUG DE SYNCHRONISATION DE VOIX | À comparer et valider pendant la phase correspondante.
+055 | NEEDS REFACTOR | SWITCH ATOMIQUE | À comparer et valider pendant la phase correspondante.
+056 | PARTIAL        | SOUND CARD SIZE | Cartes 182x246 trop grandes ; ItemsControl sans virtualisation.
+057 | PARTIAL        | SOUND CARD STYLE | À comparer et valider pendant la phase correspondante.
+058 | PARTIAL        | HOVER | À comparer et valider pendant la phase correspondante.
+059 | PARTIAL        | LEFT CLICK | À comparer et valider pendant la phase correspondante.
+060 | BROKEN         | RIGHT CLICK | À comparer et valider pendant la phase correspondante.
+061 | BROKEN         | PREVIEW LOCALLY | Préécoute existante pour fichiers IA uniquement ; extension Soundboard requise.
+062 | MISSING        | COLLECTIONS | Dossiers et favoris existants ; appartenance multiple sons/voix absente.
+063 | PARTIAL        | LIKED | À comparer et valider pendant la phase correspondante.
+064 | MISSING        | ADD TO COLLECTION | À comparer et valider pendant la phase correspondante.
+065 | PARTIAL        | DELETE VS REMOVE | À comparer et valider pendant la phase correspondante.
+066 | EXISTING       | KEYBINDS SOUNDS | Réutiliser le composant existant ; non-régression.
+067 | MISSING        | STUDIO SOUND EDITOR | À comparer et valider pendant la phase correspondante.
+068 | PARTIAL        | INSPECTOR | NowPlayingView existe ; étendre, ne pas dupliquer.
+069 | EXISTING       | SOUND ROUTING | Réutiliser le composant existant ; non-régression.
+070 | PARTIAL        | PUBLISH & SHARE | À comparer et valider pendant la phase correspondante.
+071 | MISSING        | PUBLICATION MODAL | À comparer et valider pendant la phase correspondante.
+072 | MISSING        | CATEGORIES | À comparer et valider pendant la phase correspondante.
+073 | MISSING        | TAGS | À comparer et valider pendant la phase correspondante.
+074 | PARTIAL        | COVERS | PNG/JPEG recadrés et cache existant ; WEBP/GIF à compléter.
+075 | PARTIAL        | DEFAULT COVER | À comparer et valider pendant la phase correspondante.
+076 | PARTIAL        | VISIBILITY | RLS et Edge Function préparées/testées ; pas de Supabase connecté.
+077 | MISSING        | OWNERSHIP | À comparer et valider pendant la phase correspondante.
+078 | MISSING        | OWNED VS DOWNLOADED | À comparer et valider pendant la phase correspondante.
+079 | EXISTING       | NE PAS CRÉER UN SECOND AUDIO ENGINE | Réutiliser le composant existant ; non-régression.
+080 | EXISTING       | OBJECTIF MIXER | Réutiliser le composant existant ; non-régression.
+081 | EXISTING       | AUDIO CHANNEL | Réutiliser le composant existant ; non-régression.
+082 | EXISTING       | SOURCES | Réutiliser le composant existant ; non-régression.
+083 | EXISTING       | CHANNEL STRIP | Réutiliser le composant existant ; non-régression.
+084 | EXISTING       | MULTI-SOURCE MIXING | Réutiliser le composant existant ; non-régression.
+085 | EXISTING       | OUTPUTS | Réutiliser le composant existant ; non-régression.
+086 | EXISTING       | ROUTING MATRIX | Réutiliser le composant existant ; non-régression.
+087 | EXISTING       | VIRTUAL BUSES | Réutiliser le composant existant ; non-régression.
+088 | EXISTING       | AI VOICE DANS LE PIPELINE | Réutiliser le composant existant ; non-régression.
+089 | EXISTING       | MULTIPLE VIRTUAL I/O | Réutiliser le composant existant ; non-régression.
+090 | EXISTING       | AUDIO BACKENDS | Réutiliser le composant existant ; non-régression.
+091 | EXISTING       | ASIO | Réutiliser le composant existant ; non-régression.
+092 | EXISTING       | FORMAT AUDIO INTERNE | Réutiliser le composant existant ; non-régression.
+093 | PARTIAL        | EQ PAR CHANNEL | À comparer et valider pendant la phase correspondante.
+094 | EXISTING       | FX PAR CHANNEL | Réutiliser le composant existant ; non-régression.
+095 | EXISTING       | EFFECT CHAIN | Réutiliser le composant existant ; non-régression.
+096 | EXISTING       | VU METERS | Réutiliser le composant existant ; non-régression.
+097 | PARTIAL        | ECHO CANCELLATION | Pas de backend AEC approprié ; ne pas exposer une option fictive.
+098 | EXISTING       | NOISE REDUCTION | Réutiliser le composant existant ; non-régression.
+099 | EXISTING       | RECORDING | Réutiliser le composant existant ; non-régression.
+100 | EXISTING       | RECORD FORMATS | Réutiliser le composant existant ; non-régression.
+101 | EXISTING       | RECORDING THREAD | Réutiliser le composant existant ; non-régression.
+102 | EXISTING       | APPLICATION AUDIO CAPTURE | Réutiliser le composant existant ; non-régression.
+103 | EXISTING       | AUDIO PROFILES | Réutiliser le composant existant ; non-régression.
+104 | PARTIAL        | PROFILE SWITCH | Changement de profil existant ; tests transitions et sélections nécessaires.
+105 | EXISTING       | MIDI | Réutiliser le composant existant ; non-régression.
+106 | EXISTING       | HOTKEYS MIXER | Réutiliser le composant existant ; non-régression.
+107 | EXISTING       | FEEDBACK / LOOPS | Réutiliser le composant existant ; non-régression.
+108 | EXISTING       | LIMITERS | Réutiliser le composant existant ; non-régression.
+109 | PARTIAL        | SIMPLE MIXER | À comparer et valider pendant la phase correspondante.
+110 | PARTIAL        | ADVANCED MIXER | À comparer et valider pendant la phase correspondante.
+111 | BROKEN         | DROPDOWNS | Template ComboBox et reconstruction des listes corrigés avant réception PJ ; validation réelle restante.
+112 | BROKEN         | HORIZONTAL SCROLL | À comparer et valider pendant la phase correspondante.
+113 | BROKEN         | NESTED SCROLL | À comparer et valider pendant la phase correspondante.
+114 | PARTIAL        | RESPONSIVE MIXER | À comparer et valider pendant la phase correspondante.
+115 | EXISTING       | PAS DE DUPLICATION | Réutiliser le composant existant ; non-régression.
+116 | EXISTING       | MIC SETUP SECTIONS | Réutiliser le composant existant ; non-régression.
+117 | EXISTING       | INPUT | Réutiliser le composant existant ; non-régression.
+118 | PARTIAL        | CLEANUP | À comparer et valider pendant la phase correspondante.
+119 | PARTIAL        | TONE | À comparer et valider pendant la phase correspondante.
+120 | PARTIAL        | DYNAMICS | À comparer et valider pendant la phase correspondante.
+121 | EXISTING       | SIMPLE / ADVANCED | Réutiliser le composant existant ; non-régression.
+122 | EXISTING       | HELP TOOLTIPS | Réutiliser le composant existant ; non-régression.
+123 | EXISTING       | RESET | Réutiliser le composant existant ; non-régression.
+124 | EXISTING       | AUDIO PRESETS | Réutiliser le composant existant ; non-régression.
+125 | PARTIAL        | EXPÉRIENCE UTILISATEUR | Conserver automaticité mais réafficher VB-CABLE à la demande explicite du propriétaire.
+126 | EXISTING       | V1 : VB-CABLE AUTOMATIQUE | Réutiliser le composant existant ; non-régression.
+127 | EXISTING       | VB-CABLE MANQUANT | Réutiliser le composant existant ; non-régression.
+128 | EXISTING       | DIAGNOSTICS | Réutiliser le composant existant ; non-régression.
+129 | EXISTING       | FUTUR MYVOICE VIRTUAL MICROPHONE | Réutiliser le composant existant ; non-régression.
+130 | PARTIAL        | REFONTE COMPLÈTE | Splash vectoriel thématisé existant en 2.5.
+131 | EXISTING       | LOGO STARTUP | Réutiliser le composant existant ; non-régression.
+132 | EXISTING       | STATES | Réutiliser le composant existant ; non-régression.
+133 | EXISTING       | CHECK UPDATE | Réutiliser le composant existant ; non-régression.
+134 | EXISTING       | PAS D'UPDATE | Réutiliser le composant existant ; non-régression.
+135 | EXISTING       | UPDATE TROUVÉE | Réutiliser le composant existant ; non-régression.
+136 | EXISTING       | PROGRESS | Réutiliser le composant existant ; non-régression.
+137 | PARTIAL        | STARTUP ANIMATIONS | Animations de base existantes ; respecter mode réduit.
+138 | EXISTING       | OBJECTIF | Réutiliser le composant existant ; non-régression.
+139 | EXISTING       | GITHUB RELEASES | Réutiliser le composant existant ; non-régression.
+140 | EXISTING       | VERSION CHECK | Réutiliser le composant existant ; non-régression.
+141 | EXISTING       | SOURCE OFFICIELLE FIXE | Réutiliser le composant existant ; non-régression.
+142 | EXISTING       | RELEASE ASSETS | Réutiliser le composant existant ; non-régression.
+143 | EXISTING       | MANIFEST | Réutiliser le composant existant ; non-régression.
+144 | EXISTING       | UPDATE SECURITY | Réutiliser le composant existant ; non-régression.
+145 | EXISTING       | UPDATER PROCESS | UpdateHost livré en 2.6 ; essai GitHub réel réussi.
+146 | EXISTING       | DONNÉES UTILISATEUR | Réutiliser le composant existant ; non-régression.
+147 | EXISTING       | FAILSAFE | Réutiliser le composant existant ; non-régression.
+148 | EXISTING       | INTERNET INDISPONIBLE | Réutiliser le composant existant ; non-régression.
+149 | EXISTING       | SETTINGS > UPDATES | Réutiliser le composant existant ; non-régression.
+150 | EXISTING       | RELEASE NOTES | Réutiliser le composant existant ; non-régression.
+151 | EXISTING       | TOUT DÉMARRE AUTOMATIQUEMENT | Réutiliser le composant existant ; non-régression.
+152 | PARTIAL        | AI ENGINE | Conserver modèles ; vérifier fallback et changement de voix.
+153 | EXISTING       | AUDIO THREAD | Réutiliser le composant existant ; non-régression.
+154 | PARTIAL        | UI PERFORMANCE | À comparer et valider pendant la phase correspondante.
+155 | NEEDS REFACTOR | VIRTUALIZATION | Cartes non virtualisées ; remplacer disposition sans changer catalogue.
+156 | EXISTING       | IMAGE CACHE | Réutiliser le composant existant ; non-régression.
+157 | MISSING        | SEARCH PERFORMANCE | À comparer et valider pendant la phase correspondante.
+158 | PARTIAL        | MICRO-ANIMATIONS | À comparer et valider pendant la phase correspondante.
+159 | PARTIAL        | DURÉES | À comparer et valider pendant la phase correspondante.
+160 | EXISTING       | REDUCED MOTION | Réutiliser le composant existant ; non-régression.
+161 | NEEDS REFACTOR | ARCHITECTURE | À comparer et valider pendant la phase correspondante.
+162 | PARTIAL        | PAS DE FAKE UI | À comparer et valider pendant la phase correspondante.
+163 | PARTIAL        | DATA REGRESSION | À comparer et valider pendant la phase correspondante.
+164 | PARTIAL        | ACCOUNT TEST | À comparer et valider pendant la phase correspondante.
+165 | PARTIAL        | THEME TEST | À comparer et valider pendant la phase correspondante.
+166 | PARTIAL        | LANGUAGE TEST | Nombreuses chaînes FR/EN littérales : traduction à compléter.
+167 | PARTIAL        | SOUND TEST | À comparer et valider pendant la phase correspondante.
+168 | PARTIAL        | COLLECTION TEST | À comparer et valider pendant la phase correspondante.
+169 | PARTIAL        | VOICE SWITCH TEST | À comparer et valider pendant la phase correspondante.
+170 | PARTIAL        | RAPID SWITCH | À comparer et valider pendant la phase correspondante.
+171 | PARTIAL        | VIRTUAL MIC TEST | À comparer et valider pendant la phase correspondante.
+172 | PARTIAL        | NO VB-CABLE | À comparer et valider pendant la phase correspondante.
+173 | PARTIAL        | MIXER ROUTING TESTS | À comparer et valider pendant la phase correspondante.
+174 | PARTIAL        | MIXER UI TESTS | À comparer et valider pendant la phase correspondante.
+175 | PARTIAL        | MAXIMIZE TEST | À comparer et valider pendant la phase correspondante.
+176 | PARTIAL        | FULLSCREEN TEST | À comparer et valider pendant la phase correspondante.
+177 | PARTIAL        | STARTUP SANS UPDATE | À comparer et valider pendant la phase correspondante.
+178 | PARTIAL        | STARTUP AVEC UPDATE | À comparer et valider pendant la phase correspondante.
+179 | PARTIAL        | UPDATE FAILURE TEST | À comparer et valider pendant la phase correspondante.
+180 | PARTIAL        | RECORDING TEST | À comparer et valider pendant la phase correspondante.
+181 | PARTIAL        | DEVICE DISCONNECT | À comparer et valider pendant la phase correspondante.
+182 | PARTIAL        | FEEDBACK TEST | À comparer et valider pendant la phase correspondante.
+183 | PARTIAL        | PHASE 0 — ANALYSE DU PROMPT | À comparer et valider pendant la phase correspondante.
+184 | PARTIAL        | PHASE 1 — AUDIT DU PROJET | À comparer et valider pendant la phase correspondante.
+185 | PARTIAL        | PHASE 2 — BACKUP / MIGRATIONS | À comparer et valider pendant la phase correspondante.
+186 | PARTIAL        | PHASE 3 — BUGS CRITIQUES | À comparer et valider pendant la phase correspondante.
+187 | PARTIAL        | PHASE 4 — VIRTUAL AUDIO | À comparer et valider pendant la phase correspondante.
+188 | PARTIAL        | PHASE 5 — AUDIO ENGINE / MIXER | À comparer et valider pendant la phase correspondante.
+189 | PARTIAL        | PHASE 6 — MIC SETUP | À comparer et valider pendant la phase correspondante.
+190 | PARTIAL        | PHASE 7 — APP SHELL | À comparer et valider pendant la phase correspondante.
+191 | PARTIAL        | PHASE 8 — DESIGN SYSTEM | À comparer et valider pendant la phase correspondante.
+192 | PARTIAL        | PHASE 9 — SOUNDBOARD UI | À comparer et valider pendant la phase correspondante.
+193 | PARTIAL        | PHASE 10 — COLLECTIONS | À comparer et valider pendant la phase correspondante.
+194 | PARTIAL        | PHASE 11 — COMMUNITY | À comparer et valider pendant la phase correspondante.
+195 | PARTIAL        | PHASE 12 — STARTUP SCREEN | À comparer et valider pendant la phase correspondante.
+196 | PARTIAL        | PHASE 13 — GITHUB UPDATER | À comparer et valider pendant la phase correspondante.
+197 | PARTIAL        | PHASE 14 — RECORDING / APP SOURCES | À comparer et valider pendant la phase correspondante.
+198 | PARTIAL        | PHASE 15 — AUDIO PROFILES | À comparer et valider pendant la phase correspondante.
+199 | PARTIAL        | PHASE 16 — MIDI | À comparer et valider pendant la phase correspondante.
+200 | PARTIAL        | PHASE 17 — PERFORMANCE | À comparer et valider pendant la phase correspondante.
+201 | PARTIAL        | PHASE 18 — POLISH | À comparer et valider pendant la phase correspondante.
+202 | PARTIAL        | PHASE 19 — TESTS DE NON-RÉGRESSION | À comparer et valider pendant la phase correspondante.
+203 | PARTIAL        | BUILD APRÈS CHAQUE PHASE | À comparer et valider pendant la phase correspondante.
+204 | PARTIAL        | PRIORITÉS | À comparer et valider pendant la phase correspondante.
+205 | PARTIAL        | NE PAS AMÉLIORER PROFONDÉMENT L'IA DANS CETTE PHASE | À comparer et valider pendant la phase correspondante.
+206 | PARTIAL        | RÉSULTAT FINAL ATTENDU | À comparer et valider pendant la phase correspondante.
+207 | PARTIAL        | PREMIÈRE ACTION À EFFECTUER MAINTENANT | À comparer et valider pendant la phase correspondante.
+
+PLAN PAR PHASE
+1. Corrections prioritaires : MixerCards/MixerViewModel/ComboInteraction/Theme ; choix stables, molette, popup ; aucune migration. Tests WPF ouverts/fermés, refresh, petit écran, clavier et sélection.
+2. Profil/publication : ProductState, CommunityClient, ProfileView, PublicationView ; champs additifs, brouillon privé, identité unique ; tests sauvegarde, package invalide, hors ligne et droits.
+3. Voix : AiControls/AiViewModel/StudioViewModel ; génération/annulation/état cible cohérents ; pas de changement de modèles. Tests changement rapide et fallback.
+4. Sons/collections : SoundboardService, StudioModels, ProductState, LibraryViewModel, SoundboardView ; collections par références stables, favoris migrés sans déplacer audio ; preview séparée dans le moteur existant, édition en nouvelle copie. Tests Like/Unlike indépendants, lecture/routage, import et persistance.
+5. Shell : MainWindow, services/VM dédiés ; recherche Ctrl+K, notifications réelles, aide et Discord ; stockage additif. Tests navigation, identité, lectures notifications et fenêtre.
+6. Visuels/performance : contrôles partagés, cartes virtualisées, cache/covers, menus, icônes ; thème et animation réduite. Tests centaines de sons, mémoire/conteneurs, crops et skins.
+7. Backend : migrations additives profil/métadonnées/provenance ; RLS/Edge Function existantes étendues ; tests autorisations/ownership. Mise en ligne dépend du projet Supabase, non simulée.
+8. Langues/polish : Texts/ressources, labels, tooltips, accessibilité ; tests FR/EN et persistance.
+9. Distribution : nouvelle Beta, compilation/test/launch après phases, release GitHub et canal automatique ; vérifier fichiers personnels contre inventaire.
+RISQUES : perte de sélection sur refresh ; commande audio pendant événements WPF ; changements de voix asynchrones ; publication de contenu téléchargé ; réplication du catalogue ; rupture migration. Les sauvegardes et identifiants existants sont conservés.
+VALIDATIONS DU 13 OCTOBRE
+Les lignes ci-dessus décrivent l’audit initial. Résolutions testées : 26–32 (shell de base), 42 (notifications du profil), 60–64 (sons/collections), 67 (éditeur), 71–73 (brouillons/métadonnées), 111 (menus), 113 (défilement imbriqué), 155/157 (virtualisation/recherche). Ownership 77–78 reste partiel pour les anciens imports et le contenu réencodé. 53–55 sont corrigés dans le code ; essais multi-voix IA réels restant à élargir. Voir Master-Progress.txt pour les limites actuelles.

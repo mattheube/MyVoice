@@ -87,7 +87,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
         {
             Settings.Language = value == 0 ? "fr" : "en";
             T.Load(Settings.Language);
-            Changed(nameof(LanguageIndex));
+            Changed(nameof(LanguageIndex));OnPropertyChanged(nameof(PageTitle));OnPropertyChanged(nameof(AccountLabel));OnPropertyChanged(nameof(NotificationLabel));
             OnPropertyChanged(nameof(MicState));
             OnPropertyChanged(nameof(StartLabel));
             OnPropertyChanged(nameof(HotkeyLabel));

@@ -28,17 +28,17 @@ public partial class MainViewModel
         var dialog=new OpenFileDialog{Filter="MyVoice package|*.myvoice;*.zip"};if(dialog.ShowDialog()!=true)return;
         try{await InstallCreation(dialog.FileName);ShowToast("Création installée dans votre bibliothèque.");}catch(Exception e){StudioError(e.Message);}
     }
-    private async Task InstallCreation(string path)
+    private async Task InstallCreation(string path,string? sourceId=null)
     {
         var result=await Task.Run(()=>CreationPackage.Extract(path,Path.Combine(store.Root,"packages")));var m=result.Manifest;
         if(m.Kind=="voice-preset")
-        {var preset=m.Preset! with{Id=Guid.NewGuid().ToString("N")};Product.Presets.Add(preset);DesignedVoices.Add(preset);SaveProduct();return;}
+        {var preset=m.Preset! with{Id=Guid.NewGuid().ToString("N"),SourceContentId=sourceId??"imported-package"};Product.Presets.Add(preset);DesignedVoices.Add(preset);SaveProduct();return;}
         // Validate all audio before touching the catalog. Keep the installed package for offline use.
         foreach(var s in m.Sounds){using var reader=new NAudio.Wave.AudioFileReader(Path.Combine(result.Directory,s.File));if(reader.TotalTime.TotalSeconds<=0)throw new InvalidDataException("Son vide.");}
         var name=m.Title;int suffix=2;while(Folders.Any(f=>f.Name==name))name=m.Title+" ("+suffix+++ ")";
         var folder=new SoundFolder{Name=name,Cover=m.Cover==null?null:Path.Combine(result.Directory,m.Cover)};
         sounds.Library.Folders.Add(folder);Folders.Add(folder);
-        foreach(var s in m.Sounds){var item=new SoundItem{Name=s.Name,File=Path.Combine(result.Directory,s.File),Cover=s.Cover==null?null:Path.Combine(result.Directory,s.Cover),Folder=name,Volume=s.Volume,Loop=s.Loop,BassDb=s.BassDb,Saturation=s.Saturation};sounds.Library.Sounds.Add(item);SoundCards.Add(new(item));}
+        foreach(var s in m.Sounds){var item=new SoundItem{SourceContentId=sourceId??"imported-package",Name=s.Name,File=Path.Combine(result.Directory,s.File),Cover=s.Cover==null?null:Path.Combine(result.Directory,s.Cover),Folder=name,Volume=s.Volume,Loop=s.Loop,BassDb=s.BassDb,Saturation=s.Saturation,Description=s.Description,Category=s.Category,Tags=s.Tags?.ToList()??[]};sounds.Library.Sounds.Add(item);SoundCards.Add(new(item));}
         sounds.Save();SelectedFolder=folder;Page=1;
     }
 }
