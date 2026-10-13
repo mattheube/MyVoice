@@ -1,0 +1,16 @@
+MYVOICE 2.7.0 BETA 2 — VALIDATION
+Code : 41ca579551c959f4a4c6531178bb38749aedf28c
+Release : https://github.com/mattheube/MyVoice/releases/tag/v2.7.0-beta.2
+CI : https://github.com/mattheube/MyVoice/actions/runs/38446469473
+
+187 tests C# réussis ; 22 tests SQL/autorisation réussis.
+WPF : neuf pages, menus ouverts pendant actualisation, Escape/molette, sélection audio stable, brouillon persistant, refus des packages invalides, collections mixtes et Likes indépendants, contexte, recherche, notifications, GIF/WebP et crop animé, virtualisation avec 600 sons supplémentaires, libellés anglais.
+Matériel : capture réelle CABLE Input → CABLE Output ; son 44,1 kHz mono converti vers bus 48 kHz stéréo.
+IA : démarrage NVIDIA, demandes rapprochées A/B, reprise après navigation, annulation par Default Clean ; conversion expressive par pause et fin manuelle, PCM non nul et capture reprise.
+Distribution : paquet CI téléchargé et hashes comparés ; smoke WPF exécuté depuis ce paquet.
+Mise à jour : copie 2.6 téléchargée officiellement, bascule réelle sur 2.7 Beta 2, remplacement et confirmation de santé réussis ; sauvegarde et fichier témoin préservés.
+
+SHA-256 installateur : 28239B6F4B243750C3D4851ABB1A09FE9770E0608BC170523CEC6EABD09C55B0
+SHA-256 ZIP : F3FE11045753F14D845D283E30B67696BD108DB4A97DEAC63AF487169AD4B9FF
+
+Limites : vérification micro à effectuer dans chaque application destinataire ; serveur Supabase absent ; anciens panneaux encore partiellement bilingues ; empreinte audio exacte, pas de reconnaissance des réencodages. Cette version ne déclare pas tout le master prompt terminé.

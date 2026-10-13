@@ -11,3 +11,5 @@ Contrôles d’empreintes : protègent les fichiers audio strictement identiques
 Preuves locales : work/master-final-tests.log, work/master-final-ui, work/master-backend-tests.log. La matrice Master-Audit conserve l’état initial et les annotations de validation. Aucun statut de fonctionnalités restant partiel n’est présenté comme achevé.
 
 Contrôle IA complémentaire : moteur NVIDIA réel, deux activations rapprochées, reprise de la dernière voix après navigation dans la bibliothèque, annulation par Default Clean ; tous passent. Conversion expressive par pause et fin manuelle validée (PCM non nul, reprise de capture).
+
+Distribution validée : v2.7.0-beta.2, CI GitHub réussie, installateur vérifié par SHA-256, lancement du paquet publié, mise à jour automatique 2.6 → 2.7 confirmée par le composant séparé. Canal Beta public à jour. Les fonctionnalités du serveur restent préparées et testées localement ; aucune instance Supabase de production n’est configurée.
