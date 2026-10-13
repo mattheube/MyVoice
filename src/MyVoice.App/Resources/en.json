@@ -42,7 +42,7 @@
   "Minimized": "Start in notification area",
   "Startup": "Launch MyVoice with Windows",
   "Animations": "Navigation animations",
-  "Language": "Language (applied immediately)",
+  "Language": "Language",
   "Hotkey": "Global mute shortcut",
   "HotkeyHelp": "Click, then press a combination with Ctrl, Alt or Shift. Escape cancels.",
   "Bind": "Choose shortcut",
@@ -268,5 +268,10 @@
   "RevisionLabel49": "Sign out",
   "RevisionLabel50": "Username · unique, 3–24 characters",
   "RevisionLabel51": "YOUR IDENTITY",
-  "RevisionLabel52": "Your identity, account and publications."
+  "RevisionLabel52": "Your identity, account and publications.",
+  "UnreadOnly": "Unread only",
+  "MarkAllRead": "Mark all as read",
+  "Updates": "Updates",
+  "Hotkeys": "Keyboard shortcuts",
+  "Theme": "Theme"
 }

@@ -13,6 +13,7 @@ public partial class MainViewModel
     private int voiceSwitchRevision;
     private string? activeAiVoiceId;
     private VoiceReference? ActiveAiVoice=>AiVoices.FirstOrDefault(v=>v.Id==activeAiVoiceId);
+    private VoiceReference? ResumeAiVoice=>ActiveAiVoice??AiVoices.FirstOrDefault(v=>v.Id==Settings.LastAiVoiceId)??SelectedAiVoice;
     private int aiRestarts;
     private DateTime nextAiRetry;
     [ObservableProperty] private double conversionProgress;

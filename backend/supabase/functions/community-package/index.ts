@@ -56,12 +56,13 @@ Deno.serve(async req=>{
   if(m.kind==='voice-preset'){const preset=normalize(m.preset);if(!preset||!['pitch','bass','mid','treble','delay','distortion','mix'].every(k=>Number.isFinite(preset[k]))||Number(preset.pitch)<.5||Number(preset.pitch)>2||Number(preset.mix)<0||Number(preset.mix)>1)throw Error('Invalid preset');}
   if(m.sounds.some((s:any)=>normalize(s)?.sourcecontentid)||normalize(m.preset)?.sourcecontentid)throw Error('Imported content cannot be republished');
   const description=String(info.description||'').slice(0,2000),tags=Array.isArray(info.tags)?info.tags.slice(0,8).map((x:unknown)=>String(x).slice(0,30)):[];
+  const title=typeof info.title==='string'?info.title.trim():m.title;if(!title||title.length>100)throw Error('Invalid title');
   const category=['Meme','SFX','Gaming','Anime','Reaction','Music','Voice','Ambient','Movie/TV','Other'].includes(info.category)?info.category:'Other';
   const id=crypto.randomUUID();const objectPath=`${user.id}/${id}/${m.version}.zip`;
   const sha256=hex(await crypto.subtle.digest('SHA-256',bytes));
   const upload=await server.storage.from('community').upload(objectPath,bytes,{contentType:'application/zip',upsert:false});if(upload.error)throw Error('Upload failed');
   // Roll back storage on a failed metadata transaction. Only server can publish.
-  const insert=await server.from('content').insert({id,owner_id:user.id,kind:m.kind,title:m.title,description,tags,category,language:String(info.language||'und').slice(0,12),visibility:info.visibility,status:'draft'});
+  const insert=await server.from('content').insert({id,owner_id:user.id,kind:m.kind,title,description,tags,category,language:String(info.language||'und').slice(0,12),visibility:info.visibility,status:'draft'});
   if(insert.error){await server.storage.from('community').remove([objectPath]);throw Error('Metadata rejected');}
   const version=await server.from('content_versions').insert({content_id:id,version:m.version,object_path:objectPath,sha256,size:bytes.length});
   if(version.error){await server.from('content').delete().eq('id',id);await server.storage.from('community').remove([objectPath]);throw Error('Version rejected');}

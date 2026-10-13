@@ -187,6 +187,7 @@ public partial class App : Application
                 File.WriteAllText(Path.Combine(folder,"engine-result.txt"),vm.AiState);
                 vm.StopAi();
             }
+            if(args.Contains("--voice-switch-test")){var index=Array.IndexOf(args,"--voice-switch-test");await vm!.VerifyVoiceSwitchAsync(args[index+1],Path.Combine(folder,"voice-switch-result.txt"));}
             if(args.Contains("--phrase-test"))
             {
                 var offset=Array.IndexOf(args,"--phrase-test");

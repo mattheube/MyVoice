@@ -1,4 +1,4 @@
-# MyVoice 2.7.0 Beta 1
+# MyVoice 2.7.0 Beta 2
 
 Corrections du routage VB-CABLE et des menus du mixeur, nouveau Soundboard et préparation des publications.
 
@@ -16,4 +16,4 @@ Community et les comptes en ligne restent indisponibles sans projet Supabase con
 
 Cette Beta livre les corrections et les phases décrites dans docs/Master-Progress.txt ; elle ne prétend pas terminer tous les points du master prompt. Les éléments encore partiels figurent dans docs/Master-Audit.txt.
 
-Tests locaux : routage CABLE Input → CABLE Output réel, préécoute isolée, conservation des originaux, collections, menus ouverts pendant rafraîchissement, images GIF/WebP, 600 cartes supplémentaires et lancement des neuf pages. Installation automatique à valider avec le paquet GitHub construit pour cette release.
+Tests locaux : routage CABLE Input → CABLE Output réel, préécoute isolée, conservation des originaux, collections, menus ouverts pendant rafraîchissement, images GIF/WebP, 600 cartes supplémentaires et lancement des neuf pages. 187 tests C# et 22 tests serveur passent. Démarrage du moteur NVIDIA et changements rapides de voix validés avec le moteur réel. Installation automatique à valider avec le paquet GitHub construit pour cette release.

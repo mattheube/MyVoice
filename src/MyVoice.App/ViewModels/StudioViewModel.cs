@@ -88,7 +88,7 @@ public partial class MainViewModel
         {
             Settings.VoiceEnabled = value;
             graph.Processor.Enabled = value;
-            if(!value){++voiceSwitchRevision;StopLive();} else if(Settings.ActiveAiVoice&&!AiLive) _=UseAiVoiceCommand.ExecuteAsync(SelectedAiVoice);
+            if(!value){++voiceSwitchRevision;StopLive();} else if(Settings.ActiveAiVoice&&!AiLive) _=UseAiVoiceCommand.ExecuteAsync(ResumeAiVoice);
             OnPropertyChanged(nameof(DisplayVoice));OnPropertyChanged(nameof(DisplayVoiceCover));
             Changed(nameof(VoiceEnabled));
         }

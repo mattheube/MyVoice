@@ -28,7 +28,7 @@ public partial class MainViewModel
         recoveryAt = DateTime.UtcNow.AddSeconds(5);
         Refresh(); RefreshOutputs(); EnsureMicrophone();
         RecoverAi();
-        if(resumeAiAfterReconnect&&Running&&AiReady&&!AiBusy&&!aiManualStop){resumeAiAfterReconnect=false;_=UseAiVoiceCommand.ExecuteAsync(SelectedAiVoice);}
+        if(resumeAiAfterReconnect&&Running&&AiReady&&!AiBusy&&!aiManualStop){resumeAiAfterReconnect=false;_=UseAiVoiceCommand.ExecuteAsync(ResumeAiVoice);}
     }
     [RelayCommand] private void TestVirtualOutput()
     {

@@ -95,7 +95,7 @@ public partial class MainViewModel
         CommunityBusy=true;
         try
         {
-            var link=await community.Publish(publicationDraft.PackagePath,new{rights_confirmed=true,visibility=PublishVisibility,description=PublishDescription,category=PublishCategory,tags=PublishTags.Split(',',StringSplitOptions.RemoveEmptyEntries|StringSplitOptions.TrimEntries).Distinct(StringComparer.OrdinalIgnoreCase).Take(8).Select(t=>t[..Math.Min(t.Length,30)]).ToArray(),language=Settings.Language});
+            var link=await community.Publish(publicationDraft.PackagePath,new{title=PublicationTitle,rights_confirmed=true,visibility=PublishVisibility,description=PublishDescription,category=PublishCategory,tags=PublishTags.Split(',',StringSplitOptions.RemoveEmptyEntries|StringSplitOptions.TrimEntries).Distinct(StringComparer.OrdinalIgnoreCase).Take(8).Select(t=>t[..Math.Min(t.Length,30)]).ToArray(),language=Settings.Language});
             PublicationStatus="Publié · "+link;
             try{System.Windows.Clipboard.SetText(link);ShowToast("Publié. Le lien a été copié.");}catch{ShowToast("Publié. Le lien est disponible dans votre profil.");}
         }

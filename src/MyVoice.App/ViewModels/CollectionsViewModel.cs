@@ -13,12 +13,13 @@ public partial class MainViewModel
     public ObservableCollection<CollectionVoiceCard> CollectionVoices {get;}=[];
     [ObservableProperty] private LibraryCollection? selectedCollection;
     public bool HasCollection=>SelectedCollection!=null;
+    public bool HasEditableCollection=>SelectedCollection is {Id:not "liked"};
     private void InitializeLibraryCollections()
     {
         Collections.Add(new(){Id="liked",Name="Liked"});foreach(var c in Product.Collections)Collections.Add(c);
         foreach(var sound in SoundCards)sound.IsLiked=Product.FavoriteSounds.Contains(sound.Item.Id);
     }
-    partial void OnSelectedCollectionChanged(LibraryCollection? value){if(value!=null)SelectedFolder=null;SoundView?.Refresh();RefreshCollectionVoices();OnPropertyChanged(nameof(HasCollection));}
+    partial void OnSelectedCollectionChanged(LibraryCollection? value){if(value!=null)SelectedFolder=null;SoundView?.Refresh();RefreshCollectionVoices();OnPropertyChanged(nameof(HasCollection));OnPropertyChanged(nameof(HasEditableCollection));}
     private bool SoundInCollection(SoundCard card)=>SelectedCollection==null||ContainsEntry(SelectedCollection,new("sound",card.Item.Id.ToString()));
     public bool EntryLiked(LibraryEntry entry)=>entry.Kind switch
     {

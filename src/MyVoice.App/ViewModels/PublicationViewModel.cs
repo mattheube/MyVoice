@@ -13,7 +13,8 @@ public partial class MainViewModel
     public string PublishCategory {get=>Product.PublicationCategory;set{Product.PublicationCategory=Array.IndexOf(SoundCategories,value)>=0?value:"Other";SaveProduct();OnPropertyChanged();}}
     public string PublishTags {get=>Product.PublicationTags;set{Product.PublicationTags=value;SaveProduct();OnPropertyChanged();}}
     [ObservableProperty] private string publicationStatus="Choisissez un package exporté depuis Studio pour préparer votre publication.";
-    public string PublicationTitle=>string.IsNullOrEmpty(Product.PublicationTitle)?"Aucun package sélectionné":Product.PublicationTitle;
+    public string PublicationTitle {get=>Product.PublicationTitle;set{Product.PublicationTitle=value;SaveProduct();OnPropertyChanged();}}
+    public string? PublicationCover=>Product.PublicationCover;
     public string PublicationKind=>Product.PublicationKind switch{"soundboard"=>"Soundboard","voice-preset"=>"Preset vocal",_=>"Package MyVoice"};
     public bool HasPublicationPackage=>publicationDraft!=null&&File.Exists(publicationDraft.PackagePath);
     public bool CanPublishDraft=>CommunityConfigured&&SignedIn&&HasPublicationPackage&&PublishRights&&!CommunityBusy;
@@ -44,7 +45,7 @@ public partial class MainViewModel
         try
         {
             var manifest=await publicationDraft.PrepareAsync(file);
-            Product.PublicationTitle=manifest.Title;Product.PublicationKind=manifest.Kind;PublishRights=false;SaveProduct();
+            Product.PublicationTitle=manifest.Title;Product.PublicationKind=manifest.Kind;Product.PublicationCover=publicationDraft.PreparedCoverPath;OnPropertyChanged(nameof(PublicationCover));PublishRights=false;SaveProduct();
             PublicationStatus="Package vérifié et copié dans votre brouillon local. "+(manifest.Kind=="soundboard"?manifest.Sounds.Count+" sons.":"Preset vocal.");
         }
         catch(Exception e){PublicationStatus="Préparation impossible : "+e.Message;}

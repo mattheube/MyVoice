@@ -2,6 +2,7 @@ namespace MyVoice.Infrastructure;
 public sealed class PublicationDraftStore(string root)
 {
     public string PackagePath=>Path.Combine(root,"drafts","publication.myvoice");
+    public string? PreparedCoverPath {get;private set;}
     public async Task<CreationManifest> PrepareAsync(string source)
     {
         Directory.CreateDirectory(Path.GetDirectoryName(PackagePath)!);
@@ -16,7 +17,17 @@ public sealed class PublicationDraftStore(string root)
             var manifest=await Task.Run(()=>CreationPackage.Inspect(temporary));
             if(manifest.Sounds.Any(s=>!string.IsNullOrEmpty(s.SourceContentId))||!string.IsNullOrEmpty(manifest.Preset?.SourceContentId))
                 throw new InvalidDataException("Ce package contient une création importée. Elle peut être conservée dans votre bibliothèque, mais pas republiée comme votre création.");
-            File.Move(temporary,PackagePath,true);return manifest;
+            string? cover=null;
+            if(manifest.Cover is {} image)
+            {
+                var extension=Path.GetExtension(image).ToLowerInvariant();
+                if(extension is not(".png" or ".jpg" or ".jpeg" or ".webp" or ".gif"))throw new InvalidDataException("La couverture doit être une image.");
+                using var archive=System.IO.Compression.ZipFile.OpenRead(temporary);var entry=archive.GetEntry(image)!;
+                if(entry.Length>20_000_000)throw new InvalidDataException("Couverture limitée à 20 Mo.");
+                cover=Path.Combine(root,"drafts",Guid.NewGuid().ToString("N")+extension);
+                using var input=entry.Open();using var output=File.Create(cover);await input.CopyToAsync(output);
+            }
+            File.Move(temporary,PackagePath,true);PreparedCoverPath=cover;return manifest;
         }
         finally{if(File.Exists(temporary))File.Delete(temporary);}
     }

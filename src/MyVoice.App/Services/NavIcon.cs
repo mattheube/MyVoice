@@ -8,6 +8,8 @@ public sealed class NavIcon : FrameworkElement
     {
         var path=Kind switch
         {
+            "search"=>"M 3,10 A 7,7 0 1 0 17,10 A 7,7 0 1 0 3,10 M 15,15 L 22,22",
+            "bell"=>"M 5,17 H 19 L 17,14 V 9 C 17,2 7,2 7,9 V 14 Z M 9,20 Q 12,24 15,20",
             "home"=>"M 3,10 L 12,3 L 21,10 M 5,9 V 21 H 19 V 9 M 10,21 V 14 H 14 V 21",
             "mic"=>"M 9,5 C 9,1 15,1 15,5 V 12 C 15,16 9,16 9,12 Z M 5,11 V 13 C 5,22 19,22 19,13 V 11 M 12,20 V 23",
             "profile"=>"M 8,7 A 4,4 0 1 0 16,7 A 4,4 0 1 0 8,7 M 3,22 C 3,11 21,11 21,22",

@@ -69,6 +69,7 @@ public partial class MainViewModel
         if(session.Source!=UpdateSource)return;
         preparedUpdate=session;
         ShowUpdateState(session.State);downloadedUpdate=session.DownloadedFile;CanInstallUpdate=downloadedUpdate!=null;
+        if(CanInstallUpdate)RecordNotification(session.State.Message,"updates");
         if(session.Release is {} release && session.CheckedAt is {} date)
         {
             Settings.LastUpdateCheck=date;Settings.LastKnownVersion=release.Version;Settings.LastKnownReleaseTag=release.Tag;Settings.LastUpdateSource=UpdateSource;

@@ -32,14 +32,24 @@ public partial class MainWindow
     private void NotificationsClick(object sender,RoutedEventArgs e)
     {
         var dialog=ShellWindow(vm.T["Notifications"]);var list=new StackPanel{Margin=new Thickness(20)};
-        if(vm.Product.Notifications.Count==0)list.Children.Add(new TextBlock{Text=vm.T["NoNotifications"]});
-        foreach(var n in vm.Product.Notifications)
+        var panel=new DockPanel{Margin=new Thickness(16)};var bar=new WrapPanel();DockPanel.SetDock(bar,Dock.Top);panel.Children.Add(bar);
+        var unread=new CheckBox{Content=vm.T["UnreadOnly"]};bar.Children.Add(unread);
+        var category=new ComboBox{Width=150,ItemsSource=new[]{"all","application","updates","community"},SelectedIndex=0};bar.Children.Add(category);
+        var mark=new Button{Content=vm.T["MarkAllRead"]};bar.Children.Add(mark);
+        void Refresh()
         {
-            var row=new StackPanel{Margin=new Thickness(0,0,0,18)};
-            row.Children.Add(new TextBlock{Text=n.CreatedAt.ToLocalTime().ToString("g")+" · "+n.Category,Opacity=.65});
-            row.Children.Add(new TextBlock{Text=n.Text,TextWrapping=TextWrapping.Wrap,FontWeight=n.Read?FontWeights.Normal:FontWeights.SemiBold});list.Children.Add(row);
+            list.Children.Clear();
+            var selected=vm.Product.Notifications.Where(n=>(unread.IsChecked!=true||!n.Read)&&(category.SelectedItem?.ToString()=="all"||n.Category==category.SelectedItem?.ToString())).ToArray();
+            if(selected.Length==0)list.Children.Add(new TextBlock{Text=vm.T["NoNotifications"]});
+            foreach(var n in selected)
+            {
+                var row=new StackPanel{Margin=new Thickness(0,0,0,18)};
+                row.Children.Add(new TextBlock{Text=n.CreatedAt.ToLocalTime().ToString("g")+" · "+n.Category,Opacity=.65});
+                row.Children.Add(new TextBlock{Text=n.Text,TextWrapping=TextWrapping.Wrap,FontWeight=n.Read?FontWeights.Normal:FontWeights.SemiBold});list.Children.Add(row);
+            }
         }
-        dialog.Content=new ScrollViewer{Content=list,VerticalScrollBarVisibility=ScrollBarVisibility.Auto};dialog.Show();vm.MarkNotificationsRead();
+        unread.Checked+=(_,_)=>Refresh();unread.Unchecked+=(_,_)=>Refresh();category.SelectionChanged+=(_,_)=>Refresh();mark.Click+=(_,_)=>{vm.MarkNotificationsRead();Refresh();};
+        panel.Children.Add(new ScrollViewer{Content=list,VerticalScrollBarVisibility=ScrollBarVisibility.Auto});dialog.Content=panel;Refresh();dialog.Show();
     }
     private void AccountMenuClick(object sender,RoutedEventArgs e)
     {

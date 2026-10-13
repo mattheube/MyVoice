@@ -42,7 +42,7 @@
   "Minimized": "Démarrer dans la zone de notification",
   "Startup": "Lancer MyVoice avec Windows",
   "Animations": "Animations de navigation",
-  "Language": "Langue (application immédiate)",
+  "Language": "Langue",
   "Hotkey": "Raccourci global du mute",
   "HotkeyHelp": "Cliquez puis appuyez sur une combinaison avec Ctrl, Alt ou Maj. Échap annule.",
   "Bind": "Choisir un raccourci",
@@ -268,5 +268,10 @@
   "RevisionLabel49": "Se déconnecter",
   "RevisionLabel50": "Username · unique, 3–24 caractères",
   "RevisionLabel51": "VOTRE IDENTITÉ",
-  "RevisionLabel52": "Votre identité, votre compte et vos publications."
+  "RevisionLabel52": "Votre identité, votre compte et vos publications.",
+  "UnreadOnly": "Non lues",
+  "MarkAllRead": "Tout marquer comme lu",
+  "Updates": "Mises à jour",
+  "Hotkeys": "Raccourcis clavier",
+  "Theme": "Thème"
 }

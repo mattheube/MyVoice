@@ -24,7 +24,13 @@ public partial class MainViewModel
         bool Match(string text)=>text.Contains(query.Trim(),StringComparison.CurrentCultureIgnoreCase);
         foreach(var (name,page) in new[]{(T["Home"],4),(T["Voice"],0),(T["Soundboard"],1),(T["Mixer"],8),(T["Community"],5),(T["Studio"],2),(T["Settings"],3),(T["Profile"],7)})
             if(Match(name))yield return new(name,T["Navigation"],()=>Page=page);
-        foreach(var sound in SoundCards.Where(s=>Match(s.Name)).Take(40))
+        foreach(var key in new[]{"Updates","Notifications","Language","Hotkeys","Theme","Volume"})
+            if(Match(T[key]))yield return new(T[key],T["Settings"],()=>Page=3);
+        foreach(var voice in DesignedVoices.Where(v=>Match(v.Name)).Take(20))
+            yield return new(voice.Name,T["Studio"],()=>{Page=2;StudioTab=1;});
+        foreach(var creation in CommunityItems.Where(v=>Match(v.Title)).Take(20))
+            yield return new(creation.Title,T["Community"],()=>{SelectedCreation=creation;Page=5;});
+        foreach(var sound in SoundCards.Where(s=>Match(s.Name)||Match(s.Item.Description)||s.Item.Tags.Any(Match)).Take(40))
             yield return new(sound.Name,T["Soundboard"],()=>{ShowLibraryCommand.Execute(null);Search=sound.Name;Page=1;OpenSoundInspector(sound);});
         foreach(var voice in AiVoices.Where(v=>Match(v.Name)).Take(20))
             yield return new(voice.Name,T["Voice"],()=>{SelectedAiVoice=voice;Page=0;});

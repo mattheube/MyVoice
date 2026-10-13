@@ -235,7 +235,7 @@ public partial class MainViewModel
         }
         catch (Exception e) { AiReady = false; AiState = "Moteur indisponible · " + e.Message; StudioError(e.Message); }
         finally { AiBusy = false; }
-        if(AiReady && Settings.ActiveAiVoice && VoiceEnabled && !aiActivating && !lifetime.IsCancellationRequested) await UseAiVoiceAsync(SelectedAiVoice);
+        if(AiReady && Settings.ActiveAiVoice && VoiceEnabled && !aiActivating && !lifetime.IsCancellationRequested) await UseAiVoiceAsync(ResumeAiVoice);
     }
     [RelayCommand]
     public void StopAi()
