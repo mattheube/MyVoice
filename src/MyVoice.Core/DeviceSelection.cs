@@ -2,7 +2,8 @@ namespace MyVoice.Core;
 public static class DeviceSelection
 {
     public static bool IsVirtual(AudioDevice d) => new[] { "cable", "voicemeeter", "voicemod", "virtual", "streaming" }.Any(s => d.Name.Contains(s, StringComparison.OrdinalIgnoreCase));
-    public static bool IsCableOutput(AudioDevice d) => d.Name.Contains("CABLE", StringComparison.OrdinalIgnoreCase) && d.Name.Contains("Input", StringComparison.OrdinalIgnoreCase) || d.Name.Contains("Voicemeeter Input", StringComparison.OrdinalIgnoreCase);
+    public static bool IsCableOutput(AudioDevice d) => !d.Name.Replace(" ", "").Contains("16ch", StringComparison.OrdinalIgnoreCase) &&
+        (VBCableBackend.IsPlayback(d) || d.Name.Contains("CABLE", StringComparison.OrdinalIgnoreCase) && d.Name.Contains("Input", StringComparison.OrdinalIgnoreCase) || d.Name.Contains("Voicemeeter Input", StringComparison.OrdinalIgnoreCase));
     public static AudioDevice? Physical(IReadOnlyList<AudioDevice> devices, string? preferred) => devices.FirstOrDefault(d => d.Id.Length > 0 && d.Id == preferred) ?? devices.FirstOrDefault(d => !IsVirtual(d) && d.Id.Length > 0);
     public static AudioDevice? Virtual(IReadOnlyList<AudioDevice> devices, string? preferred)
     {

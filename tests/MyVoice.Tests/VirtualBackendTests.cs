@@ -12,5 +12,9 @@ public static class VirtualBackendTests
         Check(!backend.Resolve([devices[0],devices[1]],[receiver],"old").Detected,"Virtual backend never uses speakers or 16ch");
         Check(!backend.Resolve([cable,new("duplicate",cable.Name)],[receiver],null).Detected,"Ambiguous cables do not report connected");
         Check(backend.Resolve([cable,new("duplicate",cable.Name)],[receiver],"cable").Detected,"Explicit compatible cable resolves ambiguity");
+        var localized=new AudioDevice("localized","Haut-parleurs (2- VB-Audio Virtual Cable)");
+        Check(backend.Resolve([localized],[receiver],null).Detected,"Localized VB-CABLE render endpoint recognized");
+        Check(!backend.Resolve([new("multi","CABLE In 16 Ch (2- VB-Audio Virtual Cable)")],[receiver],null).Detected,"Spaced 16 channel cable excluded");
+        Check(DeviceSelection.Virtual([localized],null)==localized,"Legacy selection agrees with localized cable backend");
     }
 }

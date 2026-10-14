@@ -23,35 +23,44 @@ public static class ProductAppearance
         };
         var resources=Application.Current.Resources;
         string[] keys={"CanvasBrush","SurfaceBrush","RaisedBrush","LineBrush"};
-        for(int i=0;i<keys.Length;i++)resources[keys[i]]=Brush(palette[i]);
+        for(int i=0;i<keys.Length;i++)SetBrush(keys[i],Brush(palette[i]));
         Color accent;try{accent=(Color)ColorConverter.ConvertFromString(state.Accent);}catch{accent=(Color)ColorConverter.ConvertFromString("#B7A5FF");}
-        resources["AccentBrush"]=new SolidColorBrush(accent);
-        resources["Accent"]=new SolidColorBrush(accent);
+        SetBrush("AccentBrush",new SolidColorBrush(accent));
+        SetBrush("Accent",new SolidColorBrush(accent));
         resources["AccentColor"]=accent;
-        resources["AccentHoverBrush"]=new SolidColorBrush(Color.FromRgb((byte)(accent.R*.85+38),(byte)(accent.G*.85+38),(byte)(accent.B*.85+38)));
-        resources["AccentPressedBrush"]=new SolidColorBrush(Color.FromRgb((byte)(accent.R*.8),(byte)(accent.G*.8),(byte)(accent.B*.8)));
-        resources["AccentGlowBrush"]=new SolidColorBrush(Color.FromArgb(80,accent.R,accent.G,accent.B));
+        SetBrush("AccentHoverBrush",new SolidColorBrush(Color.FromRgb((byte)(accent.R*.85+38),(byte)(accent.G*.85+38),(byte)(accent.B*.85+38))));
+        SetBrush("AccentPressedBrush",new SolidColorBrush(Color.FromRgb((byte)(accent.R*.8),(byte)(accent.G*.8),(byte)(accent.B*.8))));
+        SetBrush("AccentGlowBrush",new SolidColorBrush(Color.FromArgb(80,accent.R,accent.G,accent.B)));
         var canvas=(Color)ColorConverter.ConvertFromString(palette[0]);
-        resources["OverlayBrush"]=new SolidColorBrush(Color.FromArgb(235,canvas.R,canvas.G,canvas.B));
+        SetBrush("OverlayBrush",new SolidColorBrush(Color.FromArgb(235,canvas.R,canvas.G,canvas.B)));
         resources["CardPadding"]=new Thickness(state.Density=="Compact"?12:18);
         resources["NavPadding"]=new Thickness(14,state.Density=="Compact"?9:13,14,state.Density=="Compact"?9:13);
-        resources["AccentSoftBrush"]=new SolidColorBrush(Color.FromArgb(32,accent.R,accent.G,accent.B));
+        SetBrush("AccentSoftBrush",new SolidColorBrush(Color.FromArgb(32,accent.R,accent.G,accent.B)));
         var brightness=.2126*accent.R+.7152*accent.G+.0722*accent.B;
-        resources["AccentInkBrush"]=Brush(brightness>145?"#101117":"#FFFFFF");
+        SetBrush("AccentInkBrush",Brush(brightness>145?"#101117":"#FFFFFF"));
         resources["AmbientOpacity"]=state.Background=="Minimal"?0d:state.Background=="Rich"?.15d:.07d;
+    }
+    private static void SetBrush(string key,SolidColorBrush target)
+    {
+        var resources=Application.Current.Resources;
+        var previous=resources[key] as SolidColorBrush;
+        if(previous!=null&&Animate){var from=previous.Color;target.BeginAnimation(SolidColorBrush.ColorProperty,new ColorAnimation(from,target.Color,TimeSpan.FromMilliseconds(180)));resources[key]=target;}
+        else resources[key]=target;
     }
     private static SolidColorBrush Brush(string value)=>new((Color)ColorConverter.ConvertFromString(value));
 }
 
 public sealed class BrandMark : FrameworkElement
 {
+    public static readonly DependencyProperty AccentProperty=DependencyProperty.Register("Accent",typeof(Brush),typeof(BrandMark),new FrameworkPropertyMetadata(Brushes.MediumPurple,FrameworkPropertyMetadataOptions.AffectsRender));
+    public BrandMark(){SetResourceReference(AccentProperty,"AccentBrush");}
     private static readonly Geometry Mark=Geometry.Parse("F0 M 7,18 L 22,9 L 32,28 L 42,9 L 57,18 L 38,55 L 26,55 Z M 20,24 L 32,47 L 44,24 L 38,28 L 32,39 L 26,28 Z");
     protected override void OnRender(DrawingContext dc)
     {
         var scale=System.Math.Min(ActualWidth,ActualHeight)/64;
         dc.PushTransform(new TranslateTransform((ActualWidth-64*scale)/2,(ActualHeight-64*scale)/2));
         dc.PushTransform(new ScaleTransform(scale,scale));
-        dc.DrawGeometry((Brush)(TryFindResource("AccentBrush")??Brushes.MediumPurple),null,Mark);dc.Pop();dc.Pop();
+        dc.DrawGeometry((Brush)GetValue(AccentProperty),null,Mark);dc.Pop();dc.Pop();
     }
 }
 public sealed class BrandWordmark : FrameworkElement

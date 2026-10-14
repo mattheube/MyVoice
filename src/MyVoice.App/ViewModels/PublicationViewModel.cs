@@ -8,6 +8,15 @@ using MyVoice.Infrastructure;
 namespace MyVoice.App.ViewModels;
 public partial class MainViewModel
 {
+    public async Task PreparePresetPublication(MyVoice.Core.DesignedVoice preset)
+    {
+        if(!string.IsNullOrEmpty(preset.SourceContentId)){ShowToast("Une création importée ne peut pas être republiée.");return;}
+        var folder=Path.Combine(store.Root,"cache","publication");Directory.CreateDirectory(folder);
+        var file=Path.Combine(folder,Guid.NewGuid()+".myvoice");
+        try{await Task.Run(()=>CreationPackage.ExportPreset(file,preset));await PreparePublicationAsync(file);Page=9;}
+        catch(Exception e){ShowToast("Préparation impossible : "+e.Message);}
+        finally{if(File.Exists(file))File.Delete(file);}
+    }
     private PublicationDraftStore publicationDraft=null!;
     private bool initializingPublication;
     public string PublishCategory {get=>Product.PublicationCategory;set{Product.PublicationCategory=Array.IndexOf(SoundCategories,value)>=0?value:"Other";SaveProduct();OnPropertyChanged();}}

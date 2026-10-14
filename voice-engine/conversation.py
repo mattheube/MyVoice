@@ -4,6 +4,14 @@ import os,sys,time,json,base64,traceback
 from pathlib import Path
 import numpy as np
 
+def timing_profile(worst, steps, references):
+    # numpy.ceil can return numpy.float64; its comparisons produce bool_, not JSON bool.
+    worst=float(worst)
+    hop=float(min(.96,max(.64,np.ceil(worst*1.30*50)/50)))
+    return {'hop':hop,'context':.8,'overlap':.16,'lookahead':.12,'steps':int(steps),
+            'processing':worst,'rtf':worst/hop,
+            'recommended':bool(worst/hop<.85 and hop+.28+worst<2),'references':int(references)}
+
 class RollingJoin:
     def __init__(self,overlap):
         self.n=overlap;self.tail=np.zeros(overlap,dtype=np.float32)
@@ -18,7 +26,8 @@ class SpeechMask:
     """WebRTC speech decisions, 180 ms pre-roll, 240 ms breathing/hangover."""
     def __init__(self):
         try:import webrtcvad
-        except ImportError:raise RuntimeError('Conversation nécessite WebRTC VAD. Lancez Installer / réparer le moteur dans Voice Lab.')
+        except ImportError as exc:
+            raise RuntimeError(f'WebRTC VAD indisponible dans {sys.executable}: {exc}. Lancez Installer / réparer le moteur.') from exc
         self.vad=webrtcvad.Vad(1)
     def mask(self,audio):
         # Full rolling context primes VAD every pass; avoids dependence on call scheduling.
@@ -34,6 +43,8 @@ class SpeechMask:
         return np.interp(np.arange(len(audio)),points,expanded).astype(np.float32),any(flags[-max(1,12):])
 
 def run(args,reply):
+    # Fail before loading large models; the independent bootstrapper repairs this dependency.
+    vad=SpeechMask()
     import torch,torchaudio,librosa,soundfile as sf,yaml
     from hydra.utils import instantiate
     from omegaconf import DictConfig
@@ -43,7 +54,7 @@ def run(args,reply):
     model=instantiate(DictConfig(yaml.safe_load(Path('configs/v2/vc_wrapper.yaml').read_text())))
     model.load_checkpoints();model.ar=None;model.ar_length_regulator=None;model.content_extractor_narrow=None
     model.to(device).eval();torch.manual_seed(2026)
-    prompt=None;profile={};history=np.zeros(0,np.float32);join=None;vad=SpeechMask();silent=0;last_rtf=0
+    prompt=None;profile={};history=np.zeros(0,np.float32);join=None;silent=0;last_rtf=0
     @torch.inference_mode()
     def render(audio,steps,similarity):
         x=torch.from_numpy(audio.copy())[None].to(device);x=torchaudio.functional.resample(x,48000,22050)
@@ -84,8 +95,7 @@ def run(args,reply):
         times=[]
         for _ in range(2 if device.type=='cuda' else 1):
             start=time.perf_counter();render(sample,requested,.85);times.append(time.perf_counter()-start)
-        worst=max(times);hop=min(.96,max(.64,np.ceil(worst*1.30*50)/50))
-        profile={'hop':float(hop),'context':.8,'overlap':.16,'lookahead':.12,'steps':requested,'processing':worst,'rtf':worst/hop,'recommended':worst/hop<.85 and hop+.28+worst<2,'references':len(styles)}
+        profile=timing_profile(max(times),requested,len(styles))
         reset();return profile
     def chunk(audio,request):
         nonlocal history,silent,last_rtf

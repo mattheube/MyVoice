@@ -41,6 +41,7 @@ public sealed class SeedBackend : IDisposable
     public async Task StartAsync(string python, string repository, string script, string device, CancellationToken token)
     {
         Stop();
+        if (Model == "conversation") await EngineBootstrapper.EnsureConversationAsync(python, line => Log?.Invoke(line), token);
         if (ManagedRuntime.RepairLauncher(python)) Log?.Invoke("Python : lanceur local réparé, bibliothèques conservées.");
         if (!File.Exists(python) || !Directory.Exists(repository))
             throw new FileNotFoundException("Configure the local AI runtime first.");

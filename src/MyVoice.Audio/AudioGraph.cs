@@ -5,7 +5,9 @@ using NAudio.CoreAudioApi;
 namespace MyVoice.Audio;
 public sealed class AudioGraph : IDisposable
 {
-    private readonly SampleRing mic=new(4800,trackTimestamps:true),converted=new(48000*60,trackTimestamps:true),soundQueue=new(2880*8,2);
+    // Capacity absorbs short Windows scheduling/GC stalls; it does not prefill or delay playback.
+    // 100 ms overflowed during a real Conversation run (20 ms lost at the input).
+    private readonly SampleRing mic=new(24000,trackTimestamps:true),converted=new(48000*60,trackTimestamps:true),soundQueue=new(2880*8,2);
     private readonly SoundboardService sounds;
     private readonly Thread worker,soundWorker;
     private readonly CancellationTokenSource stop=new();

@@ -52,6 +52,7 @@ public partial class MainViewModel
             foreach(var b in profile.Outputs)MixerOutputs.Add(new(b,MixerEdited));
             foreach(var b in MixerOutputs)RefreshOutputChoices(b);
             foreach(var c in profile.Channels)MixerRows.Add(new(c.Name,profile.Outputs.Select(b=>new MixerRouteCell(c.Id,b.Id,c.Name+" → "+b.Name,profile.Routes.Any(r=>r.ChannelId==c.Id&&r.BusId==b.Id&&r.Enabled),MixerEdited)).ToList()));
+            foreach(var cell in MixerRows.SelectMany(r=>r.Cells))cell.Blocked=cell.BusId=="virtual"&&profile.Channels.Any(c=>c.Id==cell.ChannelId&&c.NeverSendVirtual);
             MixerProfileName=profile.Name;SelectedMixerChannel=MixerChannels.FirstOrDefault(c=>c.Id==channelId)??MixerChannels.FirstOrDefault();SelectedMixerOutput=MixerOutputs.FirstOrDefault(b=>b.Id==busId)??MixerOutputs.FirstOrDefault();RefreshRecordingSources();
         }
         finally{mixerLoading=false;}
@@ -59,6 +60,8 @@ public partial class MainViewModel
     private void MixerEdited()
     {
         if(mixerLoading||mixerStore==null)return;
+        foreach(var cell in MixerRows.SelectMany(r=>r.Cells).Where(r=>r.BusId=="virtual"))
+        {var blocked=MixerChannels.Any(c=>c.Id==cell.ChannelId&&c.NeverSendVirtual);cell.Blocked=blocked;}
         bool backendChanged=MixerOutputs.Any(b=>mixerState.Current.Outputs.FirstOrDefault(old=>old.Id==b.Id)?.Backend!=b.Backend);
         mixerState.Current=mixerState.Current with{Channels=MixerChannels.Select(c=>c.Value).ToList(),Outputs=MixerOutputs.Select(b=>b.Value).ToList(),Routes=MixerRows.SelectMany(r=>r.Cells).Select(c=>new AudioRoute(c.ChannelId,c.BusId,c.Enabled)).ToList()};
         if(backendChanged)foreach(var b in MixerOutputs)RefreshOutputChoices(b);

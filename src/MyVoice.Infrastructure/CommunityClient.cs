@@ -41,11 +41,12 @@ public sealed class CommunityClient : IDisposable
     public bool Configured=>config.Ready;
     public AccountSession? Session {get;private set;}
     public CommunityClient(CommunityConfiguration config,string root){this.config=config;vault=new(root);Session=vault.Load();}
-    private async Task<JsonElement> Send(string path,HttpMethod method,object? body=null,bool authenticated=true)
+    private async Task<JsonElement> Send(string path,HttpMethod method,object? body=null,bool authenticated=true,bool representation=false)
     {
         if(!Configured)throw new InvalidOperationException("Community hors ligne : service non connecté.");
         using var req=new HttpRequestMessage(method,config.Url.TrimEnd('/')+path);req.Headers.Add("apikey",config.PublishableKey);
         if(authenticated&&Session!=null)req.Headers.Authorization=new("Bearer",Session.AccessToken);
+        if(representation)req.Headers.Add("Prefer","return=representation");
         if(body!=null)req.Content=JsonContent.Create(body);
         using var res=await http.SendAsync(req);
         if(!res.IsSuccessStatusCode)throw new InvalidOperationException(res.StatusCode is System.Net.HttpStatusCode.Unauthorized or System.Net.HttpStatusCode.Forbidden?"Connexion ou autorisation requise.":"Action refusée par le service. Vérifiez les informations et réessayez.");
@@ -81,7 +82,8 @@ public sealed class CommunityClient : IDisposable
     public async Task UpdateProfile(string display,string bio,bool isPrivate)
     {
         await EnsureSession();if(Session==null)throw new InvalidOperationException("Connectez-vous.");
-        await Send("/rest/v1/profiles?id=eq."+Session.UserId,HttpMethod.Patch,new{display_name=display,bio,@private=isPrivate});
+        var saved=await Send("/rest/v1/profiles?id=eq."+Session.UserId,HttpMethod.Patch,new{display_name=display,bio,@private=isPrivate},representation:true);
+        if(saved.ValueKind!=JsonValueKind.Array||saved.GetArrayLength()!=1)throw new InvalidOperationException("Le profil n’a pas été enregistré par le serveur.");
     }
     public async Task<JsonElement> OwnProfile(){await EnsureSession();if(Session==null)throw new InvalidOperationException("Connectez-vous.");return await Send("/rest/v1/profiles?id=eq."+Session.UserId+"&select=username,display_name,bio,private",HttpMethod.Get);}
     public async Task<string> Download(string id,string folder,IProgress<double>? progress=null)

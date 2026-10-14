@@ -30,6 +30,8 @@ public sealed record AudioChannel
     public double Pan { get; init; }
     public bool Mute { get; init; }
     public bool Solo { get; init; }
+    public bool Mono { get; init; }
+    public bool NeverSendVirtual { get; init; }
     public ChannelEffects Effects { get; init; } = new();
 }
 public sealed record AudioOutputBus
@@ -64,6 +66,7 @@ public sealed class MixerState
     public string? RecordingFolder { get; set; }
     public string RecordingSource { get; set; } = "recording";
     public bool Advanced { get; set; }
+    public string NewApplicationPolicy { get; set; } = "Monitor only";
     public static AudioProfile Recommended(AppSettings settings)
     {
         var channels=new List<AudioChannel>{new(){Id="mic",Name="Microphone",Type="microphone",Mute=settings.Muted},new(){Id="soundboard",Name="Soundboard",Type="soundboard",Volume=settings.SoundboardVolume}};

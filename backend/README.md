@@ -1,9 +1,9 @@
 # Déploiement communautaire
 
-Cette partie est préparée mais n'est pas encore déployée : aucun projet Supabase n'a été fourni. Les tests SQL locaux ne remplacent pas les essais Auth et Storage sur un projet réel.
+Déployé le 14 octobre 2026 dans le projet MyVoice (smcjototzljmyontxekz, organisation MyVoice, eu-west-1) : trois migrations appliquées, fonction community-package active, configuration publique ajoutée à l’application et au site sources. Les huit tables publiques ont RLS activé et le bucket community est privé. Le flux public répond et une publication sans session est refusée (401). Les 22 tests SQL locaux passent. La configuration des URL Auth et les essais réels de confirmation/récupération restent à terminer avant distribution. Aucun nouveau binaire ni site n’a encore été publié avec cette configuration.
 
 1. Créer un projet Supabase. Activer la confirmation email, configurer SMTP, les limites Auth, une longueur minimale de mot de passe de 10 caractères et la protection contre les mots de passe compromis si disponible.
-2. Appliquer les migrations de `supabase/migrations/` dans l’ordre de leur nom (001 puis 002) dans un projet neuf. Le schéma ne contient aucun mot de passe administrateur.
+2. Appliquer les migrations de `supabase/migrations/` dans l’ordre de leur nom (les trois migrations par ordre chronologique) dans un projet neuf. Le schéma ne contient aucun mot de passe administrateur.
 3. Déployer `community-package` avec la CLI Supabase. Le service-role reste uniquement dans les secrets de la fonction. Définir `MYVOICE_SITE_ORIGIN=https://mattheube.github.io`.
 4. Configurer les URL Auth autorisées : `https://mattheube.github.io/MyVoice/`. Tester confirmation email et récupération avec le site avant ouverture.
 5. Copier l'URL du projet et sa clé publique publishable dans `community.public.json` à la racine du projet et dans `website/community.public.json`. Ne jamais utiliser une clé service-role ou secrète dans ces fichiers.

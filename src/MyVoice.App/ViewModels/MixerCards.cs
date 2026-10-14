@@ -15,6 +15,9 @@ public sealed class MixerChannelCard : ObservableObject
     public bool CanRemove=>Id is not("mic" or "soundboard");
     public bool HasInputGain=>Id!="mic";
     public bool IsMic=>Id=="mic";
+    public bool IsApplication=>Value.Type=="application";
+    public bool Mono{get=>Value.Mono;set=>Set(Value with{Mono=value},nameof(Mono));}
+    public bool NeverSendVirtual{get=>Value.NeverSendVirtual;set=>Set(Value with{NeverSendVirtual=value},nameof(NeverSendVirtual));}
     public bool CaptureEnabled {get=>Value.CaptureEnabled;set=>Set(Value with{CaptureEnabled=value},nameof(CaptureEnabled));}
     public bool IsMicrophoneInput=>Value.Type=="capture";
     public string Kind=>Value.Type switch{"microphone"=>"MIC / VOICE","soundboard"=>"SOUNDBOARD BUS","capture"=>"INPUT","system"=>"SYSTEM AUDIO",_=>"APPLICATION"};
@@ -80,6 +83,9 @@ public sealed class MixerRouteCell : ObservableObject
     private readonly Action changed;private bool enabled;
     public string ChannelId{get;}public string BusId{get;}public string Label{get;}
     public MixerRouteCell(string channelId,string busId,string label,bool enabled,Action changed){ChannelId=channelId;BusId=busId;Label=label;this.enabled=enabled;this.changed=changed;}
-    public bool Enabled{get=>enabled;set{if(SetProperty(ref enabled,value))changed();}}
+    private bool blocked;
+    public bool Blocked{get=>blocked;set{if(SetProperty(ref blocked,value)){OnPropertyChanged(nameof(CanEdit));OnPropertyChanged(nameof(Enabled));}}}
+    public bool CanEdit=>!Blocked;
+    public bool Enabled{get=>enabled&&!Blocked;set{if(!Blocked&&SetProperty(ref enabled,value))changed();}}
 }
 public sealed record MixerRouteRow(string Name,List<MixerRouteCell> Cells);

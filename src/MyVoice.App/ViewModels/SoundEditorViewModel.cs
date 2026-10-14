@@ -58,7 +58,7 @@ public partial class MainViewModel
     {
         if(!card.Owned){ShowToast("Une création téléchargée ne peut pas être republiée comme votre création.");return;}
         var file=Path.Combine(store.Root,"temp",Guid.NewGuid()+".myvoice");Directory.CreateDirectory(Path.GetDirectoryName(file)!);
-        try{await Task.Run(()=>CreationPackage.ExportBoard(file,new SoundFolder{Name=card.Name,Cover=card.Cover},new[]{card.Item}));await PreparePublicationAsync(file);PublishDescription=card.Item.Description;PublishCategory=card.Item.Category;PublishTags=string.Join(", ",card.Item.Tags);Page=7;}
+        try{await Task.Run(()=>CreationPackage.ExportBoard(file,new SoundFolder{Name=card.Name,Cover=card.Cover},new[]{card.Item}));await PreparePublicationAsync(file);PublishDescription=card.Item.Description;PublishCategory=card.Item.Category;PublishTags=string.Join(", ",card.Item.Tags);Page=9;}
         catch(Exception e){StudioError(e.Message);}finally{if(File.Exists(file))File.Delete(file);}
     }
 }

@@ -1,6 +1,7 @@
 using MyVoice.Core;
 using MyVoice.Infrastructure;
 using MyVoice.Audio;
+if(args.FirstOrDefault()=="--engine-repair"){await EngineRepairTests.Run(args[1]);return;}
 if(args.FirstOrDefault()=="--mixer-probe"){await MixerHardwareTests.PlayProbe(args);return;}
 if(args.Contains("--mixer-hardware")){await MixerHardwareTests.Run();return;}
 int passed = 0;

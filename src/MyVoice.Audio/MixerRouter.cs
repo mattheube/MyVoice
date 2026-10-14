@@ -92,12 +92,14 @@ public sealed class MixerRouter
             else if(c.Settings.CaptureEnabled)rt.Input.Take(data);else Array.Clear(data);
             rt.Fx.Process(data,c.Settings,c.Settings.Type=="microphone");
             if(c.Settings.Type=="soundboard"){rt.MonitorFx.Process(rt.Monitor,c.Settings);rt.VirtualFx.Process(rt.Virtual,c.Settings);}
-            float target=c.Settings.Mute||(p.Solo&&!c.Settings.Solo)?0:(float)Math.Clamp(c.Settings.Volume,0,1e6);
+            float target=c.Settings.Mute?0:(float)Math.Clamp(c.Settings.Volume,0,1e6);
             float pan=(float)Math.Clamp(c.Settings.Pan,-1,1);
             for(int i=0;i<Frames;i++)
             {
                 rt.Gain+=(target-rt.Gain)*.004f;rt.Pan+=(pan-rt.Pan)*.004f;
                 float gl=rt.Gain*(1-Math.Max(0,rt.Pan)),gr=rt.Gain*(1+Math.Min(0,rt.Pan));
+                if(c.Settings.Mono){var mono=(data[i*2]+data[i*2+1])*.5f;data[i*2]=data[i*2+1]=mono;
+                    if(c.Settings.Type=="soundboard"){var m=(rt.Monitor[i*2]+rt.Monitor[i*2+1])*.5f;rt.Monitor[i*2]=rt.Monitor[i*2+1]=m;var v=(rt.Virtual[i*2]+rt.Virtual[i*2+1])*.5f;rt.Virtual[i*2]=rt.Virtual[i*2+1]=v;}}
                 data[i*2]*=gl;data[i*2+1]*=gr;
                 if(c.Settings.Type=="soundboard"){rt.Monitor[i*2]*=gl;rt.Monitor[i*2+1]*=gr;rt.Virtual[i*2]*=gl;rt.Virtual[i*2+1]*=gr;}
             }
@@ -106,7 +108,10 @@ public sealed class MixerRouter
         foreach(var route in p.Routes)
         {
             var c=p.Channels[route.Channel];var b=p.Buses[route.Bus];var src=c.Settings.Type=="soundboard"?(b.Settings.Id=="monitor"?c.Runtime.Monitor:b.Settings.Id=="virtual"?c.Runtime.Virtual:c.Runtime.Data):c.Runtime.Data;
-            var output=b.Runtime.Data;float target=route.Enabled?1:0;
+            var output=b.Runtime.Data;
+            // Privacy exclusion takes effect immediately, including residual route gain.
+            if(b.Settings.Id=="virtual"&&c.Settings.NeverSendVirtual){route.Runtime.Gain=0;continue;}
+            float target=route.Enabled&&!(b.Settings.Id=="monitor"&&p.Solo&&!c.Settings.Solo)?1:0;
             for(int i=0;i<Frames;i++){route.Runtime.Gain+=(target-route.Runtime.Gain)*.004f;var gain=route.Runtime.Gain;output[i*2]+=src[i*2]*gain;output[i*2+1]+=src[i*2+1]*gain;}
         }
         foreach(var b in p.Buses)

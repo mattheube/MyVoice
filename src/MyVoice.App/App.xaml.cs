@@ -48,12 +48,12 @@ public partial class App : Application
                 var preferences=await Task.Run(store.Load);
                 try { Services.ProductAppearance.Apply(await Task.Run(()=>new ProductStore(store.Root).Load())); } catch(Exception appearanceError) { store.Log("Early theme: "+appearanceError.Message); }
                 splash?.RefreshMotion();
-                if(preferences.CheckUpdatesAtStartup && updateJob==null && rollbackJob==null)
+                if(updateJob==null && rollbackJob==null)
                 {
                     splash?.Stage(StartupPhase.CheckingUpdates,"Vérification des mises à jour…");
                     var source=preferences.UpdateChannel=="beta"?DistributionDefaults.BetaManifestUrl:DistributionDefaults.ManifestUrl;
                     var installed=System.Reflection.Assembly.GetExecutingAssembly().GetCustomAttribute<System.Reflection.AssemblyInformationalVersionAttribute>()?.InformationalVersion.Split('+')[0]??"2.4.0-beta.1";
-                    bool recent=preferences.LastUpdateSource==source && preferences.LastUpdateCheck is {} at && DateTime.UtcNow-at>=TimeSpan.Zero && DateTime.UtcNow-at<TimeSpan.FromHours(6);
+                    bool recent=false; // Check the official channel at every startup.
                     if(recent && !string.IsNullOrEmpty(preferences.LastKnownVersion) && !ReleaseVersion.IsNewer(preferences.LastKnownVersion,preferences.LastKnownReleaseTag,installed))
                         splash?.Update(new(UpdatePhase.Current,"MyVoice est à jour ✓"));
                     else
@@ -153,7 +153,7 @@ public partial class App : Application
                 ExitApplication();return;
             }
             vm!.ShowWelcome=false;
-            for (int page = 0; page < 9; page++)
+            for (int page = 0; page < 10; page++)
             {
                 vm!.Page = page;
                 if (page == 1 && vm.SoundCards.Count > 0)

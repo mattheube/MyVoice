@@ -26,6 +26,8 @@ public partial class MainViewModel
     [ObservableProperty] private AudioDevice? selectedRecordingTarget;
     partial void OnSelectedRecordingTargetChanged(AudioDevice? value){if(value!=null)RecordingSource=value.Id;}
     public string RecordingSource{get=>mixerState.RecordingSource;set{if(!string.IsNullOrEmpty(value)){mixerState.RecordingSource=value;OnPropertyChanged();ScheduleSave();}}}
+    public string[] NewApplicationPolicies {get;}=["Monitor only","Monitor + Virtual Mic","Ask"];
+    public string NewApplicationPolicy{get=>mixerState.NewApplicationPolicy;set{if(Array.IndexOf(NewApplicationPolicies,value)>=0){mixerState.NewApplicationPolicy=value;OnPropertyChanged();ScheduleSave();}}}
     public bool IsApplicationSource=>MixerSourceType=="Application";
     public bool IsSystemSource=>MixerSourceType=="System Audio";
     public bool IsDeviceSource=>MixerSourceType=="Physical / Virtual Input";
@@ -84,7 +86,9 @@ public partial class MainViewModel
         }
         channel=channel with{Name=channel.Name[..Math.Min(80,channel.Name.Length)]};
         // Adding a source only saves its configuration. Its explicit Capture switch starts it.
-        var p=mixerState.Current with{Channels=mixerState.Current.Channels.Append(channel).ToList(),Routes=mixerState.Current.Routes.Concat(MixerOutputs.Select(b=>new AudioRoute(channel.Id,b.Id,b.Id is "stream" or "recording" or "master"))).ToList()};
+        bool virtualSend=channel.Type=="application"&&NewApplicationPolicy=="Monitor + Virtual Mic";
+        if(channel.Type=="application"&&NewApplicationPolicy=="Ask")virtualSend=System.Windows.MessageBox.Show("Envoyer cette application dans le microphone virtuel ?", "Routage de l’application",System.Windows.MessageBoxButton.YesNo,System.Windows.MessageBoxImage.Question,System.Windows.MessageBoxResult.No)==System.Windows.MessageBoxResult.Yes;
+        var p=mixerState.Current with{Channels=mixerState.Current.Channels.Append(channel).ToList(),Routes=mixerState.Current.Routes.Concat(MixerOutputs.Select(b=>new AudioRoute(channel.Id,b.Id,channel.Type=="application"?(b.Id=="monitor"||b.Id=="virtual"&&virtualSend):b.Id is "stream" or "recording" or "master"))).ToList()};
         SetMixerProfile(p);SelectedMixerChannel=MixerChannels.First(c=>c.Id==channel.Id);MixerStatus="Source ajoutée à l’arrêt. Activez Capture sur sa tranche quand vous êtes prêt.";
     }
     [RelayCommand] private void RemoveMixerSource(MixerChannelCard? channel)

@@ -1,19 +1,15 @@
-# MyVoice 2.7.0 Beta 2
+MyVoice 2.7.0-beta.3
 
-Corrections du routage VB-CABLE et des menus du mixeur, nouveau Soundboard et préparation des publications.
+Conversation : réparation indépendante de WebRTC VAD dans le runtime contrôlé, vérification du silence avant chargement, détails des erreurs et correction du résultat de benchmark non sérialisable. Test réel de trois minutes sans perte audio dans un profil isolé.
 
-- Bouton Rétablir VB-CABLE : restaure les routes micro/sons et affiche le périphérique à sélectionner dans les autres applications.
-- Menus déroulants : sélection conservée pendant un rafraîchissement ; la molette ne change plus un périphérique au passage.
-- Cartes de sons jouables, menu contextuel, préécoute casque isolée du micro virtuel, collections mixtes et favoris indépendants.
-- Éditeur de sons : découpage, fondus, normalisation, description, catégorie et tags ; fichier original conservé.
-- GIF et WebP, recadrage animé, chargement différé et cache borné. Limites : 20 Mo, 16 mégapixels et 120 images par animation.
-- Recherche Ctrl+K, historique des notifications, accès compte/aide/Discord, nouveaux formulaires français et anglais.
-- Brouillon de publication persistant ; provenance conservée dans les packages. Backend préparé avec contrôles d’accès et détection des fichiers audio identiques appartenant à un autre compte.
-- Chargement des voix sérialisé : un choix obsolète ne doit plus remplacer la dernière voix demandée. Aucun nouveau modèle IA ajouté.
-- Mises à jour automatiques officielles conservées, avec sauvegarde et retour à l’ancienne version en cas d’échec.
+Mixer : Mono, Solo limité au monitoring, exclusion persistante « Jamais vers le micro virtuel » prioritaire sur les routes, politique des nouvelles applications (Monitor only par défaut). Les règles existantes restent conservées. La capture d'une application est une copie : désactiver son Monitor si Windows l'écoute déjà pour éviter un doublage.
 
-Community et les comptes en ligne restent indisponibles sans projet Supabase connecté. Les formulaires permettent de préparer le profil et les brouillons sur le PC. Les contrôles de propriété par empreinte ne détectent pas un audio réencodé ou modifié.
+VB-CABLE : reconnaissance du périphérique réénuméré/localisé Haut-parleurs (2- VB-Audio Virtual Cable), sans sélectionner la sortie 16 canaux.
 
-Cette Beta livre les corrections et les phases décrites dans docs/Master-Progress.txt ; elle ne prétend pas terminer tous les points du master prompt. Les éléments encore partiels figurent dans docs/Master-Audit.txt.
+Community : connexion au serveur MyVoice, confirmation de sauvegarde du profil uniquement lorsque le serveur renvoie la ligne modifiée. Publish & Share devient une page dédiée ; accès depuis les sons et presets locaux possédés.
 
-Tests locaux : routage CABLE Input → CABLE Output réel, préécoute isolée, conservation des originaux, collections, menus ouverts pendant rafraîchissement, images GIF/WebP, 600 cartes supplémentaires et lancement des neuf pages. 187 tests C# et 22 tests serveur passent. Démarrage du moteur NVIDIA et changements rapides de voix validés avec le moteur réel. Paquet GitHub vérifié et lancé. Mise à jour réelle 2.6 → 2.7 Beta 2 réussie : téléchargement, remplacement, relance, confirmation de santé et sauvegarde conservée.
+Interface : menus contextuels sans gouttière Windows blanche, accueil et logo accordés au thème, transition 180 ms, séparation des commandes du haut. Recherche des mises à jour à chaque démarrage, canal Stable/Beta conservé.
+
+Validation : compilation sans avertissement ; 192 tests C# ; 22 tests SQL ; tests Python de protocole/VAD ; dix pages WPF et tests dropdown/brouillons/bibliothèque. Les données personnelles restent hors du dossier programme.
+
+Le master n'est pas intégralement terminé : moteur complètement absent/installation sur PC vierge, health dashboard complet, fallback Requested/Active, réglages temporels gate/compression, EQ paramétrique de sortie, pad XY, annulation d'écho, audio réseau, macros, publication de modèles IA sans références brutes, sessions/avatars en ligne et pilote Windows propriétaire My Voice restent à développer ou valider. La réception réelle des emails Auth n'est pas validée. ASIO/MIDI nécessitent du matériel compatible. VB-CABLE reste le périphérique virtuel utilisé ; aucun faux renommage.

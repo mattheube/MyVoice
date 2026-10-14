@@ -1,5 +1,7 @@
 param([string]$Root = (Join-Path $env:LOCALAPPDATA 'MyVoice\AI'))
 $ErrorActionPreference='Stop'
+foreach($key in @('PYTHONHOME','PYTHONPATH','__PYVENV_LAUNCHER__')) { [Environment]::SetEnvironmentVariable($key,$null,'Process') }
+$env:PYTHONUTF8='1'
 New-Item -ItemType Directory -Force $Root | Out-Null
 $uv=Join-Path $Root 'tools\uv.exe'
 if(!(Test-Path $uv)){
@@ -37,5 +39,9 @@ if(!(Test-Path (Join-Path $repository 'inference.py'))){
  New-Item -ItemType Directory -Force $repository | Out-Null
  foreach($part in @('modules','configs','inference.py','hf_utils.py','LICENSE')){Copy-Item -LiteralPath (Join-Path $extracted $part) -Destination $repository -Recurse -Force}
 }
-@{Python=(Join-Path $venv 'Scripts\python.exe');Repository=$repository}|ConvertTo-Json|Set-Content (Join-Path $Root 'runtime.json')
-Write-Output 'READY: local runtime installed; models download on first start.'
+Write-Output 'VERIFYING: runtime, native VAD, voice backend dependencies'
+& $venvPython -I -c 'import torch, torchaudio, numpy, librosa, soundfile, hydra, webrtcvad; v=webrtcvad.Vad(1); assert not any(v.is_speech(bytes(1920),48000) for _ in range(50))'
+if($LASTEXITCODE -ne 0){throw 'Dependency self-test failed; runtime not marked ready'}
+@{Python=(Join-Path $venv 'Scripts\python.exe');Repository=$repository}|ConvertTo-Json|Set-Content (Join-Path $Root 'runtime.json.tmp')
+Move-Item -LiteralPath (Join-Path $Root 'runtime.json.tmp') -Destination (Join-Path $Root 'runtime.json') -Force
+Write-Output 'DEPENDENCIES VERIFIED: model initialization follows in MyVoice.'
