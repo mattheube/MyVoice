@@ -14,7 +14,7 @@ internal sealed class StereoChannelProcessor
     {
         var fx=channel.Effects;
         if(microphone)return; // Primary mic processing already lives in Mic Setup; never apply it twice.
-        if(applied!=fx){var s=new ProcessingSettings{Gate=fx.Gate,GateThreshold=fx.GateThreshold,NoiseSuppression=fx.NoiseReduction,Compressor=fx.Compressor,CompressorThreshold=fx.CompressorThreshold,CompressorRatio=fx.CompressorRatio,BassDb=fx.BassDb,MidDb=fx.MidDb,TrebleDb=fx.TrebleDb};left.Settings=s;right.Settings=s;highLeft=fx.HighPassHz>0?BiQuadFilter.HighPassFilter(48000,(float)fx.HighPassHz,.707f):null;highRight=fx.HighPassHz>0?BiQuadFilter.HighPassFilter(48000,(float)fx.HighPassHz,.707f):null;applied=fx;}
+        if(applied!=fx){var s=new ProcessingSettings{Gate=fx.Gate,GateThreshold=fx.GateThreshold,GateAttackMs=fx.GateAttackMs,GateHoldMs=fx.GateHoldMs,GateReleaseMs=fx.GateReleaseMs,CompressorAttackMs=fx.CompressorAttackMs,CompressorReleaseMs=fx.CompressorReleaseMs,MakeupDb=fx.MakeupDb,NoiseSuppression=fx.NoiseReduction,Compressor=fx.Compressor,CompressorThreshold=fx.CompressorThreshold,CompressorRatio=fx.CompressorRatio,BassDb=fx.BassDb,MidDb=fx.MidDb,TrebleDb=fx.TrebleDb};left.Settings=s;right.Settings=s;highLeft=fx.HighPassHz>0?BiQuadFilter.HighPassFilter(48000,(float)fx.HighPassHz,.707f):null;highRight=fx.HighPassHz>0?BiQuadFilter.HighPassFilter(48000,(float)fx.HighPassHz,.707f):null;applied=fx;}
         var gain=(float)Math.Pow(10,Math.Clamp(channel.GainDb,-60,30)/20);
         for(int i=0;i<480;i++){var a=data[i*2]*gain;var b=data[i*2+1]*gain;l[i]=highLeft?.Transform(a)??a;r[i]=highRight?.Transform(b)??b;}
         left.Process(l);right.Process(r);
@@ -39,6 +39,14 @@ public sealed class MixerRouter
     {
         public readonly float[] Data=new float[Samples];
         public readonly PeakLimiter Limiter=new();
+        public List<EqualizerBand>? AppliedEq;
+        public BiQuadFilter[] LeftEq=[],RightEq=[];
+        public void Equalize(List<EqualizerBand> bands)
+        {
+            if(!ReferenceEquals(AppliedEq,bands))
+            {LeftEq=bands.Select(b=>BiQuadFilter.PeakingEQ(48000,(float)b.Frequency,(float)b.Q,(float)b.GainDb)).ToArray();RightEq=bands.Select(b=>BiQuadFilter.PeakingEQ(48000,(float)b.Frequency,(float)b.Q,(float)b.GainDb)).ToArray();AppliedEq=bands;}
+            for(int i=0;i<Samples;i+=2)for(int n=0;n<LeftEq.Length;n++){Data[i]=LeftEq[n].Transform(Data[i]);Data[i+1]=RightEq[n].Transform(Data[i+1]);}
+        }
         public MixerMeter Meter=MixerMeter.Silent;
         public float Gain;
         public long Frames;
@@ -119,6 +127,7 @@ public sealed class MixerRouter
             var rt=b.Runtime;float target=b.Settings.Mute?0:(float)Math.Clamp(b.Settings.Volume,0,1e6);
             for(int i=0;i<Frames;i++){rt.Gain+=(target-rt.Gain)*.002f;rt.Data[i*2]*=rt.Gain;rt.Data[i*2+1]*=rt.Gain;}
             if(b.Settings.Id=="virtual"&&!virtualTest.IsEmpty)for(int i=0;i<Samples;i++)rt.Data[i]+=virtualTest[i];
+            rt.Equalize(b.Settings.Equalizer);
             bool clipping=false;foreach(var v in rt.Data)if(Math.Abs(v)>=.98f)clipping=true;
             rt.Limiter.Process(rt.Data);rt.Frames+=Frames;var meter=Measure(rt.Data,rt.Frames);Volatile.Write(ref rt.Meter,meter with{Clipping=clipping});
         }

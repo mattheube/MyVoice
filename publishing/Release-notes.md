@@ -1,4 +1,4 @@
-MyVoice 2.7.0-beta.3
+MyVoice 2.7.0-beta.4
 
 Conversation : réparation indépendante de WebRTC VAD dans le runtime contrôlé, vérification du silence avant chargement, détails des erreurs et correction du résultat de benchmark non sérialisable. Test réel de trois minutes sans perte audio dans un profil isolé.
 
@@ -10,6 +10,8 @@ Community : connexion au serveur MyVoice, confirmation de sauvegarde du profil u
 
 Interface : menus contextuels sans gouttière Windows blanche, accueil et logo accordés au thème, transition 180 ms, séparation des commandes du haut. Recherche des mises à jour à chaque démarrage, canal Stable/Beta conservé.
 
-Validation : compilation sans avertissement ; 192 tests C# ; 22 tests SQL ; tests Python de protocole/VAD ; dix pages WPF et tests dropdown/brouillons/bibliothèque. Les données personnelles restent hors du dossier programme.
+Validation : compilation sans avertissement ; 197 tests C# ; 22 tests SQL ; tests Python de protocole/VAD ; dix pages WPF et tests dropdown/brouillons/bibliothèque. Les données personnelles restent hors du dossier programme.
 
-Le master n'est pas intégralement terminé : moteur complètement absent/installation sur PC vierge, health dashboard complet, fallback Requested/Active, réglages temporels gate/compression, EQ paramétrique de sortie, pad XY, annulation d'écho, audio réseau, macros, publication de modèles IA sans références brutes, sessions/avatars en ligne et pilote Windows propriétaire My Voice restent à développer ou valider. La réception réelle des emails Auth n'est pas validée. ASIO/MIDI nécessitent du matériel compatible. VB-CABLE reste le périphérique virtuel utilisé ; aucun faux renommage.
+Le master n'est pas intégralement terminé : moteur complètement absent/installation sur PC vierge, health dashboard complet, fallback Requested/Active, pad XY, annulation d'écho, audio réseau, macros, publication de modèles IA sans références brutes, sessions/avatars en ligne et pilote Windows propriétaire My Voice restent à développer ou valider. La réception réelle des emails Auth n'est pas validée. ASIO/MIDI nécessitent du matériel compatible. VB-CABLE reste le périphérique virtuel utilisé ; aucun faux renommage.
+
+Ajouts Beta 4 : réglages temporels gate/compression et gain Makeup par canal, égaliseur paramétrique trois bandes par sortie (fréquence/gain/Q), icônes contextuelles distinctes. Tests du gain réel et de l’atténuation fréquentielle indépendante par bus.

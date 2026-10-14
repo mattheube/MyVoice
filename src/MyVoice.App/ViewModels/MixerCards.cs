@@ -29,6 +29,13 @@ public sealed class MixerChannelCard : ObservableObject
     public bool Mute{get=>Value.Mute;set=>Set(Value with{Mute=value},nameof(Mute));}
     public bool Solo{get=>Value.Solo;set=>Set(Value with{Solo=value},nameof(Solo));}
     private void Effect(ChannelEffects e,string name){Set(Value with{Effects=e},name);OnPropertyChanged(nameof(Chain));}
+    public double GateAttackMs{get=>Value.Effects.GateAttackMs;set=>Effect(Value.Effects with{GateAttackMs=Math.Clamp(value,1,200)},nameof(GateAttackMs));}
+    public double GateHoldMs{get=>Value.Effects.GateHoldMs;set=>Effect(Value.Effects with{GateHoldMs=Math.Clamp(value,0,2000)},nameof(GateHoldMs));}
+    public double GateReleaseMs{get=>Value.Effects.GateReleaseMs;set=>Effect(Value.Effects with{GateReleaseMs=Math.Clamp(value,1,2000)},nameof(GateReleaseMs));}
+    public double CompressorAttackMs{get=>Value.Effects.CompressorAttackMs;set=>Effect(Value.Effects with{CompressorAttackMs=Math.Clamp(value,1,200)},nameof(CompressorAttackMs));}
+    public double CompressorReleaseMs{get=>Value.Effects.CompressorReleaseMs;set=>Effect(Value.Effects with{CompressorReleaseMs=Math.Clamp(value,1,2000)},nameof(CompressorReleaseMs));}
+    public double MakeupDb{get=>Value.Effects.MakeupDb;set=>Effect(Value.Effects with{MakeupDb=Math.Clamp(value,-12,18)},nameof(MakeupDb));}
+    public double GateThreshold{get=>Value.Effects.GateThreshold;set=>Effect(Value.Effects with{GateThreshold=Math.Clamp(value,-90,0)},nameof(GateThreshold));}
     public double Bass{get=>Value.Effects.BassDb;set=>Effect(Value.Effects with{BassDb=Math.Clamp(value,-18,18)},nameof(Bass));}
     public double Mid{get=>Value.Effects.MidDb;set=>Effect(Value.Effects with{MidDb=Math.Clamp(value,-18,18)},nameof(Mid));}
     public double Treble{get=>Value.Effects.TrebleDb;set=>Effect(Value.Effects with{TrebleDb=Math.Clamp(value,-18,18)},nameof(Treble));}
@@ -40,12 +47,12 @@ public sealed class MixerChannelCard : ObservableObject
     public bool Compressor{get=>Value.Effects.Compressor;set=>Effect(Value.Effects with{Compressor=value},nameof(Compressor));}
     public double Threshold{get=>Value.Effects.CompressorThreshold;set=>Effect(Value.Effects with{CompressorThreshold=Math.Clamp(value,-60,0)},nameof(Threshold));}
     public double Ratio{get=>Value.Effects.CompressorRatio;set=>Effect(Value.Effects with{CompressorRatio=Math.Clamp(value,1,20)},nameof(Ratio));}
-    public string Chain=>IsMic?"Traitement Mic Setup → voix active → niveau → bus → limiteur":"Gain → filtre → "+(Gate?"gate → ":"")+(NoiseReduction>0?"réduction du bruit → ":"")+"EQ → "+(Compressor?"compression → ":"")+"delay / reverb → niveau → bus → limiteur";
+    public string Chain=>IsMic?"Traitement Mic Setup â†’ voix active â†’ niveau â†’ bus â†’ limiteur":"Gain â†’ filtre â†’ "+(Gate?"gate â†’ ":"")+(NoiseReduction>0?"rÃ©duction du bruit â†’ ":"")+"EQ â†’ "+(Compressor?"compression â†’ ":"")+"delay / reverb â†’ niveau â†’ bus â†’ limiteur";
     private double level;public double Level{get=>level;private set=>SetProperty(ref level,value);}
-    private string meter="−90 dB";public string Meter{get=>meter;private set=>SetProperty(ref meter,value);}
+    private string meter="âˆ’90 dB";public string Meter{get=>meter;private set=>SetProperty(ref meter,value);}
     private bool clipping;public bool Clipping{get=>clipping;private set=>SetProperty(ref clipping,value);}
     private string state="";public string State{get=>state;set=>SetProperty(ref state,value);}
-    public void RefreshMeter(MixerMeter value){Level=Math.Clamp((value.PeakDb+60)*100/60,0,100);Meter=$"Peak {value.PeakDb:0.0} · RMS {value.RmsDb:0.0} dB";Clipping=value.Clipping;}
+    public void RefreshMeter(MixerMeter value){Level=Math.Clamp((value.PeakDb+60)*100/60,0,100);Meter=$"Peak {value.PeakDb:0.0} Â· RMS {value.RmsDb:0.0} dB";Clipping=value.Clipping;}
 }
 public sealed class MixerOutputCard : ObservableObject
 {
@@ -60,7 +67,8 @@ public sealed class MixerOutputCard : ObservableObject
         finally{refreshingChoices=false;RefreshDevice();}
     }
     public void ReplaceValue(AudioOutputBus value){if(Value==value)return;Value=value;OnPropertyChanged(string.Empty);}
-    public MixerOutputCard(AudioOutputBus value,Action changed){Value=value;this.changed=changed;}
+    public ObservableCollection<MixerEqBandCard> EqualizerBands {get;}=[];
+    public MixerOutputCard(AudioOutputBus value,Action changed){Value=value;this.changed=changed;for(int i=0;i<value.Equalizer.Count;i++){int index=i;EqualizerBands.Add(new(value.Equalizer[i],band=>{var bands=Value.Equalizer.ToList();bands[index]=band;Set(Value with{Equalizer=bands},nameof(EqualizerBands));}));}}
     private void Set(AudioOutputBus value,string name){if(Value==value)return;Value=value;OnPropertyChanged(name);changed();}
     public string Id=>Value.Id;
     public bool CanRemove=>Id is not("monitor" or "virtual" or "stream" or "recording" or "master");
@@ -73,10 +81,10 @@ public sealed class MixerOutputCard : ObservableObject
     public string Backend{get=>Value.Backend;set{if(value==null||Value.Backend==value)return;Set(Value with{Backend=value,DeviceId=null,DeviceMode="Internal"},nameof(Backend));OnPropertyChanged(nameof(Device));}}
     public int BufferMs{get=>Value.BufferMs;set=>Set(Value with{BufferMs=Math.Clamp(value,10,200)},nameof(BufferMs));}
     private double level;public double Level{get=>level;private set=>SetProperty(ref level,value);}
-    private string meter="−90 dB";public string Meter{get=>meter;private set=>SetProperty(ref meter,value);}
+    private string meter="âˆ’90 dB";public string Meter{get=>meter;private set=>SetProperty(ref meter,value);}
     private bool clipping;public bool Clipping{get=>clipping;private set=>SetProperty(ref clipping,value);}
     private string state="";public string State{get=>state;set=>SetProperty(ref state,value);}
-    public void RefreshMeter(MixerMeter value){Level=Math.Clamp((value.PeakDb+60)*100/60,0,100);Meter=$"Peak {value.PeakDb:0.0} · RMS {value.RmsDb:0.0} dB";Clipping=value.Clipping;}
+    public void RefreshMeter(MixerMeter value){Level=Math.Clamp((value.PeakDb+60)*100/60,0,100);Meter=$"Peak {value.PeakDb:0.0} Â· RMS {value.RmsDb:0.0} dB";Clipping=value.Clipping;}
 }
 public sealed class MixerRouteCell : ObservableObject
 {
@@ -89,3 +97,13 @@ public sealed class MixerRouteCell : ObservableObject
     public bool Enabled{get=>enabled&&!Blocked;set{if(!Blocked&&SetProperty(ref enabled,value))changed();}}
 }
 public sealed record MixerRouteRow(string Name,List<MixerRouteCell> Cells);
+
+public sealed class MixerEqBandCard : ObservableObject
+{
+    private EqualizerBand value;private readonly Action<EqualizerBand> changed;
+    public MixerEqBandCard(EqualizerBand value,Action<EqualizerBand> changed){this.value=value;this.changed=changed;}
+    private void Update(EqualizerBand next,string property){value=next;OnPropertyChanged(property);changed(next);}
+    public double Frequency{get=>value.Frequency;set{if(double.IsFinite(value))Update(this.value with{Frequency=Math.Clamp(value,20,20000)},nameof(Frequency));}}
+    public double Gain{get=>value.GainDb;set{if(double.IsFinite(value))Update(this.value with{GainDb=Math.Clamp(value,-18,18)},nameof(Gain));}}
+    public double Q{get=>value.Q;set{if(double.IsFinite(value))Update(this.value with{Q=Math.Clamp(value,.1,18)},nameof(Q));}}
+}

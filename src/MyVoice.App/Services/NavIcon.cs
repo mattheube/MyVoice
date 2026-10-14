@@ -8,6 +8,12 @@ public sealed class NavIcon : FrameworkElement
     {
         var path=Kind switch
         {
+            "play"=>"M 6,3 L 21,12 6,21 Z",
+            "keyboard"=>"M 2,5 H 22 V 19 H 2 Z M 5,9 H 7 M 10,9 H 12 M 15,9 H 17 M 5,13 H 7 M 10,13 H 12 M 15,13 H 19 M 7,16 H 17",
+            "edit"=>"M 4,16 L 16,4 20,8 8,20 3,21 Z M 13,7 L 17,11",
+            "upload"=>"M 12,16 V 2 M 6,8 L 12,2 18,8 M 3,15 V 22 H 21 V 15",
+            "heart"=>"M 12,21 L 3,12 C -3,3 8,-1 12,6 C 16,-1 27,3 21,12 Z",
+            "trash"=>"M 3,6 H 21 M 7,6 V 3 H 17 V 6 M 5,6 L 6,22 H 18 L 19,6 M 10,10 V 18 M 14,10 V 18",
             "search"=>"M 3,10 A 7,7 0 1 0 17,10 A 7,7 0 1 0 3,10 M 15,15 L 22,22",
             "bell"=>"M 5,17 H 19 L 17,14 V 9 C 17,2 7,2 7,9 V 14 Z M 9,20 Q 12,24 15,20",
             "home"=>"M 3,10 L 12,3 L 21,10 M 5,9 V 21 H 19 V 9 M 10,21 V 14 H 14 V 21",

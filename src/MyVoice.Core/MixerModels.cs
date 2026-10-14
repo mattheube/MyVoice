@@ -14,6 +14,13 @@ public sealed record ChannelEffects
     public double CompressorRatio { get; init; } = 3;
     public double Delay { get; init; }
     public double Reverb { get; init; }
+    public double GateAttackMs { get; init; } = 5;
+    public double GateHoldMs { get; init; } = 100;
+    public double GateReleaseMs { get; init; } = 120;
+    public double CompressorAttackMs { get; init; } = 8;
+    public double CompressorReleaseMs { get; init; } = 150;
+    public double MakeupDb { get; init; } = 0;
+
 }
 public sealed record AudioChannel
 {
@@ -34,6 +41,7 @@ public sealed record AudioChannel
     public bool NeverSendVirtual { get; init; }
     public ChannelEffects Effects { get; init; } = new();
 }
+public sealed record EqualizerBand(double Frequency=1000,double GainDb=0,double Q=1);
 public sealed record AudioOutputBus
 {
     public string Id { get; init; } = Guid.NewGuid().ToString("N");
@@ -42,6 +50,7 @@ public sealed record AudioOutputBus
     public string? DeviceId { get; init; }
     public string? DeviceName { get; init; }
     public string Backend { get; init; } = "WASAPI";
+    public List<EqualizerBand> Equalizer { get; init; } = [new(100),new(1000),new(8000)];
     public int BufferMs { get; init; } = 30;
     public double Volume { get; init; } = 1;
     public bool Mute { get; init; }

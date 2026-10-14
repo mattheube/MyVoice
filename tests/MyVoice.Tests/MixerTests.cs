@@ -41,6 +41,16 @@ static class MixerTests
         using(var recorder=new MixerRecorder()){var path=Path.Combine(root,"recording.wav");recorder.Start(path,"stream");for(int i=0;i<100;i++){recorder.Offer("monitor",audio);recorder.Offer("stream",audio);}await recorder.StopAsync();using var wave=new WaveFileReader(path);Check(wave.WaveFormat.SampleRate==48000&&wave.WaveFormat.BitsPerSample==32&&Math.Abs(wave.TotalTime.TotalSeconds-1)<.001,"WAV recording selects its bus and finalizes an exact one-second float32 file");}
         using(var recorder=new MixerRecorder()){for(int n=0;n<5;n++){recorder.Start(Path.Combine(root,$"tail-{n}.wav"),"stream");for(int i=0;i<15;i++)recorder.Offer("stream",audio);await recorder.StopAsync();Check(recorder.Error==null&&Math.Abs(recorder.Duration-.15)<.001,"Recording stop drains its tail before the next file "+n);}}
         var separated=new MixerRouter();separated.Apply(original);var music=Enumerable.Repeat(.1f,960).ToArray();for(int i=0;i<40;i++)separated.Render(new float[480],music,silence,music);Check(separated.Bus("monitor").ToArray().All(x=>x==0)&&separated.Bus("virtual").ToArray().Max(Math.Abs)>.1,"Soundboard per-item Hear OFF / Send ON survives new routing");
+        var dynamics=new MixerRouter();var dynamicsProfile=original with{Channels=original.Channels.Select(c=>c.Id=="soundboard"?c with{Volume=1,Effects=new(){MakeupDb=6}}:c).ToList()};dynamics.Apply(dynamicsProfile);
+        for(int i=0;i<40;i++)dynamics.Render(new float[480],music,music,music);
+        Check(Math.Abs(dynamics.Channel("soundboard")[500]-.1*Math.Pow(10,6d/20))<.002,"Mixer makeup gain reaches the real audio processor");
+        var roundtrip=System.Text.Json.JsonSerializer.Deserialize<AudioProfile>(System.Text.Json.JsonSerializer.Serialize(dynamicsProfile));
+        Check(roundtrip!.Channels.Single(c=>c.Id=="soundboard").Effects.MakeupDb==6,"Channel dynamics survive profile serialization");
+        try{MixerStore.Validate(original with{Channels=original.Channels.Select(c=>c with{Effects=new(){GateReleaseMs=double.NaN}}).ToList()});throw new Exception("Non-finite dynamics accepted");}catch(InvalidDataException){Console.WriteLine("PASS malformed channel dynamics rejected");}
+        var eq=new MixerRouter();eq.Apply(original with{Outputs=original.Outputs.Select(b=>b.Id=="stream"?b with{Equalizer=[new(1000,-12,2)]}:b).ToList()});
+        var sine=Enumerable.Range(0,480).Select(i=>(float)(.1*Math.Sin(2*Math.PI*1000*i/48000))).ToArray();for(int i=0;i<50;i++)eq.Render(sine,silence,silence,silence);
+        Check(eq.BusMeter("stream").RmsDb<eq.BusMeter("virtual").RmsDb-10,"Output parametric EQ cuts its selected frequency without changing another bus");
+        try{MixerStore.Validate(original with{Outputs=original.Outputs.Select(b=>b with{Equalizer=[new(25000)]}).ToList()});throw new Exception("Invalid EQ accepted");}catch(InvalidDataException){Console.WriteLine("PASS out-of-range output EQ rejected");}
         var perf=new MixerRouter();perf.Apply(original);var clock=Stopwatch.StartNew();for(int i=0;i<1000;i++)perf.Render(voice,silence,silence,silence);clock.Stop();Check(clock.Elapsed.TotalMilliseconds/1000<8,"Mixer block processing below 10ms deadline");Console.WriteLine($"Mixer mean test block: {clock.Elapsed.TotalMilliseconds/1000:F3} ms");
     }
 }

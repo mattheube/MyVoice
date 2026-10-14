@@ -1,0 +1,49 @@
+MyVoice — suivi du master, 14 octobre 2026
+Pièces jointes f2356298 / 91a1b441 : identiques au master F52889E9…DD6.
+Ne pas assimiler la livraison Beta à l'achèvement intégral du master.
+
+EXISTING / VALIDÉ
+0–2 : audit, baseline, sauvegardes, priorité Conversation avant nouveaux travaux.
+4,6–8,12,17,19 : bootstrap VAD indépendant, runtime sélectionné 3.11 x64, roue précise et SHA256, test silence réel. Réparation testée dans un environnement isolé sans VAD. La réparation manuelle conserve les modèles.
+23–27,31–34 : moteur Mixer unique, canaux, capture, EQ trois bandes, volume, pan, Mute, Solo de monitoring, Mono, mètres.
+29–30 : gate seuil/attaque/maintien/relâchement ; compresseur seuil/ratio/attaque/relâchement/makeup. Mic Setup reste responsable du micro principal.
+35–44 : applications avec session audio, capture par processus, volume et routage par bus, identité par nom d'exécutable, règle persistante d'exclusion du bus virtuel, politique des nouvelles applications. Le monitoring est une copie, pas une prise de contrôle de la sortie native Windows.
+46–48,50–53,55 : downmix, matrice, sorties, niveaux/mètres/limiteur.
+54 : EQ paramétrique par sortie, trois bandes fréquence/gain/Q. Courbe graphique encore absente.
+61,63–64 : enregistrement WAV par canal ou bus, écriture hors callback, finalisation testée.
+69–70 : raccourcis et MIDI existants, matériel MIDI non disponible pour nouvelle validation.
+75–79 : modes simple/avancé existants, défilement et dropdowns testés (refresh ouvert, Escape, molette, sélection stable).
+80–83 : inspection/correction des boucles et profils audio existants, export sans identifiants matériels.
+92,108–109,111 : Publish & Share indépendant du profil ; préparation depuis son/preset possédé ; brouillons conservés.
+93–104 : projet Supabase déployé, Auth, tables sociales, RLS, bucket privé, fonction de publication, migrations. Clé publique seule dans l'app et le site. URL Auth configurée par l'utilisateur.
+106–107 : GitHub pour releases ; Supabase pour Community ; audio local indépendant.
+112–113,115–117 : template de menus sans gouttière système, icônes vectorielles distinctes, séparation top bar, accueil/logo thématisés et transition 180 ms.
+119,121–122 : recherche à chaque démarrage, paquet HTTPS/SHA256, installation et rollback existants.
+126–128 : interface de backend existante ; VB-CABLE conservé et testé réellement ; aucun renommage fictif.
+
+PARTIAL / RESTANT
+3–22 : moteur Conversation convertit réellement (180 secondes sans perte + trois modes). Auto-réparation ciblée VAD opérationnelle, mais remplacement automatique d'un Python entièrement absent/corrompu, manifeste global, tableau health complet, séparation Requested/Active, fallback explicite, clean install sur PC vierge et validation offline intégrale restent à terminer. READY global ne doit pas être déduit du seul test VAD.
+25,71–74 : WASAPI utilisé pour capture ; MME/ASIO sortants selon disponibilité. Pas de KS ; tailles en ms et mix interne 48 kHz ; validation matérielle avancée restante.
+42 : nom d'exécutable persistant ; pas encore identité par chemin/package Windows.
+56–60 : chaîne fixe et suppression de bruit existantes ; pas de réorganisation sûre, annulation d'écho ou de-esser ajoutés.
+62 : transport Recording incomplet (play/seek).
+84–91,99,149 : formulaires et sessions DPAPI existants ; inscription/confirmation/récupération réelles à valider par l'utilisateur. Gestion détaillée des sessions, avatar online, identité/caches offline et états serveur à compléter.
+98–101 : tables/bucket selon besoins du package ; notifications serveur et fichiers d'avatars dédiés non implémentés.
+110,114,151 : voix IA de référence non exportables comme modèle autonome ; aucune référence brute envoyée. Formats/model training partageables à définir et valider ; menus voix encore partiels.
+118 : mise à jour, démarrage audio et bibliothèque existants ; bootstrap global manquant au-delà du VAD.
+120 : choix Stable/Beta disponible ; retour à une version Stable plus ancienne nécessite encore un parcours explicite de downgrade.
+
+MISSING / PHASES FUTURES
+28 : pad XY.
+49 : diagramme de routage animé (optionnel).
+65–68 : audio réseau et macro pad (phases avancées).
+123–125,140 : vrai pilote Windows My Voice et signature/validation. Ne pas présenter VB-CABLE sous ce nom.
+
+Preuves
+192 tests C# Beta 3 ; 197 avec dynamique/EQ Beta 4 ; 22 tests SQL.
+work/conversation-repair-ui-4/conversation-result.txt : conversion réelle 180 s sans pertes, puis comparaison des trois modes.
+work/master-beta3-ui et work/beta3-packaged-ui : dix pages et tests d'interface, menus et brouillons.
+work/beta3-virtual-tests.log : CABLE Input vers CABLE Output réellement capturé et Soundboard Hear OFF / Send ON.
+work/mixer-eq-tests.log : gain réel, sérialisation, validation des valeurs, EQ isolé par sortie.
+Sauvegarde Beta 3 : 218 fichiers, aucun changé par l'installation avant premier lancement. Modèles IA hors dossier programme.
+Beta 3 publiée et installée, lancement 19:10 BST confirmé par logs. Beta 4 en préparation pour dynamique/EQ.
