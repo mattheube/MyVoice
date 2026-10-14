@@ -7,6 +7,48 @@ namespace MyVoice.AI;
 /// <summary>Runs before the model process. Never uses Conversation to repair Conversation.</summary>
 public static class EngineBootstrapper
 {
+    public sealed record Runtime(string Python,string Repository);
+    public static async Task<Runtime> EnsureRuntimeAsync(string python,string repository,string setupScript,Action<string>? log,CancellationToken token,bool force=false,string? managedRoot=null)
+    {
+        var root=managedRoot??Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),"MyVoice","AI");
+        var expectedPython=Path.Combine(root,"venv","Scripts","python.exe");
+        if(string.IsNullOrWhiteSpace(python))python=expectedPython;
+        if(string.IsNullOrWhiteSpace(repository))repository=Path.Combine(root,"seed-vc");
+        await Gate.WaitAsync(token);
+        try
+        {
+            bool healthy=false;
+            log?.Invoke("CHECKING · Runtime et dépendances");
+            if(!force&&File.Exists(python))
+            {
+                try
+                {
+                    ManagedRuntime.RepairLauncher(python);
+                    var probe=await Run(python,["-I","-c","import sys,struct,torch,torchaudio,numpy,librosa,soundfile,hydra; assert sys.version_info[:2]==(3,11) and struct.calcsize('P')==8; print('Runtime dependencies verified')"],token);
+                    healthy=probe.Code==0&&File.Exists(Path.Combine(repository,"inference.py"))&&File.Exists(Path.Combine(repository,"hf_utils.py"))&&Directory.Exists(Path.Combine(repository,"modules"))&&Directory.Exists(Path.Combine(repository,"configs"));
+                    log?.Invoke(probe.Output.Trim());
+                }
+                catch(Exception e) when(e is IOException or System.ComponentModel.Win32Exception){log?.Invoke("BROKEN · "+e.Message);}
+            }
+            if(healthy){log?.Invoke("READY · Runtime et backend présents ; modèle à initialiser");return new(python,repository);}
+            if(!File.Exists(setupScript))throw new FileNotFoundException("Le programme de réparation est absent du dossier MyVoice.",setupScript);
+            log?.Invoke("REPAIRING · Environnement contrôlé ; voix et modèles conservés");
+            var info=new ProcessStartInfo("powershell.exe"){UseShellExecute=false,CreateNoWindow=true,RedirectStandardOutput=true,RedirectStandardError=true};
+            foreach(var arg in new[]{"-NoProfile","-File",setupScript,"-Root",root})info.ArgumentList.Add(arg);
+            foreach(var key in new[]{"PYTHONHOME","PYTHONPATH","__PYVENV_LAUNCHER__","PSModulePath"})info.Environment.Remove(key);
+            info.StandardOutputEncoding=System.Text.Encoding.UTF8;info.StandardErrorEncoding=System.Text.Encoding.UTF8;
+            using var child=Process.Start(info)??throw new IOException("Impossible de lancer la réparation.");
+            using var timeout=CancellationTokenSource.CreateLinkedTokenSource(token);timeout.CancelAfter(TimeSpan.FromMinutes(45));
+            async Task Pump(StreamReader reader){while(await reader.ReadLineAsync(timeout.Token) is {} line)log?.Invoke(line);}
+            var stdout=Pump(child.StandardOutput);var stderr=Pump(child.StandardError);
+            try{await Task.WhenAll(child.WaitForExitAsync(timeout.Token),stdout,stderr);}
+            catch{if(!child.HasExited)child.Kill(true);throw;}
+            if(child.ExitCode!=0)throw new IOException("Réparation interrompue ou échouée. Consultez les détails ; fichiers personnels conservés.");
+            log?.Invoke("VERIFIED · Dépendances testées ; démarrage du modèle ensuite");
+            return new(expectedPython,Path.Combine(root,"seed-vc"));
+        }
+        finally{Gate.Release();}
+    }
     private static readonly SemaphoreSlim Gate = new(1, 1);
     private const string VadTest = "import sys,struct,importlib.metadata; assert sys.version_info[:2]==(3,11) and struct.calcsize('P')==8; import webrtcvad; assert importlib.metadata.version('webrtcvad-wheels')=='2.0.14'; v=webrtcvad.Vad(1); assert not any(v.is_speech(bytes(1920),48000) for _ in range(50)); print('VAD READY: 50 silent frames')";
     private const string Wheel = "webrtcvad_wheels-2.0.14-cp311-cp311-win_amd64.whl";

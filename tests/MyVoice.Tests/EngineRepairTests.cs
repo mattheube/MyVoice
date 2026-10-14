@@ -3,6 +3,16 @@ using MyVoice.AI;
 
 internal static class EngineRepairTests
 {
+    public static async Task Full(string root,string script)
+    {
+        if(Directory.Exists(Path.Combine(root,"venv")))throw new Exception("Use a fresh isolated directory");
+        Directory.CreateDirectory(Path.Combine(root,"models"));var sentinel=Path.Combine(root,"models","preserved.txt");File.WriteAllText(sentinel,"preserved");
+        var runtime=await EngineBootstrapper.EnsureRuntimeAsync("","",script,Console.WriteLine,CancellationToken.None,managedRoot:root);
+        await EngineBootstrapper.EnsureConversationAsync(runtime.Python,Console.WriteLine,CancellationToken.None);
+        var lines=new List<string>();await EngineBootstrapper.EnsureRuntimeAsync(runtime.Python,runtime.Repository,script,lines.Add,CancellationToken.None,managedRoot:root);
+        if(lines.Any(l=>l.StartsWith("REPAIRING"))||File.ReadAllText(sentinel)!="preserved")throw new Exception("Healthy restart reinstalled or model marker changed");
+        Console.WriteLine("PASS full bootstrap from no runtime, dependency/VAD test, healthy restart and model preservation");
+    }
     public static async Task Run(string root)
     {
         var managed=Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),"MyVoice","AI");

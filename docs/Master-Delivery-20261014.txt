@@ -47,3 +47,5 @@ work/beta3-virtual-tests.log : CABLE Input vers CABLE Output réellement captur�
 work/mixer-eq-tests.log : gain réel, sérialisation, validation des valeurs, EQ isolé par sortie.
 Sauvegarde Beta 3 : 218 fichiers, aucun changé par l'installation avant premier lancement. Modèles IA hors dossier programme.
 Beta 3 publiée et installée, lancement 19:10 BST confirmé par logs. Beta 4 en préparation pour dynamique/EQ.
+
+15 octobre : Beta 4 publiée et installée. Beta 5 : bootstrap global implémenté, test isolé depuis absence de runtime réussi (work/full-bootstrap-test.log), second démarrage sain sans réinstallation, modèle témoin conservé. Validation PC vierge et health dashboard restent à faire.

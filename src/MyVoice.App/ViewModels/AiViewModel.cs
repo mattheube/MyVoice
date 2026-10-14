@@ -226,27 +226,31 @@ public partial class MainViewModel
         aiManualStop=false;
         AiBusy = true;
         AiState = T["AiLoading"];
+        using var engineOperation=CancellationTokenSource.CreateLinkedTokenSource(lifetime.Token);engineStartCancellation=engineOperation;
         try
         {
-            await ai.StartAsync(AiPython, AiRepository, Path.Combine(AppContext.BaseDirectory, "voice-engine", "worker.py"), AiDevice, lifetime.Token);
+            ai.Stop();
+            var runtime=await EngineBootstrapper.EnsureRuntimeAsync(AiPython,AiRepository,Path.Combine(AppContext.BaseDirectory,"voice-engine","SetupEngine.ps1"),EngineRepairLog,engineOperation.Token);
+            AiPython=runtime.Python;AiRepository=runtime.Repository;
+            await ai.StartAsync(AiPython, AiRepository, Path.Combine(AppContext.BaseDirectory, "voice-engine", "worker.py"), AiDevice, engineOperation.Token);
             AiReady = ai.Ready;
             AiState = "Ready · " + ai.Device;
             Save();
         }
+        catch (OperationCanceledException) { AiReady=false;AiState="Démarrage annulé · données conservées"; }
         catch (Exception e) { AiReady = false; AiState = "Moteur indisponible · " + e.Message; StudioError(e.Message); }
-        finally { AiBusy = false; }
+        finally { if(ReferenceEquals(engineStartCancellation,engineOperation))engineStartCancellation=null;AiBusy = false; }
         if(AiReady && Settings.ActiveAiVoice && VoiceEnabled && !aiActivating && !lifetime.IsCancellationRequested) await UseAiVoiceAsync(ResumeAiVoice);
     }
     [RelayCommand]
     public void StopAi()
     {
         ++voiceSwitchRevision;aiManualStop=true;
-        if (installerProcess != null && !installerProcess.HasExited)
-            installerProcess.Kill(true);
+        engineStartCancellation?.Cancel();
         StopLive();
         ai.Stop();
         AiReady = false;
-        AiBusy = false;
+        if(engineStartCancellation==null)AiBusy = false;
         AiState = "Offline";
     }
     [RelayCommand(CanExecute = nameof(CanUseAi))]
@@ -378,8 +382,7 @@ public partial class MainViewModel
     }
     private void DisposeAi()
     {
-        if (installerProcess != null && !installerProcess.HasExited)
-            installerProcess.Kill(true);
+        engineStartCancellation?.Cancel();
         StopLive();
         graph.AiInput -= FeedAi;
         ai.Dispose();

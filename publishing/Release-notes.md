@@ -1,17 +1,9 @@
-MyVoice 2.7.0-beta.4
+MyVoice 2.7.0-beta.5
 
-Conversation : réparation indépendante de WebRTC VAD dans le runtime contrôlé, vérification du silence avant chargement, détails des erreurs et correction du résultat de benchmark non sérialisable. Test réel de trois minutes sans perte audio dans un profil isolé.
+Le démarrage du moteur vérifie maintenant Python, ses dépendances et le backend. S'ils manquent, MyVoice lance la réparation dans son environnement géré avant d'initialiser le modèle. Le bouton Installer / réparer utilise le même parcours. L'annulation arrête la réparation sans effacer les voix ni les modèles.
 
-Mixer : Mono, Solo limité au monitoring, exclusion persistante « Jamais vers le micro virtuel » prioritaire sur les routes, politique des nouvelles applications (Monitor only par défaut). Les règles existantes restent conservées. La capture d'une application est une copie : désactiver son Monitor si Windows l'écoute déjà pour éviter un doublage.
+Correction du chemin de modules Windows PowerShell lors du lancement depuis l'application. Les archives uv et backend téléchargées sont vérifiées par SHA-256. Un environnement incomplet est sauvegardé avant reconstruction.
 
-VB-CABLE : reconnaissance du périphérique réénuméré/localisé Haut-parleurs (2- VB-Audio Virtual Cable), sans sélectionner la sortie 16 canaux.
+Validation : installation isolée depuis un dossier sans Python, auto-test VAD sur 50 trames silencieuses, deuxième démarrage sans réinstallation et modèle témoin préservé ; 197 tests C# ; compilation sans avertissement. Cela ne remplace pas une validation sur un PC Windows vierge ni une mesure de qualité des modèles.
 
-Community : connexion au serveur MyVoice, confirmation de sauvegarde du profil uniquement lorsque le serveur renvoie la ligne modifiée. Publish & Share devient une page dédiée ; accès depuis les sons et presets locaux possédés.
-
-Interface : menus contextuels sans gouttière Windows blanche, accueil et logo accordés au thème, transition 180 ms, séparation des commandes du haut. Recherche des mises à jour à chaque démarrage, canal Stable/Beta conservé.
-
-Validation : compilation sans avertissement ; 197 tests C# ; 22 tests SQL ; tests Python de protocole/VAD ; dix pages WPF et tests dropdown/brouillons/bibliothèque. Les données personnelles restent hors du dossier programme.
-
-Le master n'est pas intégralement terminé : moteur complètement absent/installation sur PC vierge, health dashboard complet, fallback Requested/Active, pad XY, annulation d'écho, audio réseau, macros, publication de modèles IA sans références brutes, sessions/avatars en ligne et pilote Windows propriétaire My Voice restent à développer ou valider. La réception réelle des emails Auth n'est pas validée. ASIO/MIDI nécessitent du matériel compatible. VB-CABLE reste le périphérique virtuel utilisé ; aucun faux renommage.
-
-Ajouts Beta 4 : réglages temporels gate/compression et gain Makeup par canal, égaliseur paramétrique trois bandes par sortie (fréquence/gain/Q), icônes contextuelles distinctes. Tests du gain réel et de l’atténuation fréquentielle indépendante par bus.
+Les améliorations Beta 4 du mixeur, de VB-CABLE, des menus et de Publish & Share restent incluses. Le prompt complet reste en cours : tableau de santé détaillé, pad XY, sessions et avatars en ligne, modèles IA partageables sans références brutes et pilote My Voice notamment ne sont pas terminés.
