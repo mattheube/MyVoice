@@ -38,7 +38,7 @@ public partial class MainViewModel
         mixerStore=new(store.Root);mixerState=mixerStore.Load(Settings);
         mixerState.Current=mixerState.Current with{Channels=mixerState.Current.Channels.Select(c=>c.Id=="mic"?c with{DeviceId=Settings.InputDeviceId,DeviceName=SelectedDevice?.Name}:c).ToList()};
         foreach(var profile in mixerState.Profiles)AudioProfiles.Add(profile);
-        LoadMixerCards(mixerState.Current);RefreshMixerDevices();ReconcileVirtualMicrophone();ApplyMixer();InitializeMixerControls();
+        LoadMixerCards(mixerState.Current);RefreshMixerDevices();ReconcileVirtualMicrophone();ApplyMixer();InitializeMixerControls();InitializeApplicationDiscovery();InitializeKeyboard();
         if(mixerStore.Recovery!=null)MixerStatus=mixerStore.Recovery;
     }
     private void LoadMixerCards(AudioProfile profile)
@@ -65,7 +65,7 @@ public partial class MainViewModel
         bool backendChanged=MixerOutputs.Any(b=>mixerState.Current.Outputs.FirstOrDefault(old=>old.Id==b.Id)?.Backend!=b.Backend);
         mixerState.Current=mixerState.Current with{Channels=MixerChannels.Select(c=>c.Value).ToList(),Outputs=MixerOutputs.Select(b=>b.Value).ToList(),Routes=MixerRows.SelectMany(r=>r.Cells).Select(c=>new AudioRoute(c.ChannelId,c.BusId,c.Enabled)).ToList()};
         if(backendChanged)foreach(var b in MixerOutputs)RefreshOutputChoices(b);
-        ReconcileVirtualMicrophone();ApplyMixer();ScheduleSave();
+        ReconcileVirtualMicrophone();ApplyMixer();NotifyKeyboard();ScheduleSave();
     }
     private void ApplyMixer()
     {
@@ -110,7 +110,7 @@ public partial class MainViewModel
             var devices=await System.Threading.Tasks.Task.Run(()=>
             {
                 var inputs=mic.GetDevices().ToArray();var outputs=graph.Devices().ToArray();
-                var applications=ApplicationAudioCatalog.Supported?ApplicationAudioCatalog.List().ToArray():Array.Empty<ApplicationAudioSource>();
+                var applications=ApplicationDiscoveryService.Shared.Discover(mixerState.Current.Channels).ToArray();
                 var mme=Enumerable.Range(0,NAudio.Wave.WaveOut.DeviceCount).Select(i=>new AudioDevice(i.ToString(),NAudio.Wave.WaveOut.GetCapabilities(i).ProductName)).ToArray();
                 return (inputs,outputs,applications,mme,asio:MixerDeviceManager.AsioDrivers());
             });
@@ -146,7 +146,7 @@ public partial class MainViewModel
             if(automaticAudio)EnsureMicrophone();
         }
         profile=profile with{Channels=profile.Channels.Select(c=>c.Id=="mic"?c with{DeviceId=Settings.InputDeviceId,DeviceName=SelectedDevice?.Name}:c).ToList()};
-        mixerState.Current=profile;LoadMixerCards(profile);RefreshMixerDevices();ReconcileVirtualMicrophone();ApplyMixer();ScheduleSave();
+        mixerState.Current=profile;LoadMixerCards(profile);RefreshMixerDevices();ReconcileVirtualMicrophone();ApplyMixer();NotifyKeyboard();_=ApplyKeyboardAsync();ScheduleSave();
     }
     [RelayCommand] private void SelectMixerChannel(MixerChannelCard? channel)=>SelectedMixerChannel=channel;
     [RelayCommand] private void SelectMixerOutput(MixerOutputCard? output){SelectedMixerOutput=output;if(output!=null)RefreshOutputChoices(output);}
@@ -176,7 +176,7 @@ public partial class MainViewModel
     private void TickMixer()
     {
         if(mixerStore==null||Page!=8)return;
-        foreach(var c in MixerChannels){c.RefreshMeter(graph.Mixer.ChannelMeter(c.Id));c.State=c.Id=="mic"?(Running?"Microphone actif · "+DisplayVoice:"Microphone arrêté"):c.Id=="soundboard"?"Lecture locale":graph.DeviceStatuses.FirstOrDefault(s=>s.Id==c.Id)?.Message??"Connexion…";}
+        foreach(var c in MixerChannels){c.RefreshMeter(graph.Mixer.ChannelMeter(c.Id));c.State=c.Id=="mic"?(Running?"Microphone actif · "+DisplayVoice:"Microphone arrêté"):c.Id=="soundboard"?"Lecture locale":c.Id=="keyboard"?KeyboardStatus:graph.DeviceStatuses.FirstOrDefault(s=>s.Id==c.Id)?.Message??"Connexion…";}
         foreach(var b in MixerOutputs){b.RefreshMeter(graph.Mixer.BusMeter(b.Id));b.State=graph.DeviceStatuses.FirstOrDefault(s=>s.Id==b.Id)?.Message??"Connexion…";}
         if(++mixerTicks%10!=0)return;
         var d=graph.Diagnostics;MixerDiagnostics=$"48 000 Hz · float32 · 2 canaux / bus\nBloc : 480 samples / 10 ms · calcul {d.AverageBlockMs:0.00} ms (max {d.MaximumBlockMs:0.00}) · charge {d.AverageBlockMs*10:0.0} %\nBlocs en retard : {d.LateBlocks} · tampons incomplets : {d.Underruns} · samples écartés : {d.DroppedSamples}\nTampon logiciel estimé : n’inclut pas le matériel, la voix IA ou le réseau.";

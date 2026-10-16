@@ -16,6 +16,7 @@ public sealed class AudioGraph : IDisposable
     private bool devicesEnabled;
     private AudioProfile? requestedProfile;
     public MixerRouter Mixer {get;}=new();
+    public KeyboardSoundService Keyboard {get;}=new();
     public MixerRecorder Recorder {get;}=new();
     public IReadOnlyList<SourceStatus> DeviceStatuses=>devices.Statuses;
     public VoiceProcessor Processor {get;}=new();
@@ -81,7 +82,7 @@ public sealed class AudioGraph : IDisposable
     }
     private void Run()
     {
-        var voice=new float[480];var ai=new float[480];var raw=new float[960];var sb=new float[2880];var test=new float[960];
+        var voice=new float[480];var ai=new float[480];var raw=new float[960];var sb=new float[2880];var test=new float[960];var keyboard=new float[960];
         var clock=Stopwatch.StartNew();long next=0;
         while(!stop.IsCancellationRequested)
         {
@@ -94,7 +95,7 @@ public sealed class AudioGraph : IDisposable
                 var processed=AiLive?ai:voice;ProcessedPeak=MixerRouter.Measure(processed).PeakDb;
                 soundQueue.Take(sb);Array.Clear(test);
                 if(testFrames>0){for(int i=0;i<480;i++){var tone=(float)(.025*Math.Sin(testPhase));testPhase+=2*Math.PI*733/48000;test[i*2]=test[i*2+1]=tone;}Interlocked.Add(ref testFrames,-480);}
-                Mixer.Render(processed,sb.AsSpan(0,960),sb.AsSpan(960,960),sb.AsSpan(1920,960),test);
+                Keyboard.Render(keyboard);Mixer.Render(processed,sb.AsSpan(0,960),sb.AsSpan(960,960),sb.AsSpan(1920,960),test,keyboard);
                 foreach(var bus in Mixer.Configuration.Outputs)Recorder.Offer(bus.Id,Mixer.Bus(bus.Id));
                 foreach(var channel in Mixer.Configuration.Channels)Recorder.Offer("channel:"+channel.Id,Mixer.Channel(channel.Id));
                 for(int i=0;i<480;i++)raw[i*2]=raw[i*2+1]=processed[i];Recorder.Offer("processed-mic",raw);
@@ -106,5 +107,5 @@ public sealed class AudioGraph : IDisposable
             next+=10;var delay=next-clock.ElapsedMilliseconds;if(delay>0)stop.Token.WaitHandle.WaitOne((int)delay);else{Interlocked.Increment(ref lateBlocks);if(delay < -100)next=clock.ElapsedMilliseconds;}
         }
     }
-    public void Dispose(){stop.Cancel();worker.Join(3000);soundWorker.Join(3000);Recorder.Dispose();devices.Dispose();stop.Dispose();}
+    public void Dispose(){stop.Cancel();worker.Join(3000);soundWorker.Join(3000);Keyboard.Dispose();Recorder.Dispose();devices.Dispose();stop.Dispose();}
 }

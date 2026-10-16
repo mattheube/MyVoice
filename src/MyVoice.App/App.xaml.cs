@@ -180,6 +180,7 @@ public partial class App : Application
             }
             if(args.Contains("--ui-details")){await VerifyImageUi(window,folder);VerifyProductUi(folder);await VerifyMixerUi(window,folder);await VerifyStartupUi(window,folder);}
             if(args.Contains("--revision-ui"))await VerifyRevisionUi(window,folder);
+            if(args.Contains("--keyboard-discovery"))await VerifyKeyboardDiscovery(window,folder);
             window.Width=1000;window.Height=700;vm!.UiScale=1.5;vm.Page=3;await Task.Delay(180);window.UpdateLayout();
             var compact=new RenderTargetBitmap((int)window.ActualWidth,(int)window.ActualHeight,96,96,PixelFormats.Pbgra32);compact.Render(window);
             var compactEncoder=new PngBitmapEncoder();compactEncoder.Frames.Add(BitmapFrame.Create(compact));using(var compactFile=File.Create(Path.Combine(folder,"compact-150.png")))compactEncoder.Save(compactFile);

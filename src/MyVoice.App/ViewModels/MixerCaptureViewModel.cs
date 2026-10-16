@@ -41,7 +41,7 @@ public partial class MainViewModel
     {
         if(SelectedMixerChannel is not {CanRemove:true} card)return;var c=card.Value;AudioChannel updated;
         if(c.Type=="application")
-        {if(MixerApplication==null){MixerStatus="Choisissez une application active.";return;}updated=c with{ApplicationName=MixerApplication.Name,CaptureEnabled=false};}
+        {if(MixerApplication==null){MixerStatus="Choisissez une application.";return;}updated=c with{ApplicationName=MixerApplication.Name,ApplicationPath=MixerApplication.ExecutablePath,ApplicationPackage=MixerApplication.PackageFamily,ApplicationId=MixerApplication.AppUserModelId,CaptureEnabled=false};}
         else
         {var d=c.Type=="system"?MixerSystemInput:MixerInput;if(d==null)return;updated=c with{DeviceId=d.Id=="@default"?null:d.Id,DeviceName=d.Name,DeviceMode=d.Id=="@default"?"Default":"Fixed",CaptureEnabled=false};}
         SetMixerProfile(mixerState.Current with{Channels=mixerState.Current.Channels.Select(x=>x.Id==c.Id?updated:x).ToList()});SelectedMixerChannel=MixerChannels.First(x=>x.Id==c.Id);MixerStatus="Source reliée. Son bouton Capture permet de la démarrer.";
@@ -55,9 +55,10 @@ public partial class MainViewModel
         if(input!=null&&!inputs.Any(d=>d.Id==input.Id))inputs.Add(input with{Name=input.Name.Replace(" · indisponible","")+" · indisponible"});
         if(system!=null&&!outputs.Any(d=>d.Id==system.Id))outputs.Add(system with{Name=system.Name.Replace(" · indisponible","")+" · indisponible"});
         Services.CollectionSync.ByKey(MixerInputs,inputs,d=>d.Id);Services.CollectionSync.ByKey(MixerSystemInputs,outputs,d=>d.Id);
-        Services.CollectionSync.ByKey(MixerApplications,mixerApplicationCache,d=>d.Name);
+        var apps=mixerApplicationCache.ToList();if(app!=null&&!apps.Any(a=>a.Identity.Equals(app.Identity,StringComparison.OrdinalIgnoreCase)))apps.Add(app with{ProcessId=0});
+        Services.CollectionSync.ByKey(MixerApplications,apps,d=>d.Identity);
         MixerInput=MixerInputs.FirstOrDefault(d=>d.Id==input?.Id)??MixerInputs.FirstOrDefault();MixerSystemInput=MixerSystemInputs.FirstOrDefault(d=>d.Id==system?.Id)??MixerSystemInputs.FirstOrDefault();
-        MixerApplication=app==null?MixerApplications.FirstOrDefault():MixerApplications.FirstOrDefault(d=>d.Name==app.Name);
+        MixerApplication=app==null?MixerApplications.FirstOrDefault():MixerApplications.FirstOrDefault(d=>d.Identity==app.Identity);
     }
     private void RefreshRecordingSources()
     {
@@ -74,9 +75,9 @@ public partial class MainViewModel
         AudioChannel channel;
         if(MixerSourceType=="Application")
         {
-            if(!ApplicationAudioCatalog.Supported||MixerApplication==null){MixerStatus="Lancez la lecture audio de l’application puis actualisez. Windows build 20348 minimum.";return;}
-            if(MixerChannels.Any(c=>c.Value.Type=="application"&&c.Value.ApplicationName==MixerApplication.Name)){MixerStatus="Cette application est déjà dans le mix.";return;}
-            channel=new(){Name=MixerApplication.Name,Type="application",ApplicationName=MixerApplication.Name,CaptureEnabled=false};
+            if(!ApplicationAudioCatalog.Supported||MixerApplication==null){MixerStatus="Choisissez une application ouverte ou son fichier .exe. La capture nécessite Windows build 20348 minimum.";return;}
+            if(MixerChannels.Any(c=>c.Value.Type=="application"&&ApplicationDiscoveryService.Matches(MixerApplication,c.Value))){MixerStatus="Cette application est déjà dans le mix.";return;}
+            channel=new(){Name=MixerApplication.Label,Type="application",ApplicationName=MixerApplication.Name,ApplicationPath=MixerApplication.ExecutablePath,ApplicationPackage=MixerApplication.PackageFamily,ApplicationId=MixerApplication.AppUserModelId,CaptureEnabled=false};
         }
         else
         {

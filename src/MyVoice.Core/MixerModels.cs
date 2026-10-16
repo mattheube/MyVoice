@@ -31,6 +31,9 @@ public sealed record AudioChannel
     public string? DeviceId { get; init; }
     public string? DeviceName { get; init; }
     public string? ApplicationName { get; init; }
+    public string? ApplicationPath { get; init; }
+    public string? ApplicationPackage { get; init; }
+    public string? ApplicationId { get; init; }
     public bool CaptureEnabled { get; init; }
     public double Volume { get; init; } = 1;
     public double GainDb { get; init; }
@@ -59,6 +62,7 @@ public sealed record AudioRoute(string ChannelId,string BusId,bool Enabled=true)
 public sealed record MidiMapping(string Device,string Kind,int Channel,int Number,string Action,string Target);
 public sealed record AudioProfile
 {
+    public KeyboardSettings Keyboard {get;init;}=new();
     public string Id { get; init; } = Guid.NewGuid().ToString("N");
     public string Name { get; init; } = "Mon mix";
     public List<AudioChannel> Channels { get; init; } = [];

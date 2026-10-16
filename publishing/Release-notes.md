@@ -1,13 +1,9 @@
-MyVoice 2.7.0-beta.6
+MyVoice 2.7.0-beta.7
 
-Correction des menus clic droit : suppression de la colonne blanche du template Windows, icônes vectorielles de taille fixe, sous-menus lisibles, couleurs du thème et actions de retrait distinctes. Les commandes existantes sont conservées.
+Mixer : détection combinée des fenêtres utilisateur, processus configurés, applications courantes en zone de notification et sessions audio Windows. Les applications silencieuses peuvent être sélectionnées. Identités par exécutable ou application packagée, fusion des doublons, groupes OPEN NOW / SAVED APPLICATIONS, recherche, icônes légères et choix manuel d'un .exe. Les règles conservent leur routage, niveau et mute ; une source dont Capture est activée se reconnecte automatiquement après réouverture de l'application. Actualisation partagée au maximum toutes les cinq secondes, ou manuelle.
 
-Ressources : pages créées à la demande, cache de pages avec expiration, lectures de durée audio différées, listes de voix virtualisées et cache LRU de miniatures limité à 64 Mo. Les décodages en attente sont annulés quand la carte disparaît. Les champs de profil non envoyés restent conservés.
+Keyboard Sound : nouvelle section de Soundboard, désactivée par défaut. Dix profils originaux synthétisés, 840 samples mono 48 kHz, variations KeyDown/KeyUp et sept familles de touches. Pack actif seul en mémoire, polyphonie limitée à 32 voix, volume 0–200 %, hauteur, intensité, niveau Espace, répétition et exclusions. Un nouveau canal Mixer propose Casque, My Voice, Stream et Recording ; le casque seul est activé initialement. Raccourci Toggle Keyboard Sound configurable, sans raccourci imposé.
 
-Arrière-plan : les animations GIF, waveforms et rafraîchissements visuels inutiles sont suspendus. Le microphone, le mixeur, les raccourcis, les sons et le moteur IA actif continuent. Aucun modèle actif n'est déchargé et aucun GC forcé n'est ajouté.
+Le détecteur global ne traduit jamais les touches en texte et ne conserve ni historique, ni mots de passe, ni phrases. Il est arrêté lorsque Keyboard Sound est désactivé. Les packs sont libérés à l'arrêt ; l'audio reste actif lorsque la fenêtre est cachée.
 
-Transport audio IA : suppression de deux tableaux temporaires par échange et réutilisation du tampon d'entrée Conversation. Le test ciblé mesure 35 % d'allocations en moins pour l'encodage/décodage float32, avec un signal identique bit pour bit. Cela ne signifie pas 35 % de RAM totale en moins.
-
-Validation : 200 tests C#, navigation WPF, 600 sons et 600 voix, cache borné, formulaires conservés, menus rendus dans trois thèmes et quatre échelles (100/125/150/200 %). Le rapport mémoire donne les mesures brutes et leurs limites ; la mémoire totale reste dominée par les modèles IA. Le passage physique entre écrans DPI différents n'a pas été testé.
-
-Audio en arrière-plan : essai final de trois minutes réussi sans perte, latence mesurée environ 1,25 s jusqu'à la soumission virtuelle. Un essai précédent a écarté un bloc ; la stabilité sous charge reste dépendante de la machine et du modèle. Le rapport conserve ces résultats.
+Validation : tests de déduplication, application silencieuse démarrée/fermée, persistance, packs, polyphonie, routage casque/micro virtuel, navigation et contrôles WPF. Sons procéduraux : aucun sample récupéré d'une application tierce. La frappe physique dans Notepad et la fidélité perceptive à de vrais switches n'ont pas été validées automatiquement. Les programmes protégés ou exécutés avec des droits supérieurs peuvent rester inaccessibles à la capture Windows.

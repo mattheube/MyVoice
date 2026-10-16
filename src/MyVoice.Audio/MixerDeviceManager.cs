@@ -31,11 +31,11 @@ public sealed class MixerDeviceManager : IDisposable
         using var e=new MMDeviceEnumerator();var captureIds=new HashSet<string>();
         if(profile.Channels.FirstOrDefault(c=>c.Id=="mic")?.DeviceId is {} primary)captureIds.Add(primary);
         var activeInputIds=new HashSet<string>();
-        var applications=profile.Channels.Any(c=>c.Type=="application")?ApplicationAudioCatalog.List():Array.Empty<ApplicationAudioSource>();
+        var applications=profile.Channels.Any(c=>c.Type=="application"&&c.CaptureEnabled)?ApplicationDiscoveryService.Shared.Discover(profile.Channels):Array.Empty<ApplicationAudioSource>();
         foreach(var channel in profile.Channels)
         {
             var resolved=channel;
-            if(channel.Type is "microphone" or "soundboard"){resolvedChannels.Add(resolved);continue;}
+            if(channel.Type is "microphone" or "soundboard" or "keyboard"){resolvedChannels.Add(resolved);continue;}
             activeInputIds.Add(channel.Id);
             if(!channel.CaptureEnabled)
             {
@@ -50,7 +50,7 @@ public sealed class MixerDeviceManager : IDisposable
                 string identity,format="48 000 Hz · stéréo";Func<CaptureSlot> create;
                 if(channel.Type=="application")
                 {
-                    var app=applications.FirstOrDefault(p=>p.Name.Equals(channel.ApplicationName,StringComparison.OrdinalIgnoreCase))??throw new InvalidOperationException("Application indisponible · lancez sa lecture audio");
+                    var app=applications.FirstOrDefault(p=>p.Running&&ApplicationDiscoveryService.Matches(p,channel))??throw new InvalidOperationException("Application hors ligne · reconnexion automatique");
                     identity="process:"+app.ProcessId;
                     if(!captureIds.Add(identity))throw new InvalidOperationException("Application déjà présente dans le mix");
                     create=()=>{var input=new ProcessAudioCapture(app.ProcessId,router.Input(channel.Id));return new(identity,input,()=>input.Failed,format);};

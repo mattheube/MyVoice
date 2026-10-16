@@ -6,7 +6,20 @@ using NAudio.Wasapi.CoreAudioApi.Interfaces;
 using NAudio.Wave;
 namespace MyVoice.Audio;
 [ComImport,Guid("94EA2B94-E9CC-49E0-C0FF-EE64CA8F5B90"),InterfaceType(ComInterfaceType.InterfaceIsIUnknown)] public interface IProcessCaptureAgileObject{}
-public sealed record ApplicationAudioSource(int ProcessId,string Name,string Label);
+public sealed record ApplicationAudioSource(int ProcessId,string Name,string Label)
+{
+    public string? ExecutablePath {get;init;}
+    public string? PackageFamily {get;init;}
+    public string? AppUserModelId {get;init;}
+    public bool HasWindow {get;init;}
+    public bool HasAudio {get;init;}
+    public long Started {get;init;}
+    public bool Running=>ProcessId>0;
+    public string Group=>Running?"OPEN NOW":"SAVED APPLICATIONS";
+    public string ExecutableName=>Path.GetFileName(ExecutablePath??Name+".exe");
+    public string Detail=>ExecutableName+(Running?(HasAudio?" · session audio":" · ouverte") :" · hors ligne");
+    public string Identity=>!string.IsNullOrEmpty(AppUserModelId)?"app:"+AppUserModelId:!string.IsNullOrEmpty(PackageFamily)?"package:"+PackageFamily:!string.IsNullOrEmpty(ExecutablePath)?"exe:"+ExecutablePath:"name:"+Name;
+}
 public static class ApplicationAudioCatalog
 {
     public static bool Supported=>OperatingSystem.IsWindowsVersionAtLeast(10,0,20348);

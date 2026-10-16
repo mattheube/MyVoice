@@ -86,7 +86,7 @@ public sealed class MixerRouter
     public long DroppedSamples{get{lock(control)return channelCache.Values.Sum(c=>c.Input.Dropped);}}
     public ReadOnlySpan<float> Bus(string id){var p=plan;foreach(var b in p.Buses)if(b.Settings.Id==id)return b.Runtime.Data;return ReadOnlySpan<float>.Empty;}
     public ReadOnlySpan<float> Channel(string id){var p=plan;foreach(var c in p.Channels)if(c.Settings.Id==id)return c.Runtime.Data;return ReadOnlySpan<float>.Empty;}
-    public void Render(ReadOnlySpan<float> microphone,ReadOnlySpan<float> soundboard,ReadOnlySpan<float> soundMonitor,ReadOnlySpan<float> soundVirtual,ReadOnlySpan<float> virtualTest=default)
+    public void Render(ReadOnlySpan<float> microphone,ReadOnlySpan<float> soundboard,ReadOnlySpan<float> soundMonitor,ReadOnlySpan<float> soundVirtual,ReadOnlySpan<float> virtualTest=default,ReadOnlySpan<float> keyboard=default)
     {
         var next=Interlocked.Exchange(ref pending,null);if(next!=null)Volatile.Write(ref plan,next);
         var p=plan;
@@ -97,6 +97,7 @@ public sealed class MixerRouter
             var rt=c.Runtime;var data=rt.Data;
             if(c.Settings.Type=="microphone"){for(int i=0;i<Frames;i++)data[i*2]=data[i*2+1]=microphone[i];}
             else if(c.Settings.Type=="soundboard"){soundboard.CopyTo(data);soundMonitor.CopyTo(rt.Monitor);soundVirtual.CopyTo(rt.Virtual);}
+            else if(c.Settings.Type=="keyboard"){Array.Clear(data);keyboard.CopyTo(data);}
             else if(c.Settings.CaptureEnabled)rt.Input.Take(data);else Array.Clear(data);
             rt.Fx.Process(data,c.Settings,c.Settings.Type=="microphone");
             if(c.Settings.Type=="soundboard"){rt.MonitorFx.Process(rt.Monitor,c.Settings);rt.VirtualFx.Process(rt.Virtual,c.Settings);}

@@ -1,6 +1,7 @@
 using MyVoice.Core;
 using MyVoice.Infrastructure;
 using MyVoice.Audio;
+if(args.Contains("--discovery-child")){Console.ReadLine();return;}
 if(args.FirstOrDefault()=="--engine-bootstrap"){await EngineRepairTests.Full(Path.GetFullPath(args[1]),Path.GetFullPath(args[2]));return;}
 if(args.FirstOrDefault()=="--engine-repair"){await EngineRepairTests.Run(args[1]);return;}
 if(args.FirstOrDefault()=="--mixer-probe"){await MixerHardwareTests.PlayProbe(args);return;}
@@ -8,6 +9,7 @@ if(args.Contains("--mixer-hardware")){await MixerHardwareTests.Run();return;}
 int passed = 0;
 void Test(string name, Action action) { action(); passed++; Console.WriteLine("PASS " + name); }
 void Assert(bool condition, string message = "assertion failed") { if (!condition) throw new Exception(message); }
+KeyboardDiscoveryTests.Run(Test);
 Test("Gain scales real samples", () => { var dsp = new GainProcessor { GainDb = 6.020599913 }; float[] data = [.1f, -.1f]; dsp.Process(data); Assert(Math.Abs(data[0] - .2) < .00001 && Math.Abs(data[1] + .2) < .00001); });
 Test("Mute zeros physical mic samples", () => { var dsp = new GainProcessor { Muted = true, GainDb = 30 }; float[] data = [.1f, -.5f, 1f]; dsp.Process(data); Assert(data.All(x => x == 0)); });
 Test("Peak protection bounds boosted audio", () => { var dsp = new GainProcessor { GainDb = 30 }; float[] data = [1, -1]; dsp.Process(data); Assert(data[0] == .98f && data[1] == -.98f); });

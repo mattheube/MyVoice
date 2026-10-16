@@ -1,0 +1,22 @@
+APPLICATION DISCOVERY / KEYBOARD SOUND — 16 OCTOBRE 2026
+
+Baseline : Beta 6 distribuée, compilation sans avertissement. Ancien sélecteur uniquement alimenté par ApplicationAudioCatalog.List (sessions audio WASAPI), ce qui excluait les programmes silencieux sans session. Identité limitée au nom de processus, parfois plusieurs entrées pour un navigateur.
+
+Implémentation : ApplicationDiscoveryService fusionne fenêtres visibles, sessions actives/inactives, processus d'applications courantes en tray et exécutables configurés. Les processus Windows système et auxiliaires sans session pertinente sont filtrés. Les exécutables inconnus sans fenêtre peuvent être ajoutés manuellement ; ils seront alors recherchés par leur règle persistante. AUMID/package family quand accessibles, sinon chemin, puis nom comme compatibilité historique. Aucun objet Process retenu ; handles QueryFullProcessImageName fermés. Scan partagé borné à cinq secondes ; refresh manuel disponible. La capture par processus existante inclut ses enfants et est reconnectée depuis la règle, sans fallback vers tout l'audio système. Capture reste une activation explicite sur la tranche, comme avant cette version.
+
+Constat local après filtrage : Discord, Voicemod, EpicGamesLauncher, Codex, Explorateur Windows, FPSDoctor et NVIDIA App détectés. Discord et Voicemod étaient présents sans session audio dans ce snapshot. Pas de revendication de test simultané Spotify/Chrome/OBS/jeu si ces programmes n'étaient pas ouverts.
+
+Choix manuel .exe, recherche, groupes, icônes 24 px gelées et cache 96 entrées. Choix de dossier optionnel non ajouté. Un fichier choisi n'est jamais exécuté par le sélecteur. Les chemins et identifiants locaux sont supprimés à l'export d'un profil ; l'import ne peut pas activer implicitement le listener clavier.
+
+Keyboard Sound : packs originaux générés par publishing/Generate-KeyboardPacks.py, licence CC0, synthèse de résonances amorties et bruits d'impact, pas d'enregistrements commerciaux. Dix packs, sept familles, huit down et quatre up par famille. Chargement d'un pack hors thread audio, budget maximal 8 Mio. Pool de 32 voix, pas de file audio croissante. Calcul dans le mixeur 48 kHz existant, voies et limiteurs existants. Le test de charge simule 40 frappes/seconde pendant 60 secondes de rendu, au-dessus de 120 mots/minute.
+
+Listener WH_KEYBOARD_LL sur thread de messages dédié ; callback ne traduit pas de caractères, ne lit pas les champs, ne journalise rien. Seuls l'état temporaire des touches maintenues et la catégorie sonore sont utilisés. CallNextHookEx toujours appelé. Aucune transmission réseau. Listener désactivé et état effacé sur OFF / fermeture. Réglages sauvegardés avec le profil audio. Toggle configurable via le système de raccourcis existant, conflits gérés par RegisterHotKey.
+
+Validation automatisée WPF : discovery/search/selection, aperçu, changement de pack, OFF libère samples, son en tray dans Monitor sans fuite vers Virtual, persistance. Installation/désinstallation réelle du hook natif testée. Aucun outil node_repl/Computer Use disponible pour faire le scénario physique Notepad : ce point reste non vérifié. Les profils ne prétendent pas reproduire fidèlement une référence commerciale. Le choix de dossier, packs communautaires et clavier visuel sont des options futures.
+
+Références d'implémentation Windows :
+https://learn.microsoft.com/en-us/windows/win32/winmsg/lowlevelkeyboardproc
+https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getwindowthreadprocessid
+https://learn.microsoft.com/en-us/windows/win32/appxpkg/functions
+
+Validation finale du 17 octobre : compilation sans erreur ni avertissement ; 207 tests réussis. Vérifications WPF Keyboard/Discovery et révision UI réussies. Test IA isolé de 180 secondes réussi : aucune perte, PCM converti, 18 056 soumissions WASAPI, médiane début 1 654 ms / fin 1 664 ms, maximum 1 670 ms. Latence du périphérique et de Discord/réseau exclue. Le précédent essai du 16 octobre avait été annulé pendant le démarrage du modèle, avant conversion.

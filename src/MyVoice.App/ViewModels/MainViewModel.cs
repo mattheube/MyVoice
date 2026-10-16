@@ -361,13 +361,14 @@ public partial class MainViewModel : ObservableObject, IDisposable
     public void Dispose()
     {
         lifetime.Cancel();
+        applicationRefresh.Stop();applicationRefresh.Tick-=PollApplications;
         timer.Stop();
         saveTimer.Stop();
         if (hotkey != null)
             hotkey.Pressed -= OnHotkey;
         mic.Faulted -= OnFault;
         mic.DevicesChanged -= OnDevicesChanged;
-        mixerMidi.Dispose();community?.Dispose();DisposeStudio();
+        DisposeKeyboard();mixerMidi.Dispose();community?.Dispose();DisposeStudio();
         mic.Dispose();
         Save();
     }

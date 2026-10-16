@@ -12,7 +12,7 @@ public sealed class MixerChannelCard : ObservableObject
     public MixerChannelCard(AudioChannel value,Action changed){Value=value;this.changed=changed;}
     private void Set(AudioChannel value,string property){Value=value;OnPropertyChanged(property);changed();}
     public string Id=>Value.Id;
-    public bool CanRemove=>Id is not("mic" or "soundboard");
+    public bool CanRemove=>Id is not("mic" or "soundboard" or "keyboard");
     public bool HasInputGain=>Id!="mic";
     public bool IsMic=>Id=="mic";
     public bool IsApplication=>Value.Type=="application";
@@ -20,7 +20,7 @@ public sealed class MixerChannelCard : ObservableObject
     public bool NeverSendVirtual{get=>Value.NeverSendVirtual;set=>Set(Value with{NeverSendVirtual=value},nameof(NeverSendVirtual));}
     public bool CaptureEnabled {get=>Value.CaptureEnabled;set=>Set(Value with{CaptureEnabled=value},nameof(CaptureEnabled));}
     public bool IsMicrophoneInput=>Value.Type=="capture";
-    public string Kind=>Value.Type switch{"microphone"=>"MIC / VOICE","soundboard"=>"SOUNDBOARD BUS","capture"=>"INPUT","system"=>"SYSTEM AUDIO",_=>"APPLICATION"};
+    public string Kind=>Value.Type switch{"microphone"=>"MIC / VOICE","soundboard"=>"SOUNDBOARD BUS","keyboard"=>"KEYBOARD SOUND","capture"=>"INPUT","system"=>"SYSTEM AUDIO",_=>"APPLICATION"};
     public string Name{get=>Value.Name;set{if(!string.IsNullOrWhiteSpace(value))Set(Value with{Name=value[..Math.Min(value.Length,80)]},nameof(Name));}}
     public double Volume{get=>Value.Volume*100;set{if(double.IsFinite(value)){Set(Value with{Volume=Math.Clamp(value/100,0,1e6)},nameof(Volume));OnPropertyChanged(nameof(VolumeSlider));}}}
     public double VolumeSlider{get=>Math.Min(200,Volume);set{if(Math.Abs(value-Math.Min(200,Volume))>.01)Volume=value;}}
