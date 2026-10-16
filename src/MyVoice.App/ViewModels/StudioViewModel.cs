@@ -286,6 +286,8 @@ public partial class MainViewModel
         if (graph == null)
             return;
         ReleaseHeldSounds();
+        TickAi();
+        if(!MyVoice.App.Services.UiActivity.VisualsActive)return;
         ProcessedMeter = Math.Clamp((graph.ProcessedPeak + 60) / 60 * 100, 0, 100);
         MonitorMeter = Math.Clamp((graph.MonitorPeak + 60) / 60 * 100, 0, 100);
         OutputMeter = Math.Clamp((graph.OutputPeak + 60) / 60 * 100, 0, 100);
@@ -300,7 +302,6 @@ public partial class MainViewModel
             SoundTime = $"{TimeSpan.FromSeconds(state.Position):mm\\:ss} / {TimeSpan.FromSeconds(state.Duration):mm\\:ss}";
             SoundState = state.Paused ? T["Paused"] : state.Playing ? T["Playing"] : T["Stopped"];
         }
-        TickAi();
     }
     [RelayCommand]
     private void SelectPreset(PresetCard? preset)

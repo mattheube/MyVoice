@@ -30,7 +30,7 @@ public partial class App : Application
         var rollbackJob=e.Args.SkipWhile(x=>x!="--update-rollback").Skip(1).FirstOrDefault();
         if(updateJob==null&&rollbackJob==null&&UpdateHandoff.IsBusy(AppContext.BaseDirectory))
         {MessageBox.Show("MyVoice est en cours de mise à jour. Il se rouvrira automatiquement.","MyVoice");Shutdown();return;}
-        instance = new Mutex(true, smoke ? "Local\\MyVoice.Smoke" : "Local\\MyVoice.App", out ownsMutex);
+        instance = new Mutex(true, smoke ? (e.Args.Contains("--memory-test")?"Local\\MyVoice.MemoryProbe":"Local\\MyVoice.Smoke") : "Local\\MyVoice.App", out ownsMutex);
         if (!ownsMutex)
         {
             MessageBox.Show("MyVoice est déjà ouvert dans la zone de notification.", "MyVoice");
@@ -142,6 +142,9 @@ public partial class App : Application
             await Task.Delay(700);
             var folder = args.SkipWhile(x => x != "--smoke-test").Skip(1).FirstOrDefault() ?? Path.GetTempPath();
             Directory.CreateDirectory(folder);
+            if(args.Contains("--memory-test")){await VerifyMemory(window,folder);ExitApplication();return;}
+            if(args.Contains("--menu-test")){await VerifyMenus(window,folder);ExitApplication();return;}
+            if(args.Contains("--background-test"))await VerifyBackground(window,folder);
             if(args.Contains("--exercise-update"))
             {
                 // Explicit integration test: only this isolated smoke profile and program copy are used.
@@ -196,6 +199,7 @@ public partial class App : Application
             if(args.Contains("--conversation-test"))
             {
                 var offset=Array.IndexOf(args,"--conversation-test");
+                if(args.Contains("--background-test"))window.Hide();
                 await vm!.VerifyConversationAsync(args[offset+1],args[offset+2],folder,args.Contains("--virtual-conversation"));
             }
             vm.UiScale=1;vm.LanguageIndex = 1;

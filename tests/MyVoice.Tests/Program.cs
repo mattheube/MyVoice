@@ -20,6 +20,25 @@ Test("Calibration rejects silence", () => { Assert(!Calibration.Analyze(new doub
 Test("Calibration caps distant microphone gain", () => { var levels = Enumerable.Repeat(.0001, 30).Concat(Enumerable.Repeat(.003, 70)).ToArray(); Assert(Calibration.Analyze(levels, .01).GainDb <= 18); });
 Test("Calibration rejects missing audio", () => { Assert(!Calibration.Analyze(new double[2], 0).CanApply); });
 Test("Non-finite audio is silenced", () => { var dsp = new GainProcessor(); float[] data = [float.NaN, float.PositiveInfinity]; dsp.Process(data); Assert(data.All(x => x == 0)); });
+Test("PCM worker encoding preserves every float bit",()=>{
+    var random=new Random(2026);var values=Enumerable.Range(0,30720).Select(_=>(float)(random.NextDouble()*2-1)).Concat(new[]{0f,-0f,float.Epsilon,float.NaN,float.PositiveInfinity}).ToArray();
+    var bytes=new byte[values.Length*4];Buffer.BlockCopy(values,0,bytes,0,bytes.Length);
+    var encoded=MyVoice.AI.PcmWireFormat.Encode(values);Assert(encoded==Convert.ToBase64String(bytes));
+    var decoded=MyVoice.AI.PcmWireFormat.Decode(encoded);Assert(values.Select(BitConverter.SingleToInt32Bits).SequenceEqual(decoded.Select(BitConverter.SingleToInt32Bits)));
+    Assert(MyVoice.AI.PcmWireFormat.Decode("").Length==0);
+});
+Test("PCM worker rejects malformed and oversized payloads",()=>{
+    foreach(var value in new[]{"!===","AAAA","A",new string('A',15360004)}){
+        bool rejected=false;try{MyVoice.AI.PcmWireFormat.Decode(value);}catch(InvalidDataException){rejected=true;}Assert(rejected);
+    }
+});
+Test("PCM worker removes duplicate byte buffer allocations",()=>{
+    var input=new float[30720];
+    float[] Old(){var bytes=new byte[input.Length*4];Buffer.BlockCopy(input,0,bytes,0,bytes.Length);var text=Convert.ToBase64String(bytes);var output=Convert.FromBase64String(text);var floats=new float[output.Length/4];Buffer.BlockCopy(output,0,floats,0,output.Length);return floats;}
+    float[] Current()=>MyVoice.AI.PcmWireFormat.Decode(MyVoice.AI.PcmWireFormat.Encode(input));
+    Old();Current();long Measure(Func<float[]> f){long start=GC.GetAllocatedBytesForCurrentThread();for(int i=0;i<20;i++)GC.KeepAlive(f());return GC.GetAllocatedBytesForCurrentThread()-start;}
+    var before=Measure(Old);var after=Measure(Current);Assert(after<before*.8);Console.WriteLine($"PCM allocations, 20 round trips: before={before} after={after}; identical float32 payload");
+});
 var folder = Path.Combine(Path.GetTempPath(), "MyVoice-Tests-" + Guid.NewGuid().ToString("N"));
 Test("Settings round trip", () => { var store = new LocalStore(folder); store.Save(new() { GainDb = 7.5, InputDeviceId = "device", Muted = true }); var s = store.Load(); Assert(s.GainDb == 7.5 && s.InputDeviceId == "device" && s.Muted); });
 Test("Corrupt primary recovers backup", () => { var store = new LocalStore(folder); store.Save(new() { GainDb = 12 }); File.WriteAllText(Path.Combine(folder, "config", "config.json"), "broken"); Assert(store.Load().GainDb == 7.5 && store.RecoveryMessage == "backup"); });

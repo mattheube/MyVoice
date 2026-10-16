@@ -20,8 +20,10 @@ public sealed class SignalHistory : FrameworkElement
     {
         var timer = new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromMilliseconds(50) };
         timer.Tick += (_, _) => { if(!IsVisible)return; Array.Copy(levels, 1, levels, 0, 69); levels[69] = Math.Clamp(Level / 100, 0, 1); InvalidateVisual(); };
-        Loaded += (_, _) => timer.Start();
-        Unloaded += (_, _) => timer.Stop();
+        void Activity(object? sender,EventArgs e){if(IsLoaded&&IsVisible&&UiActivity.VisualsActive)timer.Start();else timer.Stop();}
+        Loaded += (_, _) => {UiActivity.Changed+=Activity;Activity(null,EventArgs.Empty);};
+        Unloaded += (_, _) => {UiActivity.Changed-=Activity;timer.Stop();};
+        IsVisibleChanged+=(_,_)=>Activity(null,EventArgs.Empty);
     }
     private static void OnLevel(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {

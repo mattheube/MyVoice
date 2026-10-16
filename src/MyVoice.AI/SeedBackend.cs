@@ -102,23 +102,17 @@ public sealed class SeedBackend : IDisposable
     }
     public async Task<float[]> ConvertChunkAsync(float[] samples, int steps, CancellationToken token, bool reset=false)
     {
-        var bytes = new byte[samples.Length * 4];
-        Buffer.BlockCopy(samples, 0, bytes, 0, bytes.Length);
+
         using var result = await RequestAsync(new
         {
             command = "chunk", reset,
-            audio = Convert.ToBase64String(bytes),
+            audio = PcmWireFormat.Encode(samples),
             steps, expression = Expression, similarity = Similarity, preserve = PreserveDynamics, artifacts = ReduceArtifacts
         }, TimeSpan.FromMinutes(Device == "CPU" ? 15 : 3), token);
         Ensure(result);
         LastSeconds = result.RootElement.GetProperty("seconds").GetDouble();
         if(result.RootElement.TryGetProperty("steps",out var actualSteps))CurrentSteps=actualSteps.GetInt32();
-        var output = Convert.FromBase64String(result.RootElement.GetProperty("audio").GetString()!);
-        if (output.Length > 48000 * 4 * 60 || output.Length % 4 != 0)
-            throw new InvalidDataException("Invalid AI audio response");
-        var floats = new float[output.Length / 4];
-        Buffer.BlockCopy(output, 0, floats, 0, output.Length);
-        return floats;
+        return PcmWireFormat.Decode(result.RootElement.GetProperty("audio").GetString()!);
     }
     private async Task<JsonDocument> RequestAsync(object request, TimeSpan timeout, CancellationToken token)
     {

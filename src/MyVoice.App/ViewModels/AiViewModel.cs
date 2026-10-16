@@ -370,15 +370,15 @@ public partial class MainViewModel
     }
     private void TickAi()
     {
-        AiMetrics = aiLatency <= 0 ? "—" : $"~{aiLatency:0} ms · RTF {aiRtf:0.00} · calcul / audio {aiRtf:0.00}×";
+        if(MyVoice.App.Services.UiActivity.VisualsActive)AiMetrics = aiLatency <= 0 ? "—" : $"~{aiLatency:0} ms · RTF {aiRtf:0.00} · calcul / audio {aiRtf:0.00}×";
         if (AiReady && !ai.Ready)
         {
             AiReady = false;
             AiState = "Offline";
             StopLive();
         }
-        OnPropertyChanged(nameof(DisplayVoice));OnPropertyChanged(nameof(DisplayVoiceCover));
-        OnPropertyChanged(nameof(ConversationMetrics));
+        if(MyVoice.App.Services.UiActivity.VisualsActive){OnPropertyChanged(nameof(DisplayVoice));OnPropertyChanged(nameof(DisplayVoiceCover));
+        OnPropertyChanged(nameof(ConversationMetrics));}
     }
     private void DisposeAi()
     {

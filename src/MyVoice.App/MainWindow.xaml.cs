@@ -15,6 +15,7 @@ public partial class MainWindow : Window
         InitializePlacement();
         this.vm = vm;
         DataContext = vm;
+        InitializePages();
         PreviewKeyDown+=(_,e)=>{if(e.Key==System.Windows.Input.Key.K && System.Windows.Input.Keyboard.Modifiers==System.Windows.Input.ModifierKeys.Control){ShowSearch();e.Handled=true;}};
         Width=Math.Clamp(vm.Settings.WindowWidth,MinWidth,Math.Max(MinWidth,SystemParameters.WorkArea.Width));
         Height=Math.Clamp(vm.Settings.WindowHeight,MinHeight,Math.Max(MinHeight,SystemParameters.WorkArea.Height));
@@ -28,6 +29,7 @@ public partial class MainWindow : Window
         if(e.PropertyName==nameof(vm.NowPlayingVisible)&&vm.NowPlayingVisible&&ProductAppearance.Animate)PlayerPanel.BeginAnimation(OpacityProperty,new DoubleAnimation(0,1,TimeSpan.FromMilliseconds(180)));
         if (e.PropertyName == nameof(vm.Page))
         {
+            ShowPage();
             PageScroller.ScrollToTop();
             if (ProductAppearance.Animate)
                 PageHost.BeginAnimation(OpacityProperty, new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(160)));

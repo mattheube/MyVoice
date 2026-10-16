@@ -133,13 +133,15 @@ public partial class MainViewModel : ObservableObject, IDisposable
             Running = false;
             Status = T["Disconnected"];
         }
+        if(UiActivity.VisualsActive){
         var level = mic.Level;
         Meter = Math.Clamp((level.PeakDb + 60) / 60 * 100, 0, 100);
         LevelText = $"Peak {level.PeakDb:0.0} dB   ·   RMS {level.AverageDb:0.0} dB";
         Clipping = level.Clipping;
+        }
         TickStudio();
         TickRecovery();
-        TickMixer();
+        if(UiActivity.VisualsActive)TickMixer();
         TickMixerRecording();
         TickMixerMidi();
     }

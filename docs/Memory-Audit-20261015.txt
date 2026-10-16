@@ -1,0 +1,55 @@
+MYVOICE — AUDIT MÉMOIRE ET MENUS — 15 OCTOBRE 2026
+
+Baseline : Beta 5, build réussi sans avertissement. Mesures isolées dans work/memory-before/memory.json, sans GC forcé, avec 600 sons synthétiques (métadonnées, même fichier témoin), quatre cycles Home/Soundboard/Voice/Mixer/Community/Studio/Home, puis deux minutes caché. Audio volontairement désactivé dans cette mesure UI. Les comparaisons IA/audio sont des tests distincts.
+
+Processus utilisateur observés avant modification : MyVoice working set 186945536 octets, private bytes 253554688 ; worker Python working set 218742784, private bytes 4361580544. Le petit processus Python supplémentaire est le lanceur parent du même worker, pas un deuxième modèle. Mémoire privée engagée et RAM résidente ne sont pas interchangeables. Aucun modèle utilisateur arrêté pour obtenir de meilleurs chiffres.
+
+Causes identifiées :
+- Les dix Views étaient créées dans MainWindow.xaml au démarrage. Elles restaient toutes attachées, simplement Collapsed.
+- SoundCard ouvrait chaque fichier audio dès sa construction pour lire la durée. Les sons étaient pourtant déjà lus en streaming au Play et correctement disposés à la fin.
+- SignalHistory conservait un timer actif sur les pages cachées ; son callback revenait immédiatement, mais le timer continuait de réveiller le dispatcher.
+- Les compteurs et notifications de propriétés visuelles étaient mis à jour toutes les 40 ms même en tray.
+- Les miniatures avaient déjà une limite de 64 Mo/96 entrées, mais vidaient tout le cache d'un coup ; les contrôles invisibles pouvaient conserver leurs frames. Le décodage était fixé à 256 px quelle que soit la carte.
+- Les Soundboards sont déjà virtualisés par lignes ; les listes de voix utilisaient des WrapPanel non virtualisés.
+- Les icônes étaient bien des géométries. La bande blanche reproduite dans memory-before/context-menu.png provenait du template système de ContextMenu, resté en place malgré le template personnalisé des MenuItem.
+
+Corrections :
+- Création des pages à l'ouverture ; cache de huit pages récentes, plus le formulaire Profile pour préserver ses saisies non envoyées. Éviction après 90 secondes d’inactivité (contrôle toutes les 30 secondes) ; fenêtre et ViewModel/services restent vivants.
+- États visuels Foreground/Background/Tray. Arrêt des animations GIF et des timers de waveform hors premier plan. Les boucles audio, MIDI, hotkeys, récupération de périphériques et contrôles de santé IA conservent leur cadence.
+- Lecture asynchrone de la durée seulement à la première demande d'affichage, avec deux décodeurs simultanés maximum.
+- Cache LRU de miniatures borné, tailles adaptées au rendu/DPI, annulation des attentes sur disparition de la carte. Libération du cache sous pression mémoire et en tray prolongé.
+- Virtualisation par lignes des presets et voix IA avec les mêmes templates et commandes ; abonnement aux collections libéré au Unloaded.
+- Template complet ContextMenu sans colonne système ; slot fixe, géométries partagées et gelées, couleurs du thème, sous-menu séparé à droite.
+
+Ressources préexistantes conservées :
+- SoundboardService dispose les lecteurs terminés et lors de StopAll. Tampons de lecture de 960 floats par son actif.
+- Le backend IA ne conserve qu'un worker ; changement de moteur/Stop tue son arbre de processus et dispose le handle. Pas de déchargement du modèle actif, ni d'auto-unload pendant une pause de parole.
+- HttpClient Community est réutilisé par le service et disposé en fin de vie. Les recherches remplacent les résultats ; pas d'historique de tous les résultats ajouté.
+- Aucun FileSystemWatcher ni queue non bornée supplémentaire introduit. Pas de GC.Collect.
+
+Limites : ce profilage n'est pas un dump exhaustif du heap ni une preuve de stabilité sur plusieurs jours. Community reste limitée aux résultats du serveur ; sa liste et les notifications ne sont pas refactorées dans cette phase. Le formulaire Profile est volontairement conservé. Les tests DPI automatisés vérifient le rendu à différentes échelles, pas le passage physique entre plusieurs écrans. L'IA active représente la majorité de la mémoire et n'est pas déchargée.
+
+MESURES FINALES — 16 OCTOBRE
+
+State            BeforePrivateMiB AfterPrivateMiB BeforeAllocatedMiB AfterAllocatedMiB
+-----            ---------------- --------------- ------------------ -----------------
+startup                    188,00          182,40              87,50             80,10
+loop0-page4                207,90          203,60             182,30            114,40
+loop0-page1                185,80          187,30             171,90             96,10
+loop0-page0                193,30          193,10             173,40            100,80
+loop0-page8                196,10          194,20             178,30            107,20
+loop0-page5                203,70          200,20             179,80            109,60
+loop3-page4                204,60          206,90             194,70            143,20
+tray-two-minutes           204,90          209,10             222,20            161,30
+restored                   204,70          212,10             222,50            167,20
+
+
+Les private bytes ne diminuent pas dans tous les états : aucune forte réduction globale de RAM n'est revendiquée. Les allocations cumulées diminuent ; la GC et les réservations WPF expliquent une partie des variations. Comparaison de deux exécutions, pas une étude statistique. Aucun GC forcé ni vidage artificiel du working set.
+Transport PCM : 20 allers-retours de 30720 floats, 13928320 octets alloués avant contre 9012160 après (-35,3 %), bit-identiques. Une entrée Conversation est aussi réutilisée au lieu d'être réallouée à chaque bloc.
+Test IA initial avec profilage concurrent : échec, 71 blocs perdus. Reprise seule : 180 s sans perte, médianes 1218/1268 ms, maximum 1270 ms. Le résultat final après optimisation PCM doit être vérifié séparément.
+
+
+Dernier essai avec PCM optimisé : 1 bloc écarté sur 180 s (aucune perte AudioGraph), lors d'une rafale de notifications de périphériques. La cause n'est pas établie. Essai de confirmation en cours ; cet échec reste documenté.
+Les timers GIF sont maintenant créés uniquement pour les images animées ; les images statiques n'en créent aucun.
+
+Confirmation finale avec le binaire PCM + timers GIF différés : 180 secondes en arrière-plan sans bloc écarté ; 18048 soumissions virtuelles, médiane initiale 1228 ms, finale 1248 ms, maximum 1252 ms. Latence périphérique/Discord/réseau exclue. Un essai réussi ne supprime pas l'échec ponctuel documenté ci-dessus.

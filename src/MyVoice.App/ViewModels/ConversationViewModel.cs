@@ -18,7 +18,7 @@ public partial class MainViewModel
     [RelayCommand] private void SwitchConversationToDirect(){AiModel="fast";ConversationStatus="Direct sélectionné.";}
     private async Task ConversationLoop(CancellationToken token)
     {
-        int count=(int)Math.Round(ai.ChunkSeconds*48000);long seenDrops=conversationInput.Dropped;bool reset=false;int slow=0;
+        int count=(int)Math.Round(ai.ChunkSeconds*48000);long seenDrops=conversationInput.Dropped;bool reset=false;int slow=0;var input=new float[count];
         conversationDrops=0;conversationLatency=0;
         await Application.Current.Dispatcher.InvokeAsync(()=>{ConversationNeedsDirect=!ai.ConversationRecommended;ConversationStatus=ai.ConversationRecommended?"Conversation recommandée par le test de cette voix.":"Conversation ne tient pas le débit avec ces réglages. Direct est recommandé.";AiState="Conversation · écoute continue";});
         try
@@ -27,8 +27,8 @@ public partial class MainViewModel
             {
                 while(conversationInput.Count<count)await Task.Delay(10,token);
                 if(conversationInput.Dropped!=seenDrops){conversationDrops+=(conversationInput.Dropped-seenDrops+count-1)/count;seenDrops=conversationInput.Dropped;reset=true;}
-                while(conversationInput.Count>count*2){conversationInput.Take(new float[count]);conversationDrops++;reset=true;}
-                var input=new float[count];conversationInput.Take(input);long stamp=conversationInput.LastReadTimestamp;
+                while(conversationInput.Count>count*2){conversationInput.Take(input);conversationDrops++;reset=true;}
+                conversationInput.Take(input);long stamp=conversationInput.LastReadTimestamp;
                 conversationQueue=conversationInput.Count/48d;var generation=Volatile.Read(ref aiGeneration);
                 var output=await ai.ConvertChunkAsync(input,ai.CurrentSteps,token,reset);token.ThrowIfCancellationRequested();
                 if(Muted||generation!=Volatile.Read(ref aiGeneration))Array.Clear(output);

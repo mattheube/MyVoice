@@ -11,19 +11,39 @@ public sealed class SoundCard : ObservableObject
     public SoundCard(SoundItem item)
     {
         Item = item;
-        try { if(System.IO.File.Exists(item.File)) { using var reader=new NAudio.Wave.AudioFileReader(item.File); Duration=reader.TotalTime.ToString(@"mm\:ss"); } else Duration="File missing"; } catch { Duration="Unavailable"; }
+
     }
     private bool liked;public bool IsLiked{get=>liked;set=>SetProperty(ref liked,value);}
     public bool Owned=>string.IsNullOrEmpty(Item.SourceContentId);
     public string Creator=>Owned?"Vous":"Community";
-    public string Duration { get; private set; } = "—";
+    private string duration="—";
+    private bool durationRequested;
+    private int durationRevision;
+    private static readonly System.Threading.SemaphoreSlim DurationGate=new(2,2);
+    public string Duration {get{if(!durationRequested){durationRequested=true;ReadDuration(durationRevision);}return duration;}}
+    private async void ReadDuration(int revision)
+    {
+        string file=Item.File;
+        await DurationGate.WaitAsync();
+        try
+        {
+            if(revision!=durationRevision)return;
+            var value=await System.Threading.Tasks.Task.Run(()=>
+            {
+                try{if(!System.IO.File.Exists(file))return "File missing";using var reader=new NAudio.Wave.AudioFileReader(file);return reader.TotalTime.ToString(@"mm\:ss");}
+                catch{return "Unavailable";}
+            });
+            if(revision==durationRevision){duration=value;OnPropertyChanged(nameof(Duration));}
+        }
+        finally{DurationGate.Release();}
+    }
     public string Name => Item.Name;
     public string Folder => Item.Folder;
     public string? Cover => Item.Cover;
     public string Initial => string.IsNullOrEmpty(Name) ? "♪" : Name[..1].ToUpperInvariant();
     public void Refresh()
     {
-        try{using var reader=new NAudio.Wave.AudioFileReader(Item.File);Duration=reader.TotalTime.ToString(@"mm\:ss");}catch{Duration="—";}
+        durationRevision++;durationRequested=false;duration="—";
         OnPropertyChanged(nameof(Duration));
         OnPropertyChanged(nameof(Name));
         OnPropertyChanged(nameof(Folder));

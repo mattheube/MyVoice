@@ -9,42 +9,57 @@ public sealed class CoverImage : Image
     public string? FilePath {get=>(string?)GetValue(FilePathProperty);set=>SetValue(FilePathProperty,value);}
     private int generation,frame;
     private CoverFrames? frames;
-    private readonly System.Windows.Threading.DispatcherTimer timer=new();
-    private static readonly System.Collections.Concurrent.ConcurrentDictionary<string,CoverFrames> Thumbnails=new();
+    private System.Threading.CancellationTokenSource? decodeCancellation;
+    private void CancelDecode(){decodeCancellation?.Cancel();decodeCancellation?.Dispose();decodeCancellation=null;}
+    private System.Windows.Threading.DispatcherTimer? timer;
+
     private static readonly System.Threading.SemaphoreSlim DecodeGate=new(2,2);
     public CoverImage()
     {
-        Loaded+=(_,_)=>Load();Unloaded+=(_,_)=>{++generation;timer.Stop();frames=null;Source=null;};
-        IsVisibleChanged+=(_,_)=>{if(IsVisible)Load();else timer.Stop();};
-        timer.Tick+=(_,_)=>{if(frames==null||!IsVisible||!ProductAppearance.Animate){timer.Stop();return;}frame=(frame+1)%frames.Frames.Length;Source=frames.Frames[frame];timer.Interval=TimeSpan.FromMilliseconds(frames.Delays[frame]);};
+        Loaded+=(_,_)=>{UiActivity.Changed+=ActivityChanged;Load();};Unloaded+=(_,_)=>{UiActivity.Changed-=ActivityChanged;++generation;CancelDecode();timer?.Stop();frames=null;Source=null;};
+        IsVisibleChanged+=(_,_)=>{if(IsVisible)Load();else {++generation;CancelDecode();timer?.Stop();frames=null;Source=null;}};
+
     }
+    private void AnimateFrame(object? sender,EventArgs e)
+    {
+        if(frames==null||!IsVisible||!ProductAppearance.Animate||!UiActivity.VisualsActive){timer?.Stop();return;}
+        frame=(frame+1)%frames.Frames.Length;Source=frames.Frames[frame];timer!.Interval=TimeSpan.FromMilliseconds(frames.Delays[frame]);
+    }
+    private void StartAnimation()
+    {
+        if(frames==null)return;
+        if(timer==null){timer=new System.Windows.Threading.DispatcherTimer();timer.Tick+=AnimateFrame;}
+        timer.Interval=TimeSpan.FromMilliseconds(frames.Delays[0]);timer.Start();
+    }
+    private void ActivityChanged(object? sender,EventArgs e){if(UiActivity.VisualsActive&&IsVisible)Load();else timer?.Stop();}
     private static void FileChanged(DependencyObject obj,DependencyPropertyChangedEventArgs args)=>((CoverImage)obj).Load();
     private async void Load()
     {
-        int current=++generation;timer.Stop();Source=null;frames=null;frame=0;
+        int current=++generation;CancelDecode();timer?.Stop();Source=null;frames=null;frame=0;
         if(!IsLoaded||!IsVisible||FilePath is not string file||!System.IO.File.Exists(file))return;
         try
         {
-            var key=file+System.IO.File.GetLastWriteTimeUtc(file).Ticks;
-            if(!Thumbnails.TryGetValue(key,out var decoded))
+            decodeCancellation=new System.Threading.CancellationTokenSource();var token=decodeCancellation.Token;
+            double display=Math.Max(ActualWidth,ActualHeight)*VisualTreeHelper.GetDpi(this).DpiScaleX;
+            int size=display>0&&double.IsFinite(display)?Math.Clamp((int)Math.Ceiling(display/32)*32,64,512):256;
+            var key=file+"|"+System.IO.File.GetLastWriteTimeUtc(file).Ticks+"|"+size;
+            if(!ThumbnailCache.TryGetValue(key,out var decoded))
             {
-                await DecodeGate.WaitAsync();
+                await DecodeGate.WaitAsync(token);
                 try
                 {
                     if(current!=generation)return;
-                    if(!Thumbnails.TryGetValue(key,out decoded))
+                    if(!ThumbnailCache.TryGetValue(key,out decoded))
                     {
-                        decoded=await System.Threading.Tasks.Task.Run(()=>CoverDecoder.Read(file));
-                        long bytes=0;foreach(var cached in Thumbnails.Values)foreach(var bitmap in cached.Frames)bytes+=(long)bitmap.PixelWidth*bitmap.PixelHeight*4;
-                        long added=0;foreach(var bitmap in decoded.Frames)added+=(long)bitmap.PixelWidth*bitmap.PixelHeight*4;
-                        if(Thumbnails.Count>=96||bytes+added>64*1024*1024)Thumbnails.Clear();Thumbnails[key]=decoded;
+                        decoded=await System.Threading.Tasks.Task.Run(()=>CoverDecoder.Read(file,size),token);
+                        ThumbnailCache.Add(key,decoded);
                     }
                 }
                 finally{DecodeGate.Release();}
             }
             if(current!=generation)return;
             frames=decoded;Source=frames.Frames[0];
-            if(frames.Frames.Length>1&&ProductAppearance.Animate){timer.Interval=TimeSpan.FromMilliseconds(frames.Delays[0]);timer.Start();}
+            if(frames.Frames.Length>1&&ProductAppearance.Animate&&UiActivity.VisualsActive)StartAnimation();
         }
         catch{if(current==generation)Source=null;}
     }

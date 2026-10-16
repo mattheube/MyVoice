@@ -1,9 +1,13 @@
-MyVoice 2.7.0-beta.5
+MyVoice 2.7.0-beta.6
 
-Le démarrage du moteur vérifie maintenant Python, ses dépendances et le backend. S'ils manquent, MyVoice lance la réparation dans son environnement géré avant d'initialiser le modèle. Le bouton Installer / réparer utilise le même parcours. L'annulation arrête la réparation sans effacer les voix ni les modèles.
+Correction des menus clic droit : suppression de la colonne blanche du template Windows, icônes vectorielles de taille fixe, sous-menus lisibles, couleurs du thème et actions de retrait distinctes. Les commandes existantes sont conservées.
 
-Correction du chemin de modules Windows PowerShell lors du lancement depuis l'application. Les archives uv et backend téléchargées sont vérifiées par SHA-256. Un environnement incomplet est sauvegardé avant reconstruction.
+Ressources : pages créées à la demande, cache de pages avec expiration, lectures de durée audio différées, listes de voix virtualisées et cache LRU de miniatures limité à 64 Mo. Les décodages en attente sont annulés quand la carte disparaît. Les champs de profil non envoyés restent conservés.
 
-Validation : installation isolée depuis un dossier sans Python, auto-test VAD sur 50 trames silencieuses, deuxième démarrage sans réinstallation et modèle témoin préservé ; 197 tests C# ; compilation sans avertissement. Cela ne remplace pas une validation sur un PC Windows vierge ni une mesure de qualité des modèles.
+Arrière-plan : les animations GIF, waveforms et rafraîchissements visuels inutiles sont suspendus. Le microphone, le mixeur, les raccourcis, les sons et le moteur IA actif continuent. Aucun modèle actif n'est déchargé et aucun GC forcé n'est ajouté.
 
-Les améliorations Beta 4 du mixeur, de VB-CABLE, des menus et de Publish & Share restent incluses. Le prompt complet reste en cours : tableau de santé détaillé, pad XY, sessions et avatars en ligne, modèles IA partageables sans références brutes et pilote My Voice notamment ne sont pas terminés.
+Transport audio IA : suppression de deux tableaux temporaires par échange et réutilisation du tampon d'entrée Conversation. Le test ciblé mesure 35 % d'allocations en moins pour l'encodage/décodage float32, avec un signal identique bit pour bit. Cela ne signifie pas 35 % de RAM totale en moins.
+
+Validation : 200 tests C#, navigation WPF, 600 sons et 600 voix, cache borné, formulaires conservés, menus rendus dans trois thèmes et quatre échelles (100/125/150/200 %). Le rapport mémoire donne les mesures brutes et leurs limites ; la mémoire totale reste dominée par les modèles IA. Le passage physique entre écrans DPI différents n'a pas été testé.
+
+Audio en arrière-plan : essai final de trois minutes réussi sans perte, latence mesurée environ 1,25 s jusqu'à la soumission virtuelle. Un essai précédent a écarté un bloc ; la stabilité sous charge reste dépendante de la machine et du modèle. Le rapport conserve ces résultats.

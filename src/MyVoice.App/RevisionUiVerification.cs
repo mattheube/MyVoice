@@ -70,10 +70,35 @@ public partial class App
         int realized=Enumerable.Range(0,soundList.Items.Count).Count(i=>soundList.ItemContainerGenerator.ContainerFromIndex(i)!=null);
         if(realized>=soundList.Items.Count||realized>30)throw new Exception("Sound rows were not virtualized: "+realized);
         foreach(var item in added)vm.SoundCards.Remove(item);
+        var voiceFixtures=Enumerable.Range(0,600).Select(i=>new VoiceReference{Name="Virtual voice "+i}).ToArray();
+        foreach(var voice in voiceFixtures)vm.AiVoices.Add(voice);vm.Page=0;await Task.Delay(200);window.UpdateLayout();
+        var voiceList=Children(window).OfType<Services.VirtualCardList>().First(l=>ReferenceEquals(l.Cards,vm.AiVoices));
+        voiceList.BringIntoView();window.UpdateLayout();
+        int voiceRows=Enumerable.Range(0,voiceList.Items.Count).Count(i=>voiceList.ItemContainerGenerator.ContainerFromIndex(i)!=null);
+        if(voiceRows>=voiceList.Items.Count||voiceRows>30)throw new Exception("AI voice rows were not virtualized: "+voiceRows);
+        foreach(var voice in voiceFixtures)vm.AiVoices.Remove(voice);
+        var pixel=System.Windows.Media.Imaging.BitmapSource.Create(1,1,96,96,PixelFormats.Bgra32,null,new byte[4],4);pixel.Freeze();
+        Services.ThumbnailCache.Clear();
+        for(int i=0;i<97;i++)Services.ThumbnailCache.Add("cache-test-"+i,new Services.CoverFrames([pixel],[100]));
+        if(Services.ThumbnailCache.TryGetValue("cache-test-0",out _)||!Services.ThumbnailCache.TryGetValue("cache-test-96",out _))throw new Exception("Thumbnail LRU bound failed");
+        Services.ThumbnailCache.Clear();
+        var large=System.Windows.Media.Imaging.BitmapSource.Create(512,512,96,96,PixelFormats.Bgra32,null,new byte[512*512*4],512*4);large.Freeze();
+        var forty=new Services.CoverFrames(Enumerable.Repeat(large,40).ToArray(),Enumerable.Repeat(100,40).ToArray());
+        Services.ThumbnailCache.Add("forty-a",forty);Services.ThumbnailCache.Add("forty-b",forty);
+        if(Services.ThumbnailCache.TryGetValue("forty-a",out _)||!Services.ThumbnailCache.TryGetValue("forty-b",out _))throw new Exception("Thumbnail byte limit failed");
+        Services.ThumbnailCache.Add("oversize",new Services.CoverFrames(Enumerable.Repeat(large,65).ToArray(),Enumerable.Repeat(100,65).ToArray()));
+        if(Services.ThumbnailCache.TryGetValue("oversize",out _))throw new Exception("Oversized thumbnail entry was cached");
+        Services.ThumbnailCache.Clear();
+        vm.Page=7;window.UpdateLayout();
+        var profile=Children(window).OfType<Views.ProfileView>().First();
+        ((TextBox)profile.FindName("Email")).Text="unsent@example.invalid";
+        foreach(int page in new[]{4,1,8,2,0}){vm.Page=page;window.UpdateLayout();}
+        vm.Page=7;window.UpdateLayout();
+        if(((TextBox)Children(window).OfType<Views.ProfileView>().First().FindName("Email")).Text!="unsent@example.invalid")throw new Exception("Page cache lost unsubmitted profile fields");
         typeof(MainWindow).GetMethod("ShowSearch",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)!.Invoke(window,null);await Task.Delay(100);
         var search=Application.Current.Windows.OfType<Window>().First(w=>w.Owner==window&&w.Title==vm.T["SearchEverywhere"]);
         if(!search.IsVisible)throw new Exception("Search window failed to open");search.Close();
         int language=vm.LanguageIndex;vm.LanguageIndex=1;if(vm.T["RevisionLabel16"]!="Sound editor"||vm.AccountLabel!="Guest")throw new Exception("English revision labels failed");vm.LanguageIndex=language;
-        File.WriteAllText(Path.Combine(folder,"revision-result.txt"),"PASS dropdown render/open during refresh; Escape; wheel protection; stable device selection; cable refresh retains mixer cards; offline draft metadata persists; invalid package preserves previous draft; mixed collection filters; independent likes; context menu render; global search; notification read state.");
+        File.WriteAllText(Path.Combine(folder,"revision-result.txt"),"PASS dropdown render/open during refresh; Escape; wheel protection; stable device selection; cable refresh retains mixer cards; offline draft metadata persists; invalid package preserves previous draft; mixed collection filters; independent likes; context menu render; global search; notification read state; 600 AI voices virtualized; thumbnail LRU bounded.");
     }
 }
