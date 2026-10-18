@@ -1,0 +1,2152 @@
+[
+  {
+    "id": "red",
+    "author": "SamsterBirdies",
+    "source": "https://freesound.org/people/SamsterBirdies/sounds/489422/",
+    "license": "CC0-1.0",
+    "sourceSha256": "d7c8e0a4525ae2aa2676589e3f3a259bf08270777e9d498229692c2581396914",
+    "processing": "Mono 48 kHz, impact pair segmentation, DC/high-pass cleanup, gain and fades. Large-key variants are adapted recorded impacts, not separately identified physical keys.",
+    "cuts": [
+      {
+        "file": "normal/down-01.wav",
+        "start": 0.2299,
+        "end": 0.3899
+      },
+      {
+        "file": "normal/down-02.wav",
+        "start": 0.62794,
+        "end": 0.77179
+      },
+      {
+        "file": "normal/down-03.wav",
+        "start": 2.82679,
+        "end": 2.92177
+      },
+      {
+        "file": "normal/down-04.wav",
+        "start": 3.66006,
+        "end": 3.78575
+      },
+      {
+        "file": "normal/down-05.wav",
+        "start": 4.63794,
+        "end": 4.73848
+      },
+      {
+        "file": "normal/down-06.wav",
+        "start": 5.55262,
+        "end": 5.63335
+      },
+      {
+        "file": "normal/down-07.wav",
+        "start": 7.56108,
+        "end": 7.63702
+      },
+      {
+        "file": "normal/down-08.wav",
+        "start": 9.375,
+        "end": 9.4585
+      },
+      {
+        "file": "normal/up-01.wav",
+        "start": 0.43802,
+        "end": 0.50813
+      },
+      {
+        "file": "normal/up-02.wav",
+        "start": 0.77012,
+        "end": 0.93012
+      },
+      {
+        "file": "normal/up-03.wav",
+        "start": 2.9201,
+        "end": 3.00423
+      },
+      {
+        "file": "normal/up-04.wav",
+        "start": 3.78408,
+        "end": 3.94408
+      },
+      {
+        "file": "space/down-01.wav",
+        "start": 3.66006,
+        "end": 3.78575
+      },
+      {
+        "file": "space/down-02.wav",
+        "start": 4.63794,
+        "end": 4.73848
+      },
+      {
+        "file": "space/down-03.wav",
+        "start": 5.55262,
+        "end": 5.63335
+      },
+      {
+        "file": "space/down-04.wav",
+        "start": 7.56108,
+        "end": 7.63702
+      },
+      {
+        "file": "space/down-05.wav",
+        "start": 9.375,
+        "end": 9.4585
+      },
+      {
+        "file": "space/down-06.wav",
+        "start": 9.7074,
+        "end": 9.82227
+      },
+      {
+        "file": "space/down-07.wav",
+        "start": 10.04858,
+        "end": 10.12044
+      },
+      {
+        "file": "space/down-08.wav",
+        "start": 10.77469,
+        "end": 10.85804
+      },
+      {
+        "file": "space/up-01.wav",
+        "start": 3.78408,
+        "end": 3.94408
+      },
+      {
+        "file": "space/up-02.wav",
+        "start": 4.73681,
+        "end": 4.86348
+      },
+      {
+        "file": "space/up-03.wav",
+        "start": 5.63169,
+        "end": 5.6959
+      },
+      {
+        "file": "space/up-04.wav",
+        "start": 7.63535,
+        "end": 7.7054
+      },
+      {
+        "file": "enter/down-01.wav",
+        "start": 7.56108,
+        "end": 7.63702
+      },
+      {
+        "file": "enter/down-02.wav",
+        "start": 9.375,
+        "end": 9.4585
+      },
+      {
+        "file": "enter/down-03.wav",
+        "start": 9.7074,
+        "end": 9.82227
+      },
+      {
+        "file": "enter/down-04.wav",
+        "start": 10.04858,
+        "end": 10.12044
+      },
+      {
+        "file": "enter/down-05.wav",
+        "start": 10.77469,
+        "end": 10.85804
+      },
+      {
+        "file": "enter/down-06.wav",
+        "start": 11.11456,
+        "end": 11.23525
+      },
+      {
+        "file": "enter/down-07.wav",
+        "start": 11.36412,
+        "end": 11.50923
+      },
+      {
+        "file": "enter/down-08.wav",
+        "start": 11.50756,
+        "end": 11.62498
+      },
+      {
+        "file": "enter/up-01.wav",
+        "start": 7.63535,
+        "end": 7.7054
+      },
+      {
+        "file": "enter/up-02.wav",
+        "start": 9.45683,
+        "end": 9.61683
+      },
+      {
+        "file": "enter/up-03.wav",
+        "start": 9.8206,
+        "end": 9.9806
+      },
+      {
+        "file": "enter/up-04.wav",
+        "start": 10.11877,
+        "end": 10.22823
+      },
+      {
+        "file": "backspace/down-01.wav",
+        "start": 10.04858,
+        "end": 10.12044
+      },
+      {
+        "file": "backspace/down-02.wav",
+        "start": 10.77469,
+        "end": 10.85804
+      },
+      {
+        "file": "backspace/down-03.wav",
+        "start": 11.11456,
+        "end": 11.23525
+      },
+      {
+        "file": "backspace/down-04.wav",
+        "start": 11.36412,
+        "end": 11.50923
+      },
+      {
+        "file": "backspace/down-05.wav",
+        "start": 11.50756,
+        "end": 11.62498
+      },
+      {
+        "file": "backspace/down-06.wav",
+        "start": 12.56885,
+        "end": 12.68904
+      },
+      {
+        "file": "backspace/down-07.wav",
+        "start": 12.81785,
+        "end": 12.91431
+      },
+      {
+        "file": "backspace/down-08.wav",
+        "start": 14.35233,
+        "end": 14.435
+      },
+      {
+        "file": "backspace/up-01.wav",
+        "start": 10.11877,
+        "end": 10.22823
+      },
+      {
+        "file": "backspace/up-02.wav",
+        "start": 10.85637,
+        "end": 10.99381
+      },
+      {
+        "file": "backspace/up-03.wav",
+        "start": 11.23358,
+        "end": 11.36579
+      },
+      {
+        "file": "backspace/up-04.wav",
+        "start": 11.50756,
+        "end": 11.62498
+      },
+      {
+        "file": "shift/down-01.wav",
+        "start": 11.36412,
+        "end": 11.50923
+      },
+      {
+        "file": "shift/down-02.wav",
+        "start": 11.50756,
+        "end": 11.62498
+      },
+      {
+        "file": "shift/down-03.wav",
+        "start": 12.56885,
+        "end": 12.68904
+      },
+      {
+        "file": "shift/down-04.wav",
+        "start": 12.81785,
+        "end": 12.91431
+      },
+      {
+        "file": "shift/down-05.wav",
+        "start": 14.35233,
+        "end": 14.435
+      },
+      {
+        "file": "shift/down-06.wav",
+        "start": 14.60865,
+        "end": 14.76865
+      },
+      {
+        "file": "shift/down-07.wav",
+        "start": 16.25723,
+        "end": 16.35569
+      },
+      {
+        "file": "shift/down-08.wav",
+        "start": 17.15671,
+        "end": 17.27362
+      },
+      {
+        "file": "shift/up-01.wav",
+        "start": 11.50756,
+        "end": 11.62498
+      },
+      {
+        "file": "shift/up-02.wav",
+        "start": 11.62331,
+        "end": 11.75067
+      },
+      {
+        "file": "shift/up-03.wav",
+        "start": 12.68737,
+        "end": 12.81952
+      },
+      {
+        "file": "shift/up-04.wav",
+        "start": 12.91265,
+        "end": 13.02581
+      },
+      {
+        "file": "modifier/down-01.wav",
+        "start": 12.81785,
+        "end": 12.91431
+      },
+      {
+        "file": "modifier/down-02.wav",
+        "start": 14.35233,
+        "end": 14.435
+      },
+      {
+        "file": "modifier/down-03.wav",
+        "start": 14.60865,
+        "end": 14.76865
+      },
+      {
+        "file": "modifier/down-04.wav",
+        "start": 16.25723,
+        "end": 16.35569
+      },
+      {
+        "file": "modifier/down-05.wav",
+        "start": 17.15671,
+        "end": 17.27362
+      },
+      {
+        "file": "modifier/down-06.wav",
+        "start": 17.86977,
+        "end": 18.02977
+      },
+      {
+        "file": "modifier/down-07.wav",
+        "start": 18.03123,
+        "end": 18.1425
+      },
+      {
+        "file": "modifier/down-08.wav",
+        "start": 19.31152,
+        "end": 19.42419
+      },
+      {
+        "file": "modifier/up-01.wav",
+        "start": 12.91265,
+        "end": 13.02581
+      },
+      {
+        "file": "modifier/up-02.wav",
+        "start": 14.43333,
+        "end": 14.59333
+      },
+      {
+        "file": "modifier/up-03.wav",
+        "start": 14.79392,
+        "end": 14.88237
+      },
+      {
+        "file": "modifier/up-04.wav",
+        "start": 16.35402,
+        "end": 16.43475
+      },
+      {
+        "file": "small/down-01.wav",
+        "start": 16.25723,
+        "end": 16.35569
+      },
+      {
+        "file": "small/down-02.wav",
+        "start": 17.15671,
+        "end": 17.27362
+      },
+      {
+        "file": "small/down-03.wav",
+        "start": 17.86977,
+        "end": 18.02977
+      },
+      {
+        "file": "small/down-04.wav",
+        "start": 18.03123,
+        "end": 18.1425
+      },
+      {
+        "file": "small/down-05.wav",
+        "start": 19.31152,
+        "end": 19.42419
+      },
+      {
+        "file": "small/down-06.wav",
+        "start": 19.97863,
+        "end": 20.12565
+      },
+      {
+        "file": "small/down-07.wav",
+        "start": 22.91783,
+        "end": 22.99681
+      },
+      {
+        "file": "small/down-08.wav",
+        "start": 23.20933,
+        "end": 23.29329
+      },
+      {
+        "file": "small/up-01.wav",
+        "start": 16.35402,
+        "end": 16.43475
+      },
+      {
+        "file": "small/up-02.wav",
+        "start": 17.27196,
+        "end": 17.43196
+      },
+      {
+        "file": "small/up-03.wav",
+        "start": 18.03123,
+        "end": 18.1425
+      },
+      {
+        "file": "small/up-04.wav",
+        "start": 18.14083,
+        "end": 18.30083
+      }
+    ]
+  },
+  {
+    "id": "blue",
+    "author": "SamsterBirdies",
+    "source": "https://freesound.org/people/SamsterBirdies/sounds/489424/",
+    "license": "CC0-1.0",
+    "sourceSha256": "2f2d97047afea48e882925f73536e6809ee9718aa8962bb769d81f194f6bcdcc",
+    "processing": "Mono 48 kHz, impact pair segmentation, DC/high-pass cleanup, gain and fades. Large-key variants are adapted recorded impacts, not separately identified physical keys.",
+    "cuts": [
+      {
+        "file": "normal/down-01.wav",
+        "start": 0.83558,
+        "end": 0.93835
+      },
+      {
+        "file": "normal/down-02.wav",
+        "start": 1.11865,
+        "end": 1.26308
+      },
+      {
+        "file": "normal/down-03.wav",
+        "start": 2.46735,
+        "end": 2.56844
+      },
+      {
+        "file": "normal/down-04.wav",
+        "start": 4.12023,
+        "end": 4.20927
+      },
+      {
+        "file": "normal/down-05.wav",
+        "start": 4.64235,
+        "end": 4.78869
+      },
+      {
+        "file": "normal/down-06.wav",
+        "start": 6.54383,
+        "end": 6.64706
+      },
+      {
+        "file": "normal/down-07.wav",
+        "start": 7.02927,
+        "end": 7.12748
+      },
+      {
+        "file": "normal/down-08.wav",
+        "start": 7.67598,
+        "end": 7.79217
+      },
+      {
+        "file": "normal/up-01.wav",
+        "start": 0.93669,
+        "end": 1.09669
+      },
+      {
+        "file": "normal/up-02.wav",
+        "start": 1.26142,
+        "end": 1.37994
+      },
+      {
+        "file": "normal/up-03.wav",
+        "start": 2.56677,
+        "end": 2.67183
+      },
+      {
+        "file": "normal/up-04.wav",
+        "start": 4.2076,
+        "end": 4.3676
+      },
+      {
+        "file": "space/down-01.wav",
+        "start": 4.12023,
+        "end": 4.20927
+      },
+      {
+        "file": "space/down-02.wav",
+        "start": 4.64235,
+        "end": 4.78869
+      },
+      {
+        "file": "space/down-03.wav",
+        "start": 6.54383,
+        "end": 6.64706
+      },
+      {
+        "file": "space/down-04.wav",
+        "start": 7.02927,
+        "end": 7.12748
+      },
+      {
+        "file": "space/down-05.wav",
+        "start": 7.67598,
+        "end": 7.79217
+      },
+      {
+        "file": "space/down-06.wav",
+        "start": 9.39302,
+        "end": 9.50188
+      },
+      {
+        "file": "space/down-07.wav",
+        "start": 11.46637,
+        "end": 11.58
+      },
+      {
+        "file": "space/down-08.wav",
+        "start": 11.71658,
+        "end": 11.87658
+      },
+      {
+        "file": "space/up-01.wav",
+        "start": 4.2076,
+        "end": 4.3676
+      },
+      {
+        "file": "space/up-02.wav",
+        "start": 4.78702,
+        "end": 4.94702
+      },
+      {
+        "file": "space/up-03.wav",
+        "start": 6.6454,
+        "end": 6.71033
+      },
+      {
+        "file": "space/up-04.wav",
+        "start": 7.12581,
+        "end": 7.22429
+      },
+      {
+        "file": "enter/down-01.wav",
+        "start": 7.02927,
+        "end": 7.12748
+      },
+      {
+        "file": "enter/down-02.wav",
+        "start": 7.67598,
+        "end": 7.79217
+      },
+      {
+        "file": "enter/down-03.wav",
+        "start": 9.39302,
+        "end": 9.50188
+      },
+      {
+        "file": "enter/down-04.wav",
+        "start": 11.46637,
+        "end": 11.58
+      },
+      {
+        "file": "enter/down-05.wav",
+        "start": 11.71658,
+        "end": 11.87658
+      },
+      {
+        "file": "enter/down-06.wav",
+        "start": 11.95562,
+        "end": 12.04804
+      },
+      {
+        "file": "enter/down-07.wav",
+        "start": 12.82225,
+        "end": 12.92485
+      },
+      {
+        "file": "enter/down-08.wav",
+        "start": 13.50521,
+        "end": 13.66498
+      },
+      {
+        "file": "enter/up-01.wav",
+        "start": 7.12581,
+        "end": 7.22429
+      },
+      {
+        "file": "enter/up-02.wav",
+        "start": 7.7905,
+        "end": 7.87858
+      },
+      {
+        "file": "enter/up-03.wav",
+        "start": 9.50021,
+        "end": 9.60923
+      },
+      {
+        "file": "enter/up-04.wav",
+        "start": 11.57833,
+        "end": 11.71825
+      },
+      {
+        "file": "backspace/down-01.wav",
+        "start": 11.46637,
+        "end": 11.58
+      },
+      {
+        "file": "backspace/down-02.wav",
+        "start": 11.71658,
+        "end": 11.87658
+      },
+      {
+        "file": "backspace/down-03.wav",
+        "start": 11.95562,
+        "end": 12.04804
+      },
+      {
+        "file": "backspace/down-04.wav",
+        "start": 12.82225,
+        "end": 12.92485
+      },
+      {
+        "file": "backspace/down-05.wav",
+        "start": 13.50521,
+        "end": 13.66498
+      },
+      {
+        "file": "backspace/down-06.wav",
+        "start": 13.93313,
+        "end": 14.09313
+      },
+      {
+        "file": "backspace/down-07.wav",
+        "start": 14.09913,
+        "end": 14.21742
+      },
+      {
+        "file": "backspace/down-08.wav",
+        "start": 15.9349,
+        "end": 16.04179
+      },
+      {
+        "file": "backspace/up-01.wav",
+        "start": 11.57833,
+        "end": 11.71825
+      },
+      {
+        "file": "backspace/up-02.wav",
+        "start": 11.95562,
+        "end": 12.04804
+      },
+      {
+        "file": "backspace/up-03.wav",
+        "start": 12.04637,
+        "end": 12.11671
+      },
+      {
+        "file": "backspace/up-04.wav",
+        "start": 12.92319,
+        "end": 13.0076
+      },
+      {
+        "file": "shift/down-01.wav",
+        "start": 12.82225,
+        "end": 12.92485
+      },
+      {
+        "file": "shift/down-02.wav",
+        "start": 13.50521,
+        "end": 13.66498
+      },
+      {
+        "file": "shift/down-03.wav",
+        "start": 13.93313,
+        "end": 14.09313
+      },
+      {
+        "file": "shift/down-04.wav",
+        "start": 14.09913,
+        "end": 14.21742
+      },
+      {
+        "file": "shift/down-05.wav",
+        "start": 15.9349,
+        "end": 16.04179
+      },
+      {
+        "file": "shift/down-06.wav",
+        "start": 16.37315,
+        "end": 16.46531
+      },
+      {
+        "file": "shift/down-07.wav",
+        "start": 17.42265,
+        "end": 17.57031
+      },
+      {
+        "file": "shift/down-08.wav",
+        "start": 18.58488,
+        "end": 18.70229
+      },
+      {
+        "file": "shift/up-01.wav",
+        "start": 12.92319,
+        "end": 13.0076
+      },
+      {
+        "file": "shift/up-02.wav",
+        "start": 13.66331,
+        "end": 13.72627
+      },
+      {
+        "file": "shift/up-03.wav",
+        "start": 14.09913,
+        "end": 14.21742
+      },
+      {
+        "file": "shift/up-04.wav",
+        "start": 14.21575,
+        "end": 14.36073
+      },
+      {
+        "file": "modifier/down-01.wav",
+        "start": 14.09913,
+        "end": 14.21742
+      },
+      {
+        "file": "modifier/down-02.wav",
+        "start": 15.9349,
+        "end": 16.04179
+      },
+      {
+        "file": "modifier/down-03.wav",
+        "start": 16.37315,
+        "end": 16.46531
+      },
+      {
+        "file": "modifier/down-04.wav",
+        "start": 17.42265,
+        "end": 17.57031
+      },
+      {
+        "file": "modifier/down-05.wav",
+        "start": 18.58488,
+        "end": 18.70229
+      },
+      {
+        "file": "modifier/down-06.wav",
+        "start": 20.58173,
+        "end": 20.69998
+      },
+      {
+        "file": "modifier/down-07.wav",
+        "start": 20.91592,
+        "end": 21.07592
+      },
+      {
+        "file": "modifier/down-08.wav",
+        "start": 21.47258,
+        "end": 21.60552
+      },
+      {
+        "file": "modifier/up-01.wav",
+        "start": 14.21575,
+        "end": 14.36073
+      },
+      {
+        "file": "modifier/up-02.wav",
+        "start": 16.04012,
+        "end": 16.14327
+      },
+      {
+        "file": "modifier/up-03.wav",
+        "start": 16.46365,
+        "end": 16.5676
+      },
+      {
+        "file": "modifier/up-04.wav",
+        "start": 17.56865,
+        "end": 17.64908
+      },
+      {
+        "file": "small/down-01.wav",
+        "start": 17.42265,
+        "end": 17.57031
+      },
+      {
+        "file": "small/down-02.wav",
+        "start": 18.58488,
+        "end": 18.70229
+      },
+      {
+        "file": "small/down-03.wav",
+        "start": 20.58173,
+        "end": 20.69998
+      },
+      {
+        "file": "small/down-04.wav",
+        "start": 20.91592,
+        "end": 21.07592
+      },
+      {
+        "file": "small/down-05.wav",
+        "start": 21.47258,
+        "end": 21.60552
+      },
+      {
+        "file": "small/down-06.wav",
+        "start": 21.83708,
+        "end": 21.93619
+      },
+      {
+        "file": "small/down-07.wav",
+        "start": 22.37487,
+        "end": 22.46948
+      },
+      {
+        "file": "small/down-08.wav",
+        "start": 22.81352,
+        "end": 22.91673
+      },
+      {
+        "file": "small/up-01.wav",
+        "start": 17.56865,
+        "end": 17.64908
+      },
+      {
+        "file": "small/up-02.wav",
+        "start": 18.70062,
+        "end": 18.8039
+      },
+      {
+        "file": "small/up-03.wav",
+        "start": 20.69831,
+        "end": 20.85831
+      },
+      {
+        "file": "small/up-04.wav",
+        "start": 21.07481,
+        "end": 21.13958
+      }
+    ]
+  },
+  {
+    "id": "clear",
+    "author": "humi74",
+    "source": "https://freesound.org/people/humi74/sounds/412926/",
+    "license": "CC0-1.0",
+    "sourceSha256": "0a9ec897f71e3c5eb2aef632fc6843a5212106408ce934d54cce9b6c2d7ba765",
+    "processing": "Mono 48 kHz, impact pair segmentation, DC/high-pass cleanup, gain and fades. Large-key variants are adapted recorded impacts, not separately identified physical keys.",
+    "cuts": [
+      {
+        "file": "normal/down-01.wav",
+        "start": 7.37156,
+        "end": 7.4646
+      },
+      {
+        "file": "normal/down-02.wav",
+        "start": 8.75875,
+        "end": 8.88452
+      },
+      {
+        "file": "normal/down-03.wav",
+        "start": 11.12858,
+        "end": 11.28858
+      },
+      {
+        "file": "normal/down-04.wav",
+        "start": 13.81194,
+        "end": 13.97194
+      },
+      {
+        "file": "normal/down-05.wav",
+        "start": 16.55075,
+        "end": 16.71075
+      },
+      {
+        "file": "normal/down-06.wav",
+        "start": 18.35208,
+        "end": 18.51208
+      },
+      {
+        "file": "normal/down-07.wav",
+        "start": 20.48165,
+        "end": 20.63673
+      },
+      {
+        "file": "normal/down-08.wav",
+        "start": 26.0219,
+        "end": 26.15792
+      },
+      {
+        "file": "normal/up-01.wav",
+        "start": 7.46294,
+        "end": 7.62294
+      },
+      {
+        "file": "normal/up-02.wav",
+        "start": 8.88285,
+        "end": 9.04285
+      },
+      {
+        "file": "normal/up-03.wav",
+        "start": 11.2961,
+        "end": 11.4561
+      },
+      {
+        "file": "normal/up-04.wav",
+        "start": 14.01598,
+        "end": 14.17598
+      },
+      {
+        "file": "space/down-01.wav",
+        "start": 13.81194,
+        "end": 13.97194
+      },
+      {
+        "file": "space/down-02.wav",
+        "start": 16.55075,
+        "end": 16.71075
+      },
+      {
+        "file": "space/down-03.wav",
+        "start": 18.35208,
+        "end": 18.51208
+      },
+      {
+        "file": "space/down-04.wav",
+        "start": 20.48165,
+        "end": 20.63673
+      },
+      {
+        "file": "space/down-05.wav",
+        "start": 26.0219,
+        "end": 26.15792
+      },
+      {
+        "file": "space/down-06.wav",
+        "start": 31.18113,
+        "end": 31.32946
+      },
+      {
+        "file": "space/down-07.wav",
+        "start": 36.8586,
+        "end": 37.0186
+      },
+      {
+        "file": "space/down-08.wav",
+        "start": 42.88698,
+        "end": 43.04698
+      },
+      {
+        "file": "space/up-01.wav",
+        "start": 14.01598,
+        "end": 14.17598
+      },
+      {
+        "file": "space/up-02.wav",
+        "start": 16.75454,
+        "end": 16.91454
+      },
+      {
+        "file": "space/up-03.wav",
+        "start": 18.54565,
+        "end": 18.70565
+      },
+      {
+        "file": "space/up-04.wav",
+        "start": 20.63506,
+        "end": 20.79506
+      },
+      {
+        "file": "enter/down-01.wav",
+        "start": 20.48165,
+        "end": 20.63673
+      },
+      {
+        "file": "enter/down-02.wav",
+        "start": 26.0219,
+        "end": 26.15792
+      },
+      {
+        "file": "enter/down-03.wav",
+        "start": 31.18113,
+        "end": 31.32946
+      },
+      {
+        "file": "enter/down-04.wav",
+        "start": 36.8586,
+        "end": 37.0186
+      },
+      {
+        "file": "enter/down-05.wav",
+        "start": 42.88698,
+        "end": 43.04698
+      },
+      {
+        "file": "enter/down-06.wav",
+        "start": 44.97463,
+        "end": 45.13462
+      },
+      {
+        "file": "enter/down-07.wav",
+        "start": 46.58967,
+        "end": 46.68438
+      },
+      {
+        "file": "enter/down-08.wav",
+        "start": 47.14665,
+        "end": 47.30665
+      },
+      {
+        "file": "enter/up-01.wav",
+        "start": 20.63506,
+        "end": 20.79506
+      },
+      {
+        "file": "enter/up-02.wav",
+        "start": 26.15625,
+        "end": 26.31625
+      },
+      {
+        "file": "enter/up-03.wav",
+        "start": 31.32779,
+        "end": 31.48779
+      },
+      {
+        "file": "enter/up-04.wav",
+        "start": 37.01998,
+        "end": 37.17998
+      },
+      {
+        "file": "backspace/down-01.wav",
+        "start": 36.8586,
+        "end": 37.0186
+      },
+      {
+        "file": "backspace/down-02.wav",
+        "start": 42.88698,
+        "end": 43.04698
+      },
+      {
+        "file": "backspace/down-03.wav",
+        "start": 44.97463,
+        "end": 45.13462
+      },
+      {
+        "file": "backspace/down-04.wav",
+        "start": 46.58967,
+        "end": 46.68438
+      },
+      {
+        "file": "backspace/down-05.wav",
+        "start": 47.14665,
+        "end": 47.30665
+      },
+      {
+        "file": "backspace/down-06.wav",
+        "start": 48.54231,
+        "end": 48.66596
+      },
+      {
+        "file": "backspace/down-07.wav",
+        "start": 49.11508,
+        "end": 49.27331
+      },
+      {
+        "file": "backspace/down-08.wav",
+        "start": 50.86842,
+        "end": 51.02515
+      },
+      {
+        "file": "backspace/up-01.wav",
+        "start": 37.01998,
+        "end": 37.17998
+      },
+      {
+        "file": "backspace/up-02.wav",
+        "start": 43.11048,
+        "end": 43.27048
+      },
+      {
+        "file": "backspace/up-03.wav",
+        "start": 45.16875,
+        "end": 45.32875
+      },
+      {
+        "file": "backspace/up-04.wav",
+        "start": 46.68271,
+        "end": 46.84271
+      },
+      {
+        "file": "shift/down-01.wav",
+        "start": 46.58967,
+        "end": 46.68438
+      },
+      {
+        "file": "shift/down-02.wav",
+        "start": 47.14665,
+        "end": 47.30665
+      },
+      {
+        "file": "shift/down-03.wav",
+        "start": 48.54231,
+        "end": 48.66596
+      },
+      {
+        "file": "shift/down-04.wav",
+        "start": 49.11508,
+        "end": 49.27331
+      },
+      {
+        "file": "shift/down-05.wav",
+        "start": 50.86842,
+        "end": 51.02515
+      },
+      {
+        "file": "shift/down-06.wav",
+        "start": 52.62667,
+        "end": 52.74165
+      },
+      {
+        "file": "shift/down-07.wav",
+        "start": 54.245,
+        "end": 54.405
+      },
+      {
+        "file": "shift/down-08.wav",
+        "start": 58.45029,
+        "end": 58.6076
+      },
+      {
+        "file": "shift/up-01.wav",
+        "start": 46.68271,
+        "end": 46.84271
+      },
+      {
+        "file": "shift/up-02.wav",
+        "start": 47.31919,
+        "end": 47.47919
+      },
+      {
+        "file": "shift/up-03.wav",
+        "start": 48.66429,
+        "end": 48.82429
+      },
+      {
+        "file": "shift/up-04.wav",
+        "start": 49.27165,
+        "end": 49.43165
+      },
+      {
+        "file": "modifier/down-01.wav",
+        "start": 49.11508,
+        "end": 49.27331
+      },
+      {
+        "file": "modifier/down-02.wav",
+        "start": 50.86842,
+        "end": 51.02515
+      },
+      {
+        "file": "modifier/down-03.wav",
+        "start": 52.62667,
+        "end": 52.74165
+      },
+      {
+        "file": "modifier/down-04.wav",
+        "start": 54.245,
+        "end": 54.405
+      },
+      {
+        "file": "modifier/down-05.wav",
+        "start": 58.45029,
+        "end": 58.6076
+      },
+      {
+        "file": "modifier/down-06.wav",
+        "start": 62.73652,
+        "end": 62.89652
+      },
+      {
+        "file": "modifier/down-07.wav",
+        "start": 65.6701,
+        "end": 65.78435
+      },
+      {
+        "file": "modifier/down-08.wav",
+        "start": 67.71856,
+        "end": 67.87404
+      },
+      {
+        "file": "modifier/up-01.wav",
+        "start": 49.27165,
+        "end": 49.43165
+      },
+      {
+        "file": "modifier/up-02.wav",
+        "start": 51.02348,
+        "end": 51.18348
+      },
+      {
+        "file": "modifier/up-03.wav",
+        "start": 52.73998,
+        "end": 52.89998
+      },
+      {
+        "file": "modifier/up-04.wav",
+        "start": 54.43879,
+        "end": 54.59879
+      },
+      {
+        "file": "small/down-01.wav",
+        "start": 54.245,
+        "end": 54.405
+      },
+      {
+        "file": "small/down-02.wav",
+        "start": 58.45029,
+        "end": 58.6076
+      },
+      {
+        "file": "small/down-03.wav",
+        "start": 62.73652,
+        "end": 62.89652
+      },
+      {
+        "file": "small/down-04.wav",
+        "start": 65.6701,
+        "end": 65.78435
+      },
+      {
+        "file": "small/down-05.wav",
+        "start": 67.71856,
+        "end": 67.87404
+      },
+      {
+        "file": "small/down-06.wav",
+        "start": 70.17113,
+        "end": 70.26248
+      },
+      {
+        "file": "small/down-07.wav",
+        "start": 70.40175,
+        "end": 70.51252
+      },
+      {
+        "file": "small/down-08.wav",
+        "start": 71.722,
+        "end": 71.882
+      },
+      {
+        "file": "small/up-01.wav",
+        "start": 54.43879,
+        "end": 54.59879
+      },
+      {
+        "file": "small/up-02.wav",
+        "start": 58.60594,
+        "end": 58.76594
+      },
+      {
+        "file": "small/up-03.wav",
+        "start": 62.9241,
+        "end": 63.0841
+      },
+      {
+        "file": "small/up-04.wav",
+        "start": 65.78269,
+        "end": 65.89458
+      }
+    ]
+  },
+  {
+    "id": "whitefox",
+    "author": "grcekh",
+    "source": "https://freesound.org/people/grcekh/sounds/546167/",
+    "license": "CC0-1.0",
+    "sourceSha256": "c72aea6e089a572e3a466305523b3ad4ab96be437c42c1e51ac1c4254943e1b3",
+    "processing": "Mono 48 kHz, impact pair segmentation, DC/high-pass cleanup, gain and fades. Large-key variants are adapted recorded impacts, not separately identified physical keys.",
+    "cuts": [
+      {
+        "file": "normal/down-01.wav",
+        "start": 145.45173,
+        "end": 145.55596
+      },
+      {
+        "file": "normal/down-02.wav",
+        "start": 146.05304,
+        "end": 146.21304
+      },
+      {
+        "file": "normal/down-03.wav",
+        "start": 146.61631,
+        "end": 146.77631
+      },
+      {
+        "file": "normal/down-04.wav",
+        "start": 147.5561,
+        "end": 147.7161
+      },
+      {
+        "file": "normal/down-05.wav",
+        "start": 148.11235,
+        "end": 148.27235
+      },
+      {
+        "file": "normal/down-06.wav",
+        "start": 149.08929,
+        "end": 149.24929
+      },
+      {
+        "file": "normal/down-07.wav",
+        "start": 149.75417,
+        "end": 149.91417
+      },
+      {
+        "file": "normal/down-08.wav",
+        "start": 150.33377,
+        "end": 150.49377
+      },
+      {
+        "file": "normal/up-01.wav",
+        "start": 145.55429,
+        "end": 145.71429
+      },
+      {
+        "file": "normal/up-02.wav",
+        "start": 146.27312,
+        "end": 146.43312
+      },
+      {
+        "file": "normal/up-03.wav",
+        "start": 146.81806,
+        "end": 146.97806
+      },
+      {
+        "file": "normal/up-04.wav",
+        "start": 147.74969,
+        "end": 147.90969
+      },
+      {
+        "file": "space/down-01.wav",
+        "start": 147.5561,
+        "end": 147.7161
+      },
+      {
+        "file": "space/down-02.wav",
+        "start": 148.11235,
+        "end": 148.27235
+      },
+      {
+        "file": "space/down-03.wav",
+        "start": 149.08929,
+        "end": 149.24929
+      },
+      {
+        "file": "space/down-04.wav",
+        "start": 149.75417,
+        "end": 149.91417
+      },
+      {
+        "file": "space/down-05.wav",
+        "start": 150.33377,
+        "end": 150.49377
+      },
+      {
+        "file": "space/down-06.wav",
+        "start": 150.79919,
+        "end": 150.95919
+      },
+      {
+        "file": "space/down-07.wav",
+        "start": 153.51217,
+        "end": 153.67217
+      },
+      {
+        "file": "space/down-08.wav",
+        "start": 154.42642,
+        "end": 154.58642
+      },
+      {
+        "file": "space/up-01.wav",
+        "start": 147.74969,
+        "end": 147.90969
+      },
+      {
+        "file": "space/up-02.wav",
+        "start": 148.31585,
+        "end": 148.47585
+      },
+      {
+        "file": "space/up-03.wav",
+        "start": 149.26913,
+        "end": 149.42912
+      },
+      {
+        "file": "space/up-04.wav",
+        "start": 149.93463,
+        "end": 150.09463
+      },
+      {
+        "file": "enter/down-01.wav",
+        "start": 149.75417,
+        "end": 149.91417
+      },
+      {
+        "file": "enter/down-02.wav",
+        "start": 150.33377,
+        "end": 150.49377
+      },
+      {
+        "file": "enter/down-03.wav",
+        "start": 150.79919,
+        "end": 150.95919
+      },
+      {
+        "file": "enter/down-04.wav",
+        "start": 153.51217,
+        "end": 153.67217
+      },
+      {
+        "file": "enter/down-05.wav",
+        "start": 154.42642,
+        "end": 154.58642
+      },
+      {
+        "file": "enter/down-06.wav",
+        "start": 156.49171,
+        "end": 156.65171
+      },
+      {
+        "file": "enter/down-07.wav",
+        "start": 157.05277,
+        "end": 157.21277
+      },
+      {
+        "file": "enter/down-08.wav",
+        "start": 157.68029,
+        "end": 157.81683
+      },
+      {
+        "file": "enter/up-01.wav",
+        "start": 149.93463,
+        "end": 150.09463
+      },
+      {
+        "file": "enter/up-02.wav",
+        "start": 150.51562,
+        "end": 150.67562
+      },
+      {
+        "file": "enter/up-03.wav",
+        "start": 150.982,
+        "end": 151.142
+      },
+      {
+        "file": "enter/up-04.wav",
+        "start": 153.68544,
+        "end": 153.84544
+      },
+      {
+        "file": "backspace/down-01.wav",
+        "start": 153.51217,
+        "end": 153.67217
+      },
+      {
+        "file": "backspace/down-02.wav",
+        "start": 154.42642,
+        "end": 154.58642
+      },
+      {
+        "file": "backspace/down-03.wav",
+        "start": 156.49171,
+        "end": 156.65171
+      },
+      {
+        "file": "backspace/down-04.wav",
+        "start": 157.05277,
+        "end": 157.21277
+      },
+      {
+        "file": "backspace/down-05.wav",
+        "start": 157.68029,
+        "end": 157.81683
+      },
+      {
+        "file": "backspace/down-06.wav",
+        "start": 159.04565,
+        "end": 159.20565
+      },
+      {
+        "file": "backspace/down-07.wav",
+        "start": 160.27679,
+        "end": 160.43679
+      },
+      {
+        "file": "backspace/down-08.wav",
+        "start": 160.78177,
+        "end": 160.94177
+      },
+      {
+        "file": "backspace/up-01.wav",
+        "start": 153.68544,
+        "end": 153.84544
+      },
+      {
+        "file": "backspace/up-02.wav",
+        "start": 154.65781,
+        "end": 154.81781
+      },
+      {
+        "file": "backspace/up-03.wav",
+        "start": 156.75435,
+        "end": 156.91435
+      },
+      {
+        "file": "backspace/up-04.wav",
+        "start": 157.24581,
+        "end": 157.40581
+      },
+      {
+        "file": "shift/down-01.wav",
+        "start": 157.05277,
+        "end": 157.21277
+      },
+      {
+        "file": "shift/down-02.wav",
+        "start": 157.68029,
+        "end": 157.81683
+      },
+      {
+        "file": "shift/down-03.wav",
+        "start": 159.04565,
+        "end": 159.20565
+      },
+      {
+        "file": "shift/down-04.wav",
+        "start": 160.27679,
+        "end": 160.43679
+      },
+      {
+        "file": "shift/down-05.wav",
+        "start": 160.78177,
+        "end": 160.94177
+      },
+      {
+        "file": "shift/down-06.wav",
+        "start": 161.73125,
+        "end": 161.89125
+      },
+      {
+        "file": "shift/down-07.wav",
+        "start": 162.52446,
+        "end": 162.68446
+      },
+      {
+        "file": "shift/down-08.wav",
+        "start": 163.23658,
+        "end": 163.39658
+      },
+      {
+        "file": "shift/up-01.wav",
+        "start": 157.24581,
+        "end": 157.40581
+      },
+      {
+        "file": "shift/up-02.wav",
+        "start": 157.81517,
+        "end": 157.97517
+      },
+      {
+        "file": "shift/up-03.wav",
+        "start": 159.29163,
+        "end": 159.45163
+      },
+      {
+        "file": "shift/up-04.wav",
+        "start": 160.552,
+        "end": 160.712
+      },
+      {
+        "file": "modifier/down-01.wav",
+        "start": 160.27679,
+        "end": 160.43679
+      },
+      {
+        "file": "modifier/down-02.wav",
+        "start": 160.78177,
+        "end": 160.94177
+      },
+      {
+        "file": "modifier/down-03.wav",
+        "start": 161.73125,
+        "end": 161.89125
+      },
+      {
+        "file": "modifier/down-04.wav",
+        "start": 162.52446,
+        "end": 162.68446
+      },
+      {
+        "file": "modifier/down-05.wav",
+        "start": 163.23658,
+        "end": 163.39658
+      },
+      {
+        "file": "modifier/down-06.wav",
+        "start": 163.7916,
+        "end": 163.93992
+      },
+      {
+        "file": "modifier/down-07.wav",
+        "start": 164.59148,
+        "end": 164.75148
+      },
+      {
+        "file": "modifier/down-08.wav",
+        "start": 165.13462,
+        "end": 165.25621
+      },
+      {
+        "file": "modifier/up-01.wav",
+        "start": 160.552,
+        "end": 160.712
+      },
+      {
+        "file": "modifier/up-02.wav",
+        "start": 161.01746,
+        "end": 161.17746
+      },
+      {
+        "file": "modifier/up-03.wav",
+        "start": 161.97369,
+        "end": 162.13369
+      },
+      {
+        "file": "modifier/up-04.wav",
+        "start": 162.71342,
+        "end": 162.87342
+      },
+      {
+        "file": "small/down-01.wav",
+        "start": 162.52446,
+        "end": 162.68446
+      },
+      {
+        "file": "small/down-02.wav",
+        "start": 163.23658,
+        "end": 163.39658
+      },
+      {
+        "file": "small/down-03.wav",
+        "start": 163.7916,
+        "end": 163.93992
+      },
+      {
+        "file": "small/down-04.wav",
+        "start": 164.59148,
+        "end": 164.75148
+      },
+      {
+        "file": "small/down-05.wav",
+        "start": 165.13462,
+        "end": 165.25621
+      },
+      {
+        "file": "small/down-06.wav",
+        "start": 167.36923,
+        "end": 167.51402
+      },
+      {
+        "file": "small/down-07.wav",
+        "start": 167.94213,
+        "end": 168.05519
+      },
+      {
+        "file": "small/down-08.wav",
+        "start": 168.80958,
+        "end": 168.89667
+      },
+      {
+        "file": "small/up-01.wav",
+        "start": 162.71342,
+        "end": 162.87342
+      },
+      {
+        "file": "small/up-02.wav",
+        "start": 163.43792,
+        "end": 163.59792
+      },
+      {
+        "file": "small/up-03.wav",
+        "start": 163.93825,
+        "end": 164.09825
+      },
+      {
+        "file": "small/up-04.wav",
+        "start": 164.79842,
+        "end": 164.95842
+      }
+    ]
+  },
+  {
+    "id": "ibm",
+    "author": "Anonimski",
+    "source": "https://commons.wikimedia.org/wiki/File:IBM_M2_sound.ogg",
+    "license": "CC0-1.0",
+    "sourceSha256": "e620684e9b03b62319fb48da6149392cfd4042615e17a891554f8a9f6ac8515e",
+    "processing": "Mono 48 kHz, impact pair segmentation, DC/high-pass cleanup, gain and fades. Large-key variants are adapted recorded impacts, not separately identified physical keys.",
+    "cuts": [
+      {
+        "file": "normal/down-01.wav",
+        "start": 0.11802,
+        "end": 0.21169
+      },
+      {
+        "file": "normal/down-02.wav",
+        "start": 0.30348,
+        "end": 0.42798
+      },
+      {
+        "file": "normal/down-03.wav",
+        "start": 0.49104,
+        "end": 0.61654
+      },
+      {
+        "file": "normal/down-04.wav",
+        "start": 0.78508,
+        "end": 0.90804
+      },
+      {
+        "file": "normal/down-05.wav",
+        "start": 1.21379,
+        "end": 1.32456
+      },
+      {
+        "file": "normal/down-06.wav",
+        "start": 1.42627,
+        "end": 1.52485
+      },
+      {
+        "file": "normal/down-07.wav",
+        "start": 1.62892,
+        "end": 1.73654
+      },
+      {
+        "file": "normal/down-08.wav",
+        "start": 1.91194,
+        "end": 2.0236
+      },
+      {
+        "file": "normal/up-01.wav",
+        "start": 0.21002,
+        "end": 0.30515
+      },
+      {
+        "file": "normal/up-02.wav",
+        "start": 0.42631,
+        "end": 0.49271
+      },
+      {
+        "file": "normal/up-03.wav",
+        "start": 0.61487,
+        "end": 0.77487
+      },
+      {
+        "file": "normal/up-04.wav",
+        "start": 0.90638,
+        "end": 1.06638
+      },
+      {
+        "file": "space/down-01.wav",
+        "start": 0.78508,
+        "end": 0.90804
+      },
+      {
+        "file": "space/down-02.wav",
+        "start": 1.21379,
+        "end": 1.32456
+      },
+      {
+        "file": "space/down-03.wav",
+        "start": 1.42627,
+        "end": 1.52485
+      },
+      {
+        "file": "space/down-04.wav",
+        "start": 1.62892,
+        "end": 1.73654
+      },
+      {
+        "file": "space/down-05.wav",
+        "start": 1.91194,
+        "end": 2.0236
+      },
+      {
+        "file": "space/down-06.wav",
+        "start": 2.08327,
+        "end": 2.17546
+      },
+      {
+        "file": "space/down-07.wav",
+        "start": 2.17379,
+        "end": 2.30856
+      },
+      {
+        "file": "space/down-08.wav",
+        "start": 2.49727,
+        "end": 2.62798
+      },
+      {
+        "file": "space/up-01.wav",
+        "start": 0.90638,
+        "end": 1.06638
+      },
+      {
+        "file": "space/up-02.wav",
+        "start": 1.3229,
+        "end": 1.42794
+      },
+      {
+        "file": "space/up-03.wav",
+        "start": 1.52319,
+        "end": 1.63058
+      },
+      {
+        "file": "space/up-04.wav",
+        "start": 1.73487,
+        "end": 1.89488
+      },
+      {
+        "file": "enter/down-01.wav",
+        "start": 1.62892,
+        "end": 1.73654
+      },
+      {
+        "file": "enter/down-02.wav",
+        "start": 1.91194,
+        "end": 2.0236
+      },
+      {
+        "file": "enter/down-03.wav",
+        "start": 2.08327,
+        "end": 2.17546
+      },
+      {
+        "file": "enter/down-04.wav",
+        "start": 2.17379,
+        "end": 2.30856
+      },
+      {
+        "file": "enter/down-05.wav",
+        "start": 2.49727,
+        "end": 2.62798
+      },
+      {
+        "file": "enter/down-06.wav",
+        "start": 2.62631,
+        "end": 2.7514
+      },
+      {
+        "file": "enter/down-07.wav",
+        "start": 2.86217,
+        "end": 2.96523
+      },
+      {
+        "file": "enter/down-08.wav",
+        "start": 3.11994,
+        "end": 3.23173
+      },
+      {
+        "file": "enter/up-01.wav",
+        "start": 1.73487,
+        "end": 1.89488
+      },
+      {
+        "file": "enter/up-02.wav",
+        "start": 2.02194,
+        "end": 2.08494
+      },
+      {
+        "file": "enter/up-03.wav",
+        "start": 2.17379,
+        "end": 2.30856
+      },
+      {
+        "file": "enter/up-04.wav",
+        "start": 2.3069,
+        "end": 2.4076
+      },
+      {
+        "file": "backspace/down-01.wav",
+        "start": 2.17379,
+        "end": 2.30856
+      },
+      {
+        "file": "backspace/down-02.wav",
+        "start": 2.49727,
+        "end": 2.62798
+      },
+      {
+        "file": "backspace/down-03.wav",
+        "start": 2.62631,
+        "end": 2.7514
+      },
+      {
+        "file": "backspace/down-04.wav",
+        "start": 2.86217,
+        "end": 2.96523
+      },
+      {
+        "file": "backspace/down-05.wav",
+        "start": 3.11994,
+        "end": 3.23173
+      },
+      {
+        "file": "backspace/down-06.wav",
+        "start": 3.49788,
+        "end": 3.63158
+      },
+      {
+        "file": "backspace/down-07.wav",
+        "start": 3.7849,
+        "end": 3.89908
+      },
+      {
+        "file": "backspace/down-08.wav",
+        "start": 0.11802,
+        "end": 0.21169
+      },
+      {
+        "file": "backspace/up-01.wav",
+        "start": 2.3069,
+        "end": 2.4076
+      },
+      {
+        "file": "backspace/up-02.wav",
+        "start": 2.62631,
+        "end": 2.7514
+      },
+      {
+        "file": "backspace/up-03.wav",
+        "start": 2.74973,
+        "end": 2.86383
+      },
+      {
+        "file": "backspace/up-04.wav",
+        "start": 2.96356,
+        "end": 3.1216
+      },
+      {
+        "file": "shift/down-01.wav",
+        "start": 2.86217,
+        "end": 2.96523
+      },
+      {
+        "file": "shift/down-02.wav",
+        "start": 3.11994,
+        "end": 3.23173
+      },
+      {
+        "file": "shift/down-03.wav",
+        "start": 3.49788,
+        "end": 3.63158
+      },
+      {
+        "file": "shift/down-04.wav",
+        "start": 3.7849,
+        "end": 3.89908
+      },
+      {
+        "file": "shift/down-05.wav",
+        "start": 0.11802,
+        "end": 0.21169
+      },
+      {
+        "file": "shift/down-06.wav",
+        "start": 0.30348,
+        "end": 0.42798
+      },
+      {
+        "file": "shift/down-07.wav",
+        "start": 0.49104,
+        "end": 0.61654
+      },
+      {
+        "file": "shift/down-08.wav",
+        "start": 0.78508,
+        "end": 0.90804
+      },
+      {
+        "file": "shift/up-01.wav",
+        "start": 2.96356,
+        "end": 3.1216
+      },
+      {
+        "file": "shift/up-02.wav",
+        "start": 3.23006,
+        "end": 3.33202
+      },
+      {
+        "file": "shift/up-03.wav",
+        "start": 3.62992,
+        "end": 3.78656
+      },
+      {
+        "file": "shift/up-04.wav",
+        "start": 3.89742,
+        "end": 4.05742
+      },
+      {
+        "file": "modifier/down-01.wav",
+        "start": 3.7849,
+        "end": 3.89908
+      },
+      {
+        "file": "modifier/down-02.wav",
+        "start": 0.11802,
+        "end": 0.21169
+      },
+      {
+        "file": "modifier/down-03.wav",
+        "start": 0.30348,
+        "end": 0.42798
+      },
+      {
+        "file": "modifier/down-04.wav",
+        "start": 0.49104,
+        "end": 0.61654
+      },
+      {
+        "file": "modifier/down-05.wav",
+        "start": 0.78508,
+        "end": 0.90804
+      },
+      {
+        "file": "modifier/down-06.wav",
+        "start": 1.21379,
+        "end": 1.32456
+      },
+      {
+        "file": "modifier/down-07.wav",
+        "start": 1.42627,
+        "end": 1.52485
+      },
+      {
+        "file": "modifier/down-08.wav",
+        "start": 1.62892,
+        "end": 1.73654
+      },
+      {
+        "file": "modifier/up-01.wav",
+        "start": 3.89742,
+        "end": 4.05742
+      },
+      {
+        "file": "modifier/up-02.wav",
+        "start": 0.21002,
+        "end": 0.30515
+      },
+      {
+        "file": "modifier/up-03.wav",
+        "start": 0.42631,
+        "end": 0.49271
+      },
+      {
+        "file": "modifier/up-04.wav",
+        "start": 0.61487,
+        "end": 0.77487
+      },
+      {
+        "file": "small/down-01.wav",
+        "start": 0.49104,
+        "end": 0.61654
+      },
+      {
+        "file": "small/down-02.wav",
+        "start": 0.78508,
+        "end": 0.90804
+      },
+      {
+        "file": "small/down-03.wav",
+        "start": 1.21379,
+        "end": 1.32456
+      },
+      {
+        "file": "small/down-04.wav",
+        "start": 1.42627,
+        "end": 1.52485
+      },
+      {
+        "file": "small/down-05.wav",
+        "start": 1.62892,
+        "end": 1.73654
+      },
+      {
+        "file": "small/down-06.wav",
+        "start": 1.91194,
+        "end": 2.0236
+      },
+      {
+        "file": "small/down-07.wav",
+        "start": 2.08327,
+        "end": 2.17546
+      },
+      {
+        "file": "small/down-08.wav",
+        "start": 2.17379,
+        "end": 2.30856
+      },
+      {
+        "file": "small/up-01.wav",
+        "start": 0.61487,
+        "end": 0.77487
+      },
+      {
+        "file": "small/up-02.wav",
+        "start": 0.90638,
+        "end": 1.06638
+      },
+      {
+        "file": "small/up-03.wav",
+        "start": 1.3229,
+        "end": 1.42794
+      },
+      {
+        "file": "small/up-04.wav",
+        "start": 1.52319,
+        "end": 1.63058
+      }
+    ]
+  }
+]

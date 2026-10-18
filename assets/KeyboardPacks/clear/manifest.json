@@ -1,10 +1,10 @@
 {
   "Id": "clear",
-  "Name": "Clear",
-  "Type": "Firm tactile",
-  "Color": "#BCDADC",
-  "Author": "MyVoice",
-  "Version": "1.0",
+  "Name": "Clear \u00b7 Cherry MX",
+  "Type": "Tactile",
+  "Color": "#D8E2EF",
+  "Author": "humi74",
+  "Version": "2.0",
   "DefaultVolume": 0.7,
   "Samples": {
     "normal/down": [

@@ -14,6 +14,7 @@ public sealed class CreationManifest
     public string? Cover {get;set;}
     public List<PackageSound> Sounds {get;set;}=[];
     public DesignedVoice? Preset {get;set;}
+    public VoiceReference? AiVoice {get;set;}
     public Dictionary<string,string> Files {get;set;}=[];
 }
 
@@ -38,7 +39,7 @@ public static class CreationPackage
         var descriptor=archive.GetEntry("manifest.json")??throw new InvalidDataException("Manifeste absent.");
         if(descriptor.Length>1024*1024)throw new InvalidDataException("Manifeste excessif.");
         using var stream=descriptor.Open();var m=JsonSerializer.Deserialize<CreationManifest>(stream,Json)??throw new InvalidDataException("Manifeste invalide.");
-        if(m.SchemaVersion!=1||m.Kind is not("soundboard" or "voice-preset")||string.IsNullOrWhiteSpace(m.Title)||m.Title.Length>100||!System.Version.TryParse(m.Version,out _)||m.Sounds.Count>200)throw new InvalidDataException("Package incompatible.");
+        if(m.SchemaVersion!=1||m.Kind is not("soundboard" or "voice-preset" or "ai-voice")||string.IsNullOrWhiteSpace(m.Title)||m.Title.Length>100||!System.Version.TryParse(m.Version,out _)||m.Sounds.Count>200)throw new InvalidDataException("Package incompatible.");
         if(m.Kind=="voice-preset" && (m.Preset==null||!Finite(m.Preset)))throw new InvalidDataException("Preset invalide.");
         foreach(var entry in archive.Entries.Where(e=>e.FullName!="manifest.json"))
         {
@@ -47,7 +48,14 @@ public static class CreationPackage
         }
         foreach(var name in m.Files.Keys)if(!SafePath(name)||archive.GetEntry(name)==null)throw new InvalidDataException("Fichier manquant.");
         foreach(var sound in m.Sounds){Reference(sound.File,m);if(sound.Cover!=null)Reference(sound.Cover,m);if(!double.IsFinite(sound.Volume)||sound.Volume<0||!double.IsFinite(sound.BassDb)||!double.IsFinite(sound.Saturation))throw new InvalidDataException("RÃ©glage invalide.");}
-        if(m.Cover!=null)Reference(m.Cover,m);return m;
+        if(m.Cover!=null)Reference(m.Cover,m);
+        if(m.Kind=="ai-voice"){
+            var v=m.AiVoice??throw new InvalidDataException("Référence IA absente.");Reference(v.ReferenceFile,m);
+            if(v.Samples.Count>100||v.Revisions.Count>0||v.AdditionalData?.Count>0||!double.IsFinite(v.Duration)||v.Duration<=0)throw new InvalidDataException("Référence IA invalide.");
+            foreach(var sample in v.Samples){Reference(sample.OriginalFile,m);foreach(var segment in sample.Segments)Reference(segment.File,m);}
+            if(v.Cover!=null)Reference(v.Cover,m);
+        }
+        return m;
     }
     private static bool Finite(DesignedVoice v)=>new[]{v.Pitch,v.Bass,v.Mid,v.Treble,v.Delay,v.Distortion,v.Mix}.All(double.IsFinite)&&v.Pitch is >=.5 and <=2&&v.Mix is >=0 and <=1;
     private static void Reference(string path,CreationManifest m){if(!SafePath(path)||!m.Files.ContainsKey(path))throw new InvalidDataException("RÃ©fÃ©rence invalide.");}
@@ -76,6 +84,17 @@ public static class CreationPackage
         Write(file,m,files);
     }
     public static void ExportPreset(string file,DesignedVoice preset)=>Write(file,new CreationManifest{Title=preset.Name,Kind="voice-preset",Preset=preset},[]);
+    public static void ExportAiVoice(string file,VoiceReference voice)
+    {
+        if(!string.IsNullOrEmpty(voice.SourceContentId))throw new InvalidDataException("Une voix importée ne peut pas être republiée.");
+        var m=new CreationManifest{Title=voice.Name,Kind="ai-voice"};var files=new Dictionary<string,string>();
+        string Add(string path,string name){name+=Path.GetExtension(path).ToLowerInvariant();files[name]=path;using var stream=File.OpenRead(path);m.Files[name]=Convert.ToHexString(SHA256.HashData(stream));return name;}
+        var v=new VoiceReference{Name=voice.Name,ReferenceFile=Add(voice.ReferenceFile,"reference"),Duration=voice.Duration,Backend=voice.Backend,BackendVersion=voice.BackendVersion};
+        if(voice.Cover is {} cover&&File.Exists(cover))m.Cover=v.Cover=Add(cover,"cover");
+        // Export only the selected usable segments, never local paths, revisions or excluded originals.
+        int i=0;foreach(var sample in voice.Samples.Where(s=>!s.Excluded))foreach(var segment in sample.Segments.OrderByDescending(s=>s.Score).Take(3).Where(s=>File.Exists(s.File))){var path=Add(segment.File,"samples/"+(++i));v.Samples.Add(new DatasetSample{Name="Extrait "+i,OriginalFile=path,Duration=segment.Seconds,UsableSeconds=segment.Seconds,Segments=[new(path,segment.Seconds,segment.Score)]});}
+        m.AiVoice=v;Write(file,m,files);
+    }
     private static void Write(string file,CreationManifest m,Dictionary<string,string> files)
     {
         using(var zip=ZipFile.Open(file,ZipArchiveMode.Create)){foreach(var f in files)zip.CreateEntryFromFile(f.Value,f.Key);using var output=zip.CreateEntry("manifest.json").Open();JsonSerializer.Serialize(output,m,Json);}

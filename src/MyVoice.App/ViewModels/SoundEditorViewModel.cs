@@ -54,11 +54,12 @@ public partial class MainViewModel
         catch(Exception e){EditorStatus=e.Message;}
         finally{EditorBusy=false;}
     }
+    [RelayCommand] private async Task PublishSelectedSoundAsync(){if(SelectedSound is {} card)await PrepareSoundPublication(card);}
     public async Task PrepareSoundPublication(SoundCard card)
     {
         if(!card.Owned){ShowToast("Une création téléchargée ne peut pas être republiée comme votre création.");return;}
         var file=Path.Combine(store.Root,"temp",Guid.NewGuid()+".myvoice");Directory.CreateDirectory(Path.GetDirectoryName(file)!);
-        try{await Task.Run(()=>CreationPackage.ExportBoard(file,new SoundFolder{Name=card.Name,Cover=card.Cover},new[]{card.Item}));await PreparePublicationAsync(file);PublishDescription=card.Item.Description;PublishCategory=card.Item.Category;PublishTags=string.Join(", ",card.Item.Tags);Page=9;}
+        try{await Task.Run(()=>CreationPackage.ExportBoard(file,new SoundFolder{Name=card.Name,Cover=card.Cover},new[]{card.Item}));await PreparePublicationAsync(file);PublishDescription=card.Item.Description;PublishCategory=card.Item.Category;PublishTags=string.Join(", ",card.Item.Tags);ShowPublication=true;}
         catch(Exception e){StudioError(e.Message);}finally{if(File.Exists(file))File.Delete(file);}
     }
 }

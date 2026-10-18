@@ -17,6 +17,13 @@ public sealed partial class CommunityCard : ObservableObject
     public string Description {get;init;}="";
     public string Kind {get;init;}="";
     public string Owner {get;init;}="";
+    public string Username {get;init;}="";
+    public string CreatorLabel=>Official?"MyVoice ✓":"@"+Username;
+    public string Visibility {get;init;}="public";
+    public string[] Tags {get;init;}=[];
+    public bool Official {get;init;}
+    [ObservableProperty] private bool liked;
+    [ObservableProperty] private string? cover;
     [ObservableProperty] private double progress;
     [ObservableProperty] private string state="Installer";
 }
@@ -40,7 +47,7 @@ public partial class MainViewModel
     [ObservableProperty] private string publishVisibility="private";
     [ObservableProperty] private bool publishRights;
     public string[] ContentKinds {get;}=["all","soundboard","voice-preset","ai-voice"];
-    public string[] ContentSorts {get;}=["Recent","Featured"];
+    public string[] ContentSorts {get;}=["Recent","Popular"];
     public string[] Visibilities {get;}=["private","unlisted","friends","public"];
     public ObservableCollection<CommunityCard> CommunityItems {get;}=[];
     public ObservableCollection<SocialContact> SocialContacts {get;}=[];
@@ -64,15 +71,15 @@ public partial class MainViewModel
             if(action=="register"){await community.Register(email,username,display,password,confirmation);AccountStatus="Vérifiez votre boîte email pour confirmer votre compte.";}
             else if(action=="recover"){await community.Recover(email);AccountStatus="Si ce compte existe, un email de récupération a été envoyé.";}
             else {await community.Login(email,password);var own=(await community.OwnProfile()).EnumerateArray().FirstOrDefault();if(own.ValueKind==JsonValueKind.Object){ProfilePrivate=own.GetProperty("private").GetBoolean();ProfileName=own.GetProperty("display_name").GetString()!;ProfileBio=own.GetProperty("bio").GetString()!;}AccountStatus="Connecté. Vos créations locales restent privées.";}
-            OnPropertyChanged(nameof(SignedIn));OnPropertyChanged(nameof(AccountLabel));NotifyPublication();
+            OnPropertyChanged(nameof(SignedIn));OnPropertyChanged(nameof(AccountLabel));NotifyPublication();if(SignedIn)await RefreshPublicProfileAsync();
         }catch(Exception e){AccountStatus=e.Message;}finally{CommunityBusy=false;}
     }
-    [RelayCommand] private async Task LogoutAsync(){try{await community.Logout();}catch{}finally{OnPropertyChanged(nameof(SignedIn));OnPropertyChanged(nameof(AccountLabel));NotifyPublication();AccountStatus="Déconnecté. Votre bibliothèque locale reste disponible.";}}
-    [RelayCommand] private async Task SaveOnlineProfileAsync(){try{await community.UpdateProfile(ProfileName,ProfileBio,ProfilePrivate);ShowToast("Profil mis à jour.");}catch(Exception e){AccountStatus=e.Message;}}
+    [RelayCommand] private async Task LogoutAsync(){try{await community.Logout();}catch{}finally{OwnPublications.Clear();ProfileEmail="";OnPropertyChanged(nameof(SignedIn));OnPropertyChanged(nameof(AccountLabel));NotifyPublication();if(SignedIn)await RefreshPublicProfileAsync();AccountStatus="Déconnecté. Votre bibliothèque locale reste disponible.";}}
+    [RelayCommand] private async Task SaveOnlineProfileAsync(){try{await community.UpdateProfile(ProfileName,ProfileBio,ProfilePrivate,ProfileUsername,await ProfileAvatarData());ShowToast("Profil mis à jour.");}catch(Exception e){AccountStatus=e.Message;}}
     [RelayCommand] private async Task RefreshCommunityAsync()
     {
         if(CommunityBusy)return;CommunityBusy=true;CommunityStatus="Recherche des créations…";
-        try{var feed=await community.Feed(CommunitySearch,CommunityKind,CommunitySort);CommunityItems.Clear();foreach(var item in feed.EnumerateArray())CommunityItems.Add(new(){Id=item.GetProperty("id").GetString()!,Title=item.GetProperty("title").GetString()!,Description=item.GetProperty("description").GetString()!,Kind=item.GetProperty("kind").GetString()!,Owner=item.GetProperty("owner_id").GetString()!});CommunityStatus=CommunityItems.Count==0?"Aucune création pour cette recherche.":CommunityItems.Count+" créations disponibles.";}catch(Exception e){CommunityStatus=e.Message;}finally{CommunityBusy=false;}
+        try{var feed=await community.Feed(CommunitySearch,CommunityKind,CommunitySort);CommunityItems.Clear();foreach(var item in feed.EnumerateArray())CommunityItems.Add(ReadCommunityCard(item));CommunityStatus=CommunityItems.Count==0?"Aucune création pour cette recherche.":CommunityItems.Count+" créations disponibles.";_=LoadCommunityCovers(CommunityItems.ToArray());}catch(Exception e){CommunityStatus=e.Message;}finally{CommunityBusy=false;}
     }
     [RelayCommand] private async Task FindCreatorAsync()
     {
@@ -82,7 +89,7 @@ public partial class MainViewModel
     [RelayCommand] private async Task BlockCreatorAsync(){if(SelectedCreator==null)return;try{await community.Rpc("block_creator",new{target=SelectedCreator.Id,enabled=true});SelectedCreator=null;ShowToast("Utilisateur bloqué.");}catch(Exception e){CommunityStatus=e.Message;}}
     [RelayCommand] private async Task LikeCreationAsync()=>await React("like");
     [RelayCommand] private async Task SaveCreationAsync()=>await React("save");
-    private async Task React(string action){if(SelectedCreation==null)return;try{await community.Rpc("react_to_content",new{target=SelectedCreation.Id,action,enabled=true});ShowToast(action=="like"?"Like enregistré.":"Ajouté aux favoris du compte.");}catch(Exception e){CommunityStatus=e.Message;}}
+    private async Task React(string action){if(SelectedCreation is not {} card)return;try{await community.Rpc("react_to_content",new{target=card.Id,action,enabled=action=="like"?!card.Liked:true});if(action=="like")card.Liked=!card.Liked;ShowToast(action=="like"?"Like enregistré.":"Ajouté aux favoris du compte.");}catch(Exception e){CommunityStatus=e.Message;}}
     [RelayCommand] private async Task ReportCreationAsync(){if(SelectedCreation==null)return;try{await community.Rpc("report_content",new{target=SelectedCreation.Id,reason="other",details="Signalement depuis MyVoice. À examiner."});ShowToast("Signalement envoyé.");}catch(Exception e){CommunityStatus=e.Message;}}
     [RelayCommand] private async Task InstallCommunityCreationAsync()
     {
@@ -96,7 +103,7 @@ public partial class MainViewModel
         try
         {
             var link=await community.Publish(publicationDraft.PackagePath,new{title=PublicationTitle,rights_confirmed=true,visibility=PublishVisibility,description=PublishDescription,category=PublishCategory,tags=PublishTags.Split(',',StringSplitOptions.RemoveEmptyEntries|StringSplitOptions.TrimEntries).Distinct(StringComparer.OrdinalIgnoreCase).Take(8).Select(t=>t[..Math.Min(t.Length,30)]).ToArray(),language=Settings.Language});
-            PublicationStatus="Publié · "+link;
+            PublicationStatus="Publié · "+link;await RefreshOwnPublicationsAsync();
             try{System.Windows.Clipboard.SetText(link);ShowToast("Publié. Le lien a été copié.");}catch{ShowToast("Publié. Le lien est disponible dans votre profil.");}
         }
         catch(Exception e){PublicationStatus="Publication impossible : "+e.Message;}

@@ -26,6 +26,14 @@ Name: "desktopicon"; Description: "Créer un raccourci sur le Bureau"
 Name: "startup"; Description: "Lancer MyVoice avec Windows"
 [Files]
 Source: "..\portable\*"; DestDir: "{app}"; Excludes: "*.pdb,*.pyc,__pycache__\*"; Flags: ignoreversion recursesubdirs createallsubdirs
+[InstallDelete]
+Type: filesandordirs; Name: "{app}\KeyboardPacks\black"
+Type: filesandordirs; Name: "{app}\KeyboardPacks\brown"
+Type: filesandordirs; Name: "{app}\KeyboardPacks\silver"
+Type: filesandordirs; Name: "{app}\KeyboardPacks\speed-silver"
+Type: filesandordirs; Name: "{app}\KeyboardPacks\yellow"
+Type: filesandordirs; Name: "{app}\KeyboardPacks\green"
+Type: filesandordirs; Name: "{app}\KeyboardPacks\silent-red"
 [Icons]
 Name: "{group}\MyVoice"; Filename: "{app}\MyVoice.exe"; IconFilename: "{app}\MyVoice.Signal.ico"; AppUserModelID: "MyVoice.App"
 Name: "{autodesktop}\MyVoice"; Filename: "{app}\MyVoice.exe"; IconFilename: "{app}\MyVoice.Signal.ico"; AppUserModelID: "MyVoice.App"; Tasks: desktopicon

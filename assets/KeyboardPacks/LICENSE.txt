@@ -1,1 +1,4 @@
-Original procedural sound designs generated for MyVoice. CC0 1.0. No samples from third-party applications. Profile names describe intended character; these are synthesized sounds, not recordings or endorsements of commercial switches.
+Audio recordings: CC0 1.0, https://creativecommons.org/publicdomain/zero/1.0/
+Sources, authors, hashes and edit boundaries are listed in SOURCES.json.
+MyVoice edits: segmented impacts, normalization, fades and large-key colouring. No commercial-app samples.
+The switch/keyboard names describe the recorded source; no endorsement is implied.

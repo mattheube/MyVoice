@@ -3,6 +3,7 @@ using System.Text.Json.Serialization;
 namespace MyVoice.Core;
 public sealed partial class VoiceReference
 {
+    public string? SourceContentId {get;set;}
     [JsonExtensionData] public Dictionary<string, JsonElement>? AdditionalData { get; set; }
     public string Backend { get; set; } = "Seed-VC";
     public string BackendVersion { get; set; } = "tiny-xlsr / 51383efd";

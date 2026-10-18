@@ -227,8 +227,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
     [RelayCommand]
     private void Navigate(string target)
     {
-        if (int.TryParse(target, out var n))
-            Page = n;
+        if (int.TryParse(target, out var n)){if(n==9)ShowPublication=true;else Page=n;}
     }
     [RelayCommand]
     private void Refresh()

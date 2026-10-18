@@ -1,6 +1,6 @@
 <UserControl x:Class="MyVoice.App.Views.VoiceLabView" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:ui="clr-namespace:MyVoice.App.Services">
 <UserControl.Resources><DataTemplate x:Key="AiModeTemplate"><TextBlock Text="{Binding Name}" ToolTip="{Binding Description}"/></DataTemplate></UserControl.Resources>
-<StackPanel>
+<StackPanel><Button Content="Publish &amp; Share · voix sélectionnée" Command="{Binding PublishSelectedAiCommand}" HorizontalAlignment="Right"/>
  <TextBlock Text="03 / VOICE ATELIER" Style="{StaticResource Label}"/>
  <DockPanel><Button DockPanel.Dock="Right" Content="{Binding T[CreateVoice]}" Command="{Binding ImportVoiceCommand}" Style="{StaticResource PrimaryButton}"/><TextBlock Text="Voice Lab" Style="{StaticResource Heading}"/></DockPanel>
  <TextBlock Text="{Binding T[DatasetIntro]}" Style="{StaticResource MutedText}"/><TextBlock Text="{Binding AiState}" Foreground="{DynamicResource AccentBrush}" Margin="0,12"/>

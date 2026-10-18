@@ -1,10 +1,10 @@
 {
   "Id": "red",
-  "Name": "Red",
+  "Name": "Red \u00b7 Gateron",
   "Type": "Linear",
   "Color": "#DE5864",
-  "Author": "MyVoice",
-  "Version": "1.0",
+  "Author": "SamsterBirdies",
+  "Version": "2.0",
   "DefaultVolume": 0.7,
   "Samples": {
     "normal/down": [

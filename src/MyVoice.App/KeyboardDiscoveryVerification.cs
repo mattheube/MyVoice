@@ -25,12 +25,12 @@ public partial class App
         await vm.RefreshApplicationsCommand.ExecuteAsync(null);if(vm.MixerApplication?.Identity!=app.Identity)throw new Exception("Application selection lost");
         vm.Page=1;window.UpdateLayout();
         var section=Walk(window).OfType<Expander>().First(e=>e.Header?.ToString()?.StartsWith("Keyboard Sound")==true);section.IsExpanded=true;window.UpdateLayout();section.BringIntoView();
-        if(vm.KeyboardPacks.Length!=10||vm.KeyboardEnabled)throw new Exception("Keyboard default or catalog invalid");
+        if(vm.KeyboardPacks.Length!=5||vm.KeyboardEnabled)throw new Exception("Keyboard default or catalog invalid");
         await vm.SelectKeyboardPackCommand.ExecuteAsync(vm.KeyboardPacks.First(p=>p.Id=="blue"));
         await vm.VerifyKeyboardStateAsync();window.UpdateLayout();section.BringIntoView();await Task.Delay(150);Shot("keyboard-sound.png");
         // Exercise native hook lifetime without collecting or injecting any user's keystrokes.
         using(var listener=new Services.GlobalKeyListener((_,_)=>{}))await Task.Delay(100);
-        File.WriteAllText(Path.Combine(folder,"keyboard-discovery-result.txt"),"PASS merged live discovery, unique identities, search, saved application, selection across refresh, ten keyboard profiles, preview, OFF memory release, hidden audio, profile persistence, native global hook install/dispose. Physical typing in Notepad and subjective realism are not verified by this automated test.");
+        File.WriteAllText(Path.Combine(folder,"keyboard-discovery-result.txt"),"PASS merged live discovery, unique identities, search, saved application, selection across refresh, five recorded keyboard profiles, preview, OFF memory release, hidden audio, profile persistence, native global hook install/dispose. Physical typing in Notepad and subjective realism are not verified by this automated test.");
         void Shot(string name){var bmp=new RenderTargetBitmap((int)window.ActualWidth,(int)window.ActualHeight,96,96,PixelFormats.Pbgra32);bmp.Render(window);var encoder=new PngBitmapEncoder();encoder.Frames.Add(BitmapFrame.Create(bmp));using var f=File.Create(Path.Combine(folder,name));encoder.Save(f);}
     }
     private static System.Collections.Generic.IEnumerable<DependencyObject> Walk(DependencyObject parent){for(int i=0;i<VisualTreeHelper.GetChildrenCount(parent);i++){var child=VisualTreeHelper.GetChild(parent,i);yield return child;foreach(var descendant in Walk(child))yield return descendant;}}

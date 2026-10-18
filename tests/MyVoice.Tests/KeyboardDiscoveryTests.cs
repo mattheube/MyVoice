@@ -31,9 +31,9 @@ internal static class KeyboardDiscoveryTests
             var offline=ApplicationDiscoveryService.Shared.Discover([rule],true);
             Check(offline.Any(a=>!a.Running&&ApplicationDiscoveryService.Matches(a,rule)));
         });
-        test("Ten original keyboard packs have bounded PCM, down/up and differentiated output",()=>
+        test("Five recorded keyboard packs have bounded PCM, down/up and differentiated output",()=>
         {
-            var catalog=KeyboardSoundService.Catalog(root);Check(catalog.Length==10);var signatures=new HashSet<string>();using var engine=new KeyboardSoundService();
+            var catalog=KeyboardSoundService.Catalog(root);Check(catalog.Length==5);var signatures=new HashSet<string>();using var engine=new KeyboardSoundService();
             foreach(var pack in catalog)
             {
                 engine.Load(root,new(){Enabled=true,Pack=pack.Id});Check(engine.LoadedBytes is >0 and <8*1024*1024);
@@ -41,7 +41,7 @@ internal static class KeyboardDiscoveryTests
                 var audio=new float[960];engine.Trigger(KeyboardKeyKind.Space,false);engine.Render(audio);Check(audio.Any(x=>x!=0)&&audio.All(x=>float.IsFinite(x)&&Math.Abs(x)<=.9));signatures.Add(Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Runtime.InteropServices.MemoryMarshal.AsBytes(audio.AsSpan()))));
                 engine.Disable();Check(engine.LoadedBytes==0&&engine.ActiveVoices==0);engine.Render(audio);Check(audio.All(x=>x==0));
             }
-            Check(signatures.Count==10);
+            Check(signatures.Count==5);
         });
         test("Keyboard rapid typing and held chords keep polyphony and allocations bounded",()=>
         {

@@ -72,20 +72,24 @@ public sealed class CommunityClient : IDisposable
         await refresh.WaitAsync();try{if(Session!=null&&Session.ExpiresAt<DateTimeOffset.UtcNow.AddMinutes(2))SaveSession(await Send("/auth/v1/token?grant_type=refresh_token",HttpMethod.Post,new{refresh_token=Session.RefreshToken},false));}finally{refresh.Release();}
     }
     public async Task<JsonElement> Rpc(string name,object data){await EnsureSession();return await Send("/rest/v1/rpc/"+name,HttpMethod.Post,data);}
-    public async Task<JsonElement> Feed(string search,string kind,string sort)
-    {
-        await EnsureSession();var path="/rest/v1/content?select=*&status=eq.published&order="+(sort=="Featured"?"featured.desc,":"")+"created_at.desc&limit=60";
-        if(kind!="all")path+="&kind=eq."+Uri.EscapeDataString(kind);
-        if(!string.IsNullOrWhiteSpace(search))path+="&title=ilike."+Uri.EscapeDataString("*"+search.Replace("*","")+"*");
-        return await Send(path,HttpMethod.Get);
-    }
-    public async Task UpdateProfile(string display,string bio,bool isPrivate)
+    public Task<JsonElement> Feed(string search,string kind,string sort)=>Rpc("community_browse",new{query_text=search,kind_filter=kind,sort_order=sort});
+    public Task<JsonElement> Publications(bool own,string? owner=null)=>Rpc("community_browse",new{own_only=own,owner_filter=owner});
+    public async Task<JsonElement> User(){await EnsureSession();return await Send("/auth/v1/user",HttpMethod.Get);}
+    public async Task UpdatePrivacy(bool value){await EnsureSession();if(Session==null)throw new InvalidOperationException("Connectez-vous.");await Send("/rest/v1/profiles?id=eq."+Session.UserId,HttpMethod.Patch,new{@private=value});}
+    public async Task DeleteAccount(){await EnsureSession();await Send("/functions/v1/community-account",HttpMethod.Delete);Session=null;vault.Clear();}
+    public async Task ChangePassword(string password,string confirmation){if(password!=confirmation||AccountRules.PasswordScore(password)==0)throw new InvalidDataException("Choisissez et confirmez une phrase de passe solide.");await EnsureSession();await Send("/auth/v1/user",HttpMethod.Put,new{password});}
+    public async Task UpdateProfile(string display,string bio,bool isPrivate,string username,string? avatar)
     {
         await EnsureSession();if(Session==null)throw new InvalidOperationException("Connectez-vous.");
-        var saved=await Send("/rest/v1/profiles?id=eq."+Session.UserId,HttpMethod.Patch,new{display_name=display,bio,@private=isPrivate},representation:true);
+        var saved=await Send("/rest/v1/profiles?id=eq."+Session.UserId,HttpMethod.Patch,new{display_name=display,bio,@private=isPrivate,username=AccountRules.Username(username),avatar},representation:true);
         if(saved.ValueKind!=JsonValueKind.Array||saved.GetArrayLength()!=1)throw new InvalidOperationException("Le profil n’a pas été enregistré par le serveur.");
     }
-    public async Task<JsonElement> OwnProfile(){await EnsureSession();if(Session==null)throw new InvalidOperationException("Connectez-vous.");return await Send("/rest/v1/profiles?id=eq."+Session.UserId+"&select=username,display_name,bio,private",HttpMethod.Get);}
+    public async Task<JsonElement> OwnProfile(){await EnsureSession();if(Session==null)throw new InvalidOperationException("Connectez-vous.");return await Send("/rest/v1/profiles?id=eq."+Session.UserId+"&select=username,display_name,bio,private,avatar,verified",HttpMethod.Get);}
+    public async Task<string?> DownloadCover(string id,string folder){
+        await EnsureSession();var data=await Send("/functions/v1/community-package?id="+Uri.EscapeDataString(id)+"&cover=true",HttpMethod.Get);if(data.GetProperty("url").ValueKind==JsonValueKind.Null)return null;
+        var uri=new Uri(data.GetProperty("url").GetString()!);if(uri.Scheme!="https"||uri.Host!=new Uri(config.Url).Host)throw new InvalidDataException("Stockage non autorisé.");
+        using var res=await http.GetAsync(uri,HttpCompletionOption.ResponseHeadersRead);res.EnsureSuccessStatusCode();using var input=await res.Content.ReadAsStreamAsync();using var bytes=new MemoryStream();var buffer=new byte[16384];int count;while((count=await input.ReadAsync(buffer))>0){if(bytes.Length+count>20_000_000)throw new InvalidDataException("Cover excessive.");bytes.Write(buffer,0,count);}Directory.CreateDirectory(folder);var file=Path.Combine(folder,id+Path.GetExtension(uri.AbsolutePath));await File.WriteAllBytesAsync(file,bytes.ToArray());return file;
+    }
     public async Task<string> Download(string id,string folder,IProgress<double>? progress=null)
     {
         await EnsureSession();var data=await Send("/functions/v1/community-package?id="+Uri.EscapeDataString(id),HttpMethod.Get);

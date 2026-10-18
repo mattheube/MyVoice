@@ -1,0 +1,22 @@
+AUDIT CIBLE — 18 OCTOBRE 2026
+
+Demande : Community découverte, Publish & Share unique, publication AI Voices/presets locaux, Profile public/confidentiel, sons clavier enregistrés. Pas de refonte Mixer/AudioGraph/Virtual Microphone/updater.
+
+Avant : Community incluait PublicationView et deux boutons d'import ; feed titre seulement, auteur absent. Packages limitaient kind à soundboard/voice-preset malgré l'énumération ai-voice en base. Profile mélangeait champs locaux et connexion, sans stats de likes reçus. Keyboard Sound utilisait dix packs de synthèse.
+
+Après : changements ciblés dans les vues/VM Community/Profile/Publication, extension du format package et de sa validation serveur, RPC de recherche/compteurs sans modifier les règles d'accès existantes. La recherche classe exact, préfixe, sous-chaîne, métadonnées, faute d'une lettre. Le rôle officiel vient de la table privée des rôles, pas du username ni d'une métadonnée client. Accès protégé aux covers via package_for_download, bucket toujours privé. Compteurs de profils privés réservés au propriétaire et aux abonnés acceptés.
+
+AI : export référence plus segments utilisables uniquement, sans chemins privés, historique ni originaux exclus. Provenance SourceContentId portée par les voix installées et contrôlée dans menus, drafts, export et fonction serveur. Publication demande toujours la confirmation des droits et une action Publier. Authentification serveur getUser pour mutation ; aucune clé serveur dans l'application.
+
+Clavier : cinq sources CC0 et frontières de découpe dans assets/KeyboardPacks/SOURCES.json. Appui/relâchement issus de paires d'impacts ; catégories de grandes touches adaptées car les enregistrements de frappe n'étiquettent pas chaque touche. Aucun argument de fidélité exacte par touche. Archives synthétiques précédentes conservées seulement dans work/beta7-keyboard-packs-original, hors distribution. Limite de mémoire et polyphonie inchangées.
+
+Validation locale : 209 tests .NET ; 31 tests SQL dont exclusions Private/Unlisted pour owner, recherche exacte/fautes/tags/créateur, compteurs protégés, username réservé. WPF : page découverte sans gestion, profil invité, menus selon provenance, modal AI et conservation du draft, rendu social avec données de test, non-régression dropdowns, cache, clavier OFF et audio en arrière-plan.
+
+Vérification serveur : RPC anon community_browse HTTP 200 ; suppression sans identité HTTP 401. Migration et deux fonctions déployées. Aucun véritable compte ni contenu utilisateur créé/supprimé pendant la validation. Parcours authentifié de publication/changement de mot de passe/suppression non exécuté contre un compte réel.
+
+Avis de sécurité Supabase : avertissements préexistants sur les RPC SECURITY DEFINER publics (leurs vérifications d'accès sont conservées et testées) et protection contre mots de passe divulgués désactivée. Les nouveaux points d'entrée SQL sont SECURITY INVOKER, avec helpers privés filtrant explicitement les autorisations.
+https://supabase.com/docs/guides/database/database-linter?lint=0028_anon_security_definer_function_executable
+https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable
+https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection
+
+Limites : aucune automation Computer Use/node_repl disponible ; tests de frappe physique et écoute subjective non effectués. Bannière et liste des sessions non ajoutées car non prises en charge auparavant. Les anciennes publications sans cover_path peuvent afficher le visuel de remplacement ; leurs packages sont conservés.

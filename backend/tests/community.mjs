@@ -5,6 +5,7 @@ await db.exec(`create role anon; create role authenticated; create role service_
 await db.exec(fs.readFileSync('backend/supabase/migrations/202610090001_community.sql','utf8'));
 await db.exec(fs.readFileSync('backend/supabase/migrations/202610090002_social_overview.sql','utf8'));
 await db.exec(fs.readFileSync('backend/supabase/migrations/202610130001_publication_ownership.sql','utf8'));
+await db.exec(fs.readFileSync('backend/supabase/migrations/20261018005355_focused_community_profile.sql','utf8'));
 const ids=['00000000-0000-0000-0000-000000000001','00000000-0000-0000-0000-000000000002','00000000-0000-0000-0000-000000000003'];
 for(let i=0;i<3;i++)await db.query('insert into auth.users values($1,$2,now())',[ids[i],JSON.stringify({username:['ALICE','bobby','carol'][i],display_name:'Same display name'})]);
 const eq=(ok,name)=>{if(!ok)throw Error(name);console.log('PASS '+name)};
@@ -41,4 +42,20 @@ eq(true,'same creator may reuse their own asset');
 await denied('select public.claim_publication_assets($1,$2)',[ids[1],['a'.repeat(64)]],'another creator cannot claim the same audio hash');
 await as(1);await denied('select public.claim_publication_assets($1,$2)',[ids[1],['b'.repeat(64)]],'client cannot directly assign asset ownership');
 
+await as(0);
+const own=(await db.query("select public.community_browse(own_only=>true) r")).rows[0].r;
+eq(own.length===4,'owner management includes private/unlisted');
+const feed=(await db.query("select public.community_browse() r")).rows[0].r;
+eq(feed.every(c=>['public','friends'].includes(c.visibility)),'discovery excludes even own private/unlisted');
+await denied("update public.profiles set username='admin' where id=$1",[ids[0]],'cannot rename profile to reserved handle');
+await db.exec('reset role');
+await db.query("insert into public.content(owner_id,kind,title,description,tags,visibility,status) values($1,'ai-voice','Michou','Test',array['gaming'],'public','published'),($1,'voice-preset','Michou remix','Description',array['voice'],'public','published')",[ids[2]]);
+await as(null);
+let results=(await db.query("select public.community_browse('Michou') r")).rows[0].r;
+eq(results[0].title==='Michou','exact community title ranks first');
+eq((await db.query("select public.community_browse('Micho') r")).rows[0].r.some(c=>c.title==='Michou'),'missing letter tolerated');
+eq((await db.query("select public.community_browse('GÁMING') r")).rows[0].r.some(c=>c.title==='Michou'),'accent-insensitive tag search');
+eq((await db.query("select public.community_browse('carol') r")).rows[0].r.length===2,'creator search');
+eq((await db.query("select public.profile_totals($1) r",[ids[0]])).rows[0].r===null,'private profile statistics withheld');
+await as(0);eq((await db.query("select public.profile_totals($1) r",[ids[0]])).rows[0].r.likes>=1,'owner receives actual aggregate likes');
 await db.close();

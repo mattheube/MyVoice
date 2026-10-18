@@ -3,3 +3,7 @@ project_id = "myvoice"
 verify_jwt = false
 # The function validates the user with Auth before every mutation.
 # Anonymous GET is allowed only after the database authorizes public/unlisted content.
+
+[functions.community-account]
+verify_jwt = false
+# Auth getUser authenticates every account deletion.

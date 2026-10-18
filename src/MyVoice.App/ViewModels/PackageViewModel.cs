@@ -31,6 +31,13 @@ public partial class MainViewModel
     private async Task InstallCreation(string path,string? sourceId=null)
     {
         var result=await Task.Run(()=>CreationPackage.Extract(path,Path.Combine(store.Root,"packages")));var m=result.Manifest;
+        if(m.Kind=="ai-voice"){
+            var voice=m.AiVoice!;voice.Id=Guid.NewGuid().ToString("N");voice.SourceContentId=sourceId??"imported-package";
+            voice.ReferenceFile=Path.Combine(result.Directory,voice.ReferenceFile);if(voice.Cover!=null)voice.Cover=Path.Combine(result.Directory,voice.Cover);
+            using(var reader=new NAudio.Wave.AudioFileReader(voice.ReferenceFile)){if(reader.TotalTime.TotalSeconds<=0)throw new InvalidDataException("Référence vide.");voice.Duration=reader.TotalTime.TotalSeconds;}
+            foreach(var s in voice.Samples){s.OriginalFile=Path.Combine(result.Directory,s.OriginalFile);s.Segments=s.Segments.Select(x=>x with{File=Path.Combine(result.Directory,x.File)}).ToList();}
+            AiVoices.Add(voice);SaveVoices();return;
+        }
         if(m.Kind=="voice-preset")
         {var preset=m.Preset! with{Id=Guid.NewGuid().ToString("N"),SourceContentId=sourceId??"imported-package"};Product.Presets.Add(preset);DesignedVoices.Add(preset);SaveProduct();return;}
         // Validate all audio before touching the catalog. Keep the installed package for offline use.

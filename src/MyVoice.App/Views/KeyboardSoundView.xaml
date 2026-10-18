@@ -2,7 +2,7 @@
 <UserControl.Resources><ui:SameValue x:Key="SameValue"/></UserControl.Resources>
 <Border Style="{StaticResource Card}" Margin="0,14"><StackPanel>
 <DockPanel><CheckBox DockPanel.Dock="Right" Content="Activer" IsChecked="{Binding KeyboardEnabled}" VerticalAlignment="Center"/><StackPanel><TextBlock Text="Keyboard Sound" FontSize="23" FontWeight="SemiBold"/><TextBlock Text="{Binding SelectedKeyboardName,StringFormat=Switch · {0}}" Foreground="{DynamicResource AccentBrush}"/></StackPanel></DockPanel>
-<TextBlock Text="Une touche. Une texture. Des sons originaux synthétisés, uniquement dans le casque par défaut." Style="{StaticResource MutedText}" Margin="0,10"/>
+<TextBlock Text="Cinq claviers enregistrés, des impacts variés. Uniquement dans le casque par défaut." Style="{StaticResource MutedText}" Margin="0,10"/>
 <ItemsControl ItemsSource="{Binding KeyboardPacks}"><ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel/></ItemsPanelTemplate></ItemsControl.ItemsPanel><ItemsControl.ItemTemplate><DataTemplate>
 <Button Width="148" Height="94" Margin="0,0,8,8" Command="{Binding DataContext.SelectKeyboardPackCommand,RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" ToolTip="Choisir et écouter quatre touches">
 <Button.Style><Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}"><Style.Triggers><DataTrigger Value="True"><DataTrigger.Binding><MultiBinding Converter="{StaticResource SameValue}"><Binding Path="Id"/><Binding Path="DataContext.SelectedKeyboardPack" RelativeSource="{RelativeSource AncestorType=UserControl}"/></MultiBinding></DataTrigger.Binding><Setter Property="Background" Value="{DynamicResource AccentSoftBrush}"/><Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/></DataTrigger></Style.Triggers></Style></Button.Style>
@@ -15,5 +15,5 @@
 <CheckBox Content="Jouer la répétition des touches maintenues" IsChecked="{Binding KeyboardRepeat}"/><CheckBox Content="Ignorer les touches de modification (Ctrl, Shift, Alt…)" IsChecked="{Binding KeyboardExcludeModifiers}"/><CheckBox Content="Ignorer les touches F1–F24" IsChecked="{Binding KeyboardExcludeFunctions}"/>
 <TextBlock Text="Le raccourci « Toggle Keyboard Sound » se configure dans les réglages. Les touches multimédias sont ignorées." Style="{StaticResource MutedText}"/>
 </StackPanel></Expander>
-<TextBlock Text="{Binding KeyboardStatus}" Style="{StaticResource MutedText}" Margin="0,10,0,0"/><TextBlock Text="Aucun texte, mot de passe ou historique de frappe n’est enregistré." Style="{StaticResource MutedText}" FontSize="11"/>
+<TextBlock Text="{Binding KeyboardStatus}" Style="{StaticResource MutedText}" Margin="0,10,0,0"/><TextBlock Text="Enregistrements CC0 · cinq claviers. Les variantes de grandes touches sont adaptées des impacts enregistrés. Aucun texte ni historique de frappe enregistré." Style="{StaticResource MutedText}" FontSize="11"/>
 </StackPanel></Border></UserControl>

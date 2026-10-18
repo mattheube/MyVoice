@@ -18,9 +18,14 @@ public static class LibraryContextMenu
             Add(vm.T["OpenInspector"],()=>vm.OpenSoundInspector(sound),icon:"inspector");
             Add(vm.T["AddKeybind"],()=>vm.AssignSoundKeybind(sound),icon:"keyboard");
             if(sound.Owned){Add(vm.T["EditInStudio"],()=>vm.EditSoundInStudio(sound),icon:"edit");
-            Add(vm.T["PreparePublication"],()=>_=vm.PrepareSoundPublication(sound),icon:"upload");}
+            Add("Publish & Share",()=>_=vm.PrepareSoundPublication(sound),icon:"upload");}
         }
-        if(item is DesignedVoice preset && string.IsNullOrEmpty(preset.SourceContentId))Add(vm.T["PreparePublication"],()=>_=vm.PreparePresetPublication(preset),icon:"upload");
+        if(item is VoiceReference ai){
+            Add("Activate",()=>vm.UseAiVoiceCommand.Execute(ai));Add("Preview",()=>vm.PreviewLocalFile(ai.ReferenceFile),icon:"headphones");Add("Inspector",()=>vm.OpenVoiceInspector(ai),icon:"inspector");
+            if(string.IsNullOrEmpty(ai.SourceContentId)){Add("Edit",()=>{vm.SelectedAiVoice=ai;vm.GoVoiceLabCommand.Execute(null);},icon:"edit");Add("Publish & Share",()=>_=vm.PrepareAiPublication(ai),icon:"upload");}
+            Add("Delete",()=>{vm.SelectedAiVoice=ai;vm.DeleteAiVoiceCommand.Execute(null);},icon:"trash");
+        }
+        if(item is DesignedVoice preset){Add("Activate",()=>vm.UseDesignedVoiceCommand.Execute(preset));Add("Inspector",()=>vm.OpenVoiceInspector(preset),icon:"inspector");if(string.IsNullOrEmpty(preset.SourceContentId))Add("Publish & Share",()=>_=vm.PreparePresetPublication(preset),icon:"upload");}
         Add(vm.EntryLiked(entry)?vm.T["Unlike"]:vm.T["Like"],()=>vm.ToggleEntryLike(entry),icon:vm.EntryLiked(entry)?"heart-filled":"heart");
         var collections=new MenuItem{Header=vm.T["AddToCollection"],Icon=new ContextMenuIcon{Kind="collection"}};menu.Items.Add(collections);
         foreach(var c in vm.Collections.Where(c=>c.Id!="liked")){var member=new MenuItem{Header=c.Name,IsCheckable=true,IsChecked=vm.ContainsEntry(c,entry)};member.Click+=(_,_)=>vm.ToggleCollectionEntry(c,entry);collections.Items.Add(member);}

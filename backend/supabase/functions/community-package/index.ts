@@ -1,4 +1,4 @@
-import { createClient } from 'npm:@supabase/supabase-js@2';
+import { createClient } from 'npm:@supabase/supabase-js@2.99.1';
 import { unzipSync } from 'npm:fflate@0.8.2';
 
 const url=Deno.env.get('SUPABASE_URL')!;
@@ -17,7 +17,9 @@ Deno.serve(async req=>{
   if(req.method==='GET'){
    const id=new URL(req.url).searchParams.get('id');if(!id||!/^[a-f0-9-]{36}$/i.test(id))return response({error:'Invalid content ID'},400);
    const {data,error}=await userClient.rpc('package_for_download',{target:id});if(error||!data)return response({error:'Content unavailable'},404);
-   const download=await server.storage.from('community').createSignedUrl(data.object_path,60);
+   const coverOnly=new URL(req.url).searchParams.get('cover')==='true';
+   if(coverOnly&&!data.cover_path)return response({url:null});
+   const download=await server.storage.from('community').createSignedUrl(coverOnly?data.cover_path:data.object_path,60);
    if(download.error)throw Error('Storage unavailable');
    return response({url:download.data.signedUrl,sha256:data.sha256,size:data.size,version:data.version});
   }
@@ -42,7 +44,7 @@ Deno.serve(async req=>{
   if(!files['manifest.json']||files['manifest.json'].length>1048576)throw Error('Invalid manifest');
   const raw=JSON.parse(new TextDecoder().decode(files['manifest.json']));
   const m=Object.fromEntries(Object.entries(raw).map(([key,value])=>[key.toLowerCase(),value])) as any;
-  if(m.schemaversion!==1||!['soundboard','voice-preset'].includes(m.kind)||typeof m.title!=='string'||!m.title.trim()||m.title.length>100||!/^\d+\.\d+\.\d+$/.test(m.version)||typeof m.files!=='object')throw Error('Incompatible package');
+  if(m.schemaversion!==1||!['soundboard','voice-preset','ai-voice'].includes(m.kind)||typeof m.title!=='string'||!m.title.trim()||m.title.length>100||!/^\d+\.\d+\.\d+$/.test(m.version)||typeof m.files!=='object')throw Error('Incompatible package');
   for(const [name,content] of Object.entries(files)){
    if(name==='manifest.json')continue;
    if(hex(await crypto.subtle.digest('SHA-256',content)).toLowerCase()!==String(m.files[name]).toLowerCase())throw Error('Hash mismatch');
@@ -54,6 +56,11 @@ Deno.serve(async req=>{
   if(!Array.isArray(m.sounds)||m.sounds.length>200)throw Error('Invalid sounds');
   for(const rawSound of m.sounds){const sound=normalize(rawSound);if(!sound||!reference(sound.file)||(sound.cover!=null&&!reference(sound.cover))||typeof sound.name!=='string'||sound.name.length>200||!Number.isFinite(sound.volume)||Number(sound.volume)<0||!Number.isFinite(sound.bassdb)||!Number.isFinite(sound.saturation))throw Error('Invalid sound');}
   if(m.kind==='voice-preset'){const preset=normalize(m.preset);if(!preset||!['pitch','bass','mid','treble','delay','distortion','mix'].every(k=>Number.isFinite(preset[k]))||Number(preset.pitch)<.5||Number(preset.pitch)>2||Number(preset.mix)<0||Number(preset.mix)>1)throw Error('Invalid preset');}
+  if(m.kind==='ai-voice'){
+   const voice=normalize(m.aivoice);if(!voice||!reference(voice.referencefile)||!Number.isFinite(voice.duration)||Number(voice.duration)<=0||(voice.cover!=null&&!reference(voice.cover))||!Array.isArray(voice.samples)||voice.samples.length>100||!Array.isArray(voice.revisions)||voice.revisions.length||voice.additionaldata)throw Error('Invalid AI voice');
+   for(const rawSample of voice.samples){const sample=normalize(rawSample);if(!sample||!reference(sample.originalfile)||!Array.isArray(sample.segments)||sample.segments.some((s:any)=>!reference(normalize(s)?.file)))throw Error('Invalid AI dataset');}
+  }
+  if(normalize(m.aivoice)?.sourcecontentid)throw Error('Imported AI voice cannot be republished');
   if(m.sounds.some((s:any)=>normalize(s)?.sourcecontentid)||normalize(m.preset)?.sourcecontentid)throw Error('Imported content cannot be republished');
   const description=String(info.description||'').slice(0,2000),tags=Array.isArray(info.tags)?info.tags.slice(0,8).map((x:unknown)=>String(x).slice(0,30)):[];
   const title=typeof info.title==='string'?info.title.trim():m.title;if(!title||title.length>100)throw Error('Invalid title');
@@ -64,13 +71,15 @@ Deno.serve(async req=>{
   // Roll back storage on a failed metadata transaction. Only server can publish.
   const insert=await server.from('content').insert({id,owner_id:user.id,kind:m.kind,title,description,tags,category,language:String(info.language||'und').slice(0,12),visibility:info.visibility,status:'draft'});
   if(insert.error){await server.storage.from('community').remove([objectPath]);throw Error('Metadata rejected');}
-  const version=await server.from('content_versions').insert({content_id:id,version:m.version,object_path:objectPath,sha256,size:bytes.length});
-  if(version.error){await server.from('content').delete().eq('id',id);await server.storage.from('community').remove([objectPath]);throw Error('Version rejected');}
-  const hashes=m.kind==='soundboard'?m.sounds.map((s:any)=>String(m.files[normalize(s)!.file as string]).toLowerCase()):[];
+  let coverPath:string|null=null;
+  if(m.cover){coverPath=`${user.id}/${id}/cover${m.cover.slice(m.cover.lastIndexOf('.'))}`;const coverUpload=await server.storage.from('community').upload(coverPath,files[m.cover],{contentType:m.cover.endsWith('.png')?'image/png':m.cover.endsWith('.gif')?'image/gif':m.cover.endsWith('.webp')?'image/webp':'image/jpeg'});if(coverUpload.error){await server.from('content').delete().eq('id',id);await server.storage.from('community').remove([objectPath]);throw Error('Cover upload failed');}}
+  const version=await server.from('content_versions').insert({cover_path:coverPath,content_id:id,version:m.version,object_path:objectPath,sha256,size:bytes.length});
+  if(version.error){await server.from('content').delete().eq('id',id);await server.storage.from('community').remove(coverPath?[objectPath,coverPath]:[objectPath]);throw Error('Version rejected');}
+  const hashes=m.kind==='soundboard'?m.sounds.map((s:any)=>String(m.files[normalize(s)!.file as string]).toLowerCase()):m.kind==='ai-voice'?[String(m.files[normalize(m.aivoice)!.referencefile as string]).toLowerCase()]:[];
   const claims=await server.rpc('claim_publication_assets',{p_owner:user.id,p_hashes:hashes});
-  if(claims.error){await server.from('content').delete().eq('id',id);await server.storage.from('community').remove([objectPath]);throw Error('Asset ownership conflict');}
+  if(claims.error){await server.from('content').delete().eq('id',id);await server.storage.from('community').remove(coverPath?[objectPath,coverPath]:[objectPath]);throw Error('Asset ownership conflict');}
   const publish=await server.from('content').update({status:'published'}).eq('id',id);
-  if(publish.error){await server.from('content').delete().eq('id',id);await server.storage.from('community').remove([objectPath]);throw Error('Publication incomplete');}
+  if(publish.error){await server.from('content').delete().eq('id',id);await server.storage.from('community').remove(coverPath?[objectPath,coverPath]:[objectPath]);throw Error('Publication incomplete');}
   return response({id,version:m.version,url:`https://mattheube.github.io/MyVoice/#content/${id}`},201);
  }catch{return response({error:'Package rejected or service unavailable'},400);}
 });

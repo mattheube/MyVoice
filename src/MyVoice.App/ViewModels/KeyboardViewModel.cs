@@ -40,7 +40,7 @@ public partial class MainViewModel
         var profile=mixerState.Current with{Channels=mixerState.Current.Channels.Append(new AudioChannel{Id="keyboard",Name="Keyboard Sound",Type="keyboard"}).ToList(),Routes=mixerState.Current.Routes.Concat(MixerOutputs.Select(b=>new AudioRoute("keyboard",b.Id,b.Id=="monitor"))).ToList()};
         mixerState.Current=profile;LoadMixerCards(profile);ApplyMixer();return true;
     }
-    private void InitializeKeyboard(){KeyboardPacks=KeyboardSoundService.Catalog(KeyboardRoot);OnPropertyChanged(nameof(KeyboardPacks));if(KeyboardEnabled)_=ApplyKeyboardAsync();}
+    private void InitializeKeyboard(){KeyboardPacks=KeyboardSoundService.Catalog(KeyboardRoot);if(!KeyboardPacks.Any(p=>p.Id==SelectedKeyboardPack)){mixerState.Current=mixerState.Current with{Keyboard=mixerState.Current.Keyboard with{Pack="red"}};ScheduleSave();}OnPropertyChanged(nameof(KeyboardPacks));if(KeyboardEnabled)_=ApplyKeyboardAsync();}
     private void SetKeyboard(KeyboardSettings settings)
     {
         if(settings.Enabled&&!EnsureKeyboardChannel()){NotifyKeyboard();return;}
