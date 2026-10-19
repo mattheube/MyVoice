@@ -24,7 +24,10 @@ public partial class App
             var host=new Window{Width=650,Height=420,DataContext=vm,ShowInTaskbar=false,WindowStartupLocation=WindowStartupLocation.CenterScreen};
             host.SetResourceReference(Window.BackgroundProperty,"CanvasBrush");host.SetResourceReference(Window.ForegroundProperty,"TextBrush");
             var panel=new WrapPanel{Margin=new Thickness(24)};host.Content=panel;
-            foreach(var kind in new[]{"soundboard","ai-voice","voice-preset"})panel.Children.Add(new Views.CreationCard{DataContext=new CommunityCard{Title=kind=="soundboard"?"My Sound":"Ma voix",Kind=kind,Username="myvoice",Cover=vm.SoundCards.FirstOrDefault()?.Cover}});
+            var visual=new DrawingVisual();using(var drawing=visual.RenderOpen()){drawing.DrawRectangle(Brushes.SlateBlue,null,new Rect(0,0,128,128));drawing.DrawEllipse(Brushes.Gold,null,new Point(84,40),34,34);}
+            var fixture=new RenderTargetBitmap(128,128,96,96,PixelFormats.Pbgra32);fixture.Render(visual);
+            var fixturePath=Path.Combine(folder,"cover-fixture.png");var fixtureEncoder=new PngBitmapEncoder();fixtureEncoder.Frames.Add(BitmapFrame.Create(fixture));using(var file=File.Create(fixturePath))fixtureEncoder.Save(file);
+            foreach(var kind in new[]{"soundboard","ai-voice","voice-preset"})panel.Children.Add(new Views.CreationCard{DataContext=new CommunityCard{Title=kind=="soundboard"?"My Sound":"Ma voix",Kind=kind,Username="myvoice",Cover=fixturePath}});
             host.Show();host.UpdateLayout();await Task.Delay(250);
             foreach(var card in panel.Children.OfType<Views.CreationCard>())
             {
