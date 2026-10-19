@@ -63,7 +63,8 @@ public partial class MainViewModel
             }
             else if(manifest.Kind=="voice-preset" && manifest.Preset is {} preset)
             {
-                var previous=Settings.LastDesignedVoiceId;UseDesignedVoice(preset);Settings.LastDesignedVoiceId=previous;Save();
+                var previous=(Settings.LastDesignedVoiceId,Settings.LastVoiceIsAi,Settings.LastModifiedVoice);UseDesignedVoice(preset);
+                (Settings.LastDesignedVoiceId,Settings.LastVoiceIsAi,Settings.LastModifiedVoice)=previous;Save();OnPropertyChanged(nameof(VoiceSwitchLabel));
                 CommunityStatus=T["CommunityVoiceTrial"];
             }
             else if(manifest.Sounds.FirstOrDefault() is {} sound)PreviewLocalFile(Path.Combine(result.Directory,sound.File));
@@ -73,7 +74,7 @@ public partial class MainViewModel
         finally{CommunityBusy=false;}
     }
     public void InspectCommunity(CommunityCard card){SelectedCreation=card;var panel=new System.Windows.Controls.StackPanel{Margin=new System.Windows.Thickness(24)};panel.Children.Add(new System.Windows.Controls.TextBlock{Text=card.Title,FontSize=24});panel.Children.Add(new System.Windows.Controls.TextBlock{Text=card.CreatorLabel+"\n"+card.Description+"\n"+string.Join(" · ",card.Tags),TextWrapping=System.Windows.TextWrapping.Wrap});var preview=new System.Windows.Controls.Button{Content="Preview · casque"};preview.Click+=async(_,_)=>await PreviewCommunity(card);panel.Children.Add(preview);var window=new System.Windows.Window{Title="Inspector",Owner=System.Windows.Application.Current.MainWindow,Icon=System.Windows.Application.Current.MainWindow?.Icon,Width=550,Height=360,Content=panel,WindowStartupLocation=System.Windows.WindowStartupLocation.CenterOwner};window.SetResourceReference(System.Windows.Window.BackgroundProperty,"SurfaceBrush");window.SetResourceReference(System.Windows.Window.ForegroundProperty,"TextBrush");window.ShowDialog();}
-    public async Task ViewCommunityCreator(CommunityCard card){CommunitySearch=card.Username;await FindCreatorAsync();}
+    public async Task ViewCommunityCreator(CommunityCard card){Page=5;CommunitySearch=card.Username;await FindCreatorAsync();}
     public async Task AddCommunityCollection(CommunityCard card,MyVoice.Core.LibraryCollection? target=null){
         var entries=InstalledEntries(card).ToArray();
         if(entries.Length==0){SelectedCreation=card;await InstallCommunityCreationAsync();if(card.State!=T["Runtime48"])return;entries=InstalledEntries(card).ToArray();}
