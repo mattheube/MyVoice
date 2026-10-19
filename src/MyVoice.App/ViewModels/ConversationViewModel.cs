@@ -15,12 +15,12 @@ public partial class MainViewModel
     [ObservableProperty] private string conversationStatus="";
     [ObservableProperty] private bool conversationNeedsDirect;
     public string ConversationMetrics=>$"Bloc {ai.ChunkSeconds*1000:0} ms · contexte {ai.ContextSeconds*1000:0} ms · recouvrement {ai.OverlapSeconds*1000:0} ms · anticipation {ai.LookaheadSeconds*1000:0} ms\nCalcul {ai.LastSeconds*1000:0} ms · RTF {ai.LastSeconds/Math.Max(.01,ai.ChunkSeconds):0.00} · file {conversationQueue:0} ms · blocs écartés {conversationDrops}\nSortie virtuelle, capture → soumission WASAPI : {(conversationLatency>0?conversationLatency.ToString("0")+" ms":"non mesurée")} · étapes {ai.CurrentSteps}";
-    [RelayCommand] private void SwitchConversationToDirect(){AiModel="fast";ConversationStatus="Direct sélectionné.";}
+    [RelayCommand] private void SwitchConversationToDirect(){AiModel="fast";ConversationStatus=T["Runtime39"];}
     private async Task ConversationLoop(CancellationToken token)
     {
         int count=(int)Math.Round(ai.ChunkSeconds*48000);long seenDrops=conversationInput.Dropped;bool reset=false;int slow=0;var input=new float[count];
         conversationDrops=0;conversationLatency=0;
-        await Application.Current.Dispatcher.InvokeAsync(()=>{ConversationNeedsDirect=!ai.ConversationRecommended;ConversationStatus=ai.ConversationRecommended?"Conversation recommandée par le test de cette voix.":"Conversation ne tient pas le débit avec ces réglages. Direct est recommandé.";AiState="Conversation · écoute continue";});
+        await Application.Current.Dispatcher.InvokeAsync(()=>{ConversationNeedsDirect=!ai.ConversationRecommended;ConversationStatus=ai.ConversationRecommended?T["Runtime29"]:T["Runtime28"];AiState=T["Runtime30"];});
         try
         {
             while(!token.IsCancellationRequested)
@@ -41,7 +41,7 @@ public partial class MainViewModel
                     long origin=stamp>0?stamp-(long)((ai.LookaheadSeconds+ai.OverlapSeconds)*Stopwatch.Frequency):0;
                     graph.PushConverted(output,origin);reset=false;slow=ai.LastSeconds>ai.ChunkSeconds?slow+1:Math.Max(0,slow-1);
                 }
-                if(slow>=3)await Application.Current.Dispatcher.InvokeAsync(()=>{ConversationNeedsDirect=true;ConversationStatus="Conversation ne maintient pas le temps réel. Les données anciennes sont écartées ; vous pouvez passer en Direct.";});
+                if(slow>=3)await Application.Current.Dispatcher.InvokeAsync(()=>{ConversationNeedsDirect=true;ConversationStatus=T["Runtime27"];});
             }
         }
         catch(OperationCanceledException){}

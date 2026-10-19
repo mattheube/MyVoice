@@ -60,8 +60,8 @@ public partial class MainViewModel
                 await Task.WhenAny(referenceCompletion.Task,Task.Delay(200,lifetime.Token));
                 lifetime.Token.ThrowIfCancellationRequested();
             }
-            if(referenceCompletion.Task.IsCompleted && !await referenceCompletion.Task) { ReferenceRecordingStatus="Enregistrement annulé";return; }
-            ReferenceRecordingStatus="Préparation de la référence…";
+            if(referenceCompletion.Task.IsCompleted && !await referenceCompletion.Task) { ReferenceRecordingStatus=T["Runtime45"];return; }
+            ReferenceRecordingStatus=T["Runtime74"];
             source.Samples -= Capture;
             float[] data;
             lock (captureLock)

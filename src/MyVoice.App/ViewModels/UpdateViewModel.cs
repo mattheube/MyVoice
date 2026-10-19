@@ -12,19 +12,19 @@ public partial class MainViewModel
 {
     public string InstalledRelease => Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion.Split('+')[0]??"2.6.0-beta.1";
     public string ApplicationVersion => "MyVoice · " + (Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion.Split('+')[0] ?? "2.6.0-beta.1");
-    public string UpdateAvailability => "Releases officielles · téléchargement vérifié, installation et redémarrage avec retour à la version précédente en cas d’échec.";
+    public string UpdateAvailability => T["Runtime88"];
     private UpdateSession? preparedUpdate;
     public bool AutomaticUpdates {get=>Settings.AutomaticUpdates;set{Settings.AutomaticUpdates=value;Changed(nameof(AutomaticUpdates));}}
     private string? downloadedUpdate;
     [ObservableProperty] private double updateProgress;
-    public string LatestVersion=>string.IsNullOrEmpty(Settings.LastKnownVersion)?"Non vérifiée":Settings.LastKnownVersion;
+    public string LatestVersion=>string.IsNullOrEmpty(Settings.LastKnownVersion)?T["Runtime63"]:Settings.LastKnownVersion;
     public string LastChecked=>Settings.LastUpdateCheck?.ToLocalTime().ToString("g")??"Jamais";
     public string[] UpdateChannels {get;}=["Stable","Beta"];
     public string UpdateChannel {get=>Settings.UpdateChannel=="beta"?"Beta":"Stable";set{Settings.UpdateChannel=value=="Beta"?"beta":"stable";CanInstallUpdate=false;downloadedUpdate=null;Changed(nameof(UpdateChannel));OnPropertyChanged(nameof(UpdateSource));}}
     public async Task CheckStartupUpdatesAsync()
     {
         if(Settings.LastUpdateSource==UpdateSource && Settings.LastUpdateCheck is {} checkedAt && DateTime.UtcNow-checkedAt<TimeSpan.FromHours(6) && Version.TryParse(Settings.LastKnownVersion,out _) && !ReleaseVersion.IsNewer(Settings.LastKnownVersion,Settings.LastKnownReleaseTag,InstalledRelease))
-        {UpdateStatus="Dernière vérification : "+LastChecked+" · "+LatestVersion;return;}
+        {UpdateStatus=T["Runtime38"]+LastChecked+" · "+LatestVersion;return;}
         await CheckUpdatesCommand.ExecuteAsync(null);
     }
     [ObservableProperty] private string updateStatus = "";
@@ -99,7 +99,7 @@ public partial class MainViewModel
         {
             if(preparedUpdate?.Release is not {} release||string.IsNullOrEmpty(release.PackageUrl))
             {Process.Start(new ProcessStartInfo("explorer.exe"){Arguments="/select,\""+downloadedUpdate+"\"",UseShellExecute=true});return;}
-            store.Save(Settings);mixerStore?.Save(mixerState);UpdateStatus="Préparation de l’installation…";
+            store.Save(Settings);mixerStore?.Save(mixerState);UpdateStatus=T["Runtime75"];
             await UpdateHandoff.LaunchAsync(AppContext.BaseDirectory,downloadedUpdate,preparedUpdate.Source,release,lifetime.Token);
             ((App)System.Windows.Application.Current).ExitApplication();
         }

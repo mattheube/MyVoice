@@ -53,7 +53,7 @@ public partial class MainViewModel
     {
         get => Settings.AiDevice; set
         {
-            if(Settings.AiDevice==value)return;
+            if(value is not("auto" or "cuda" or "cpu")||Settings.AiDevice==value)return;
             Settings.AiDevice = value;
             if(AiReady) { StopAi(); aiManualStop=false; _=StartAiCommand.ExecuteAsync(null); }
             Changed(nameof(AiDevice));
@@ -63,12 +63,15 @@ public partial class MainViewModel
     {
         get => Settings.AiProfile; set
         {
+            if(value is not("Low latency" or "Balanced" or "Quality"))return;
             Settings.AiProfile = value;ai.Profile=value;
             Changed(nameof(AiProfile));
         }
     }
-    public object[] AiDeviceChoices { get; } = [new { Id="auto", Name="Automatique (recommandé)" }, new { Id="cuda", Name="Carte graphique NVIDIA (CUDA)" }, new { Id="cpu", Name="Processeur (CPU, plus lent)" }];
-    public object[] AiProfileChoices { get; } = [new { Id="Low latency", Name="Réponse rapide" }, new { Id="Balanced", Name="Équilibré" }, new { Id="Quality", Name="Qualité maximale" }];
+    private object[]? aiDeviceChoices;
+    public object[] AiDeviceChoices => aiDeviceChoices ??= [new MyVoice.App.Services.LocalizedChoice(T,"auto","DeviceAuto",""),new MyVoice.App.Services.LocalizedChoice(T,"cuda","DeviceGpu",""),new MyVoice.App.Services.LocalizedChoice(T,"cpu","DeviceCpu","")];
+    private object[]? aiProfileChoices;
+    public object[] AiProfileChoices => aiProfileChoices ??= [new MyVoice.App.Services.LocalizedChoice(T,"Low latency","QualityFast",""),new MyVoice.App.Services.LocalizedChoice(T,"Balanced","QualityBalanced",""),new MyVoice.App.Services.LocalizedChoice(T,"Quality","QualityMaximum","")];
     private double aiRtf, aiLatency;
     private void InitializeAi()
     {
@@ -77,7 +80,7 @@ public partial class MainViewModel
         {
             if (File.Exists(file))
             foreach (var v in JsonSerializer.Deserialize<List<VoiceReference>>(File.ReadAllText(file)) ?? [])
-                { v.Samples ??=new();v.Revisions ??=new();AiVoices.Add(v); }
+                { v.Samples ??=new();v.Revisions ??=new();v.EnsurePreparedReferences();AiVoices.Add(v); }
         }
         catch (Exception e) { voicesWritable=false; store.Log(e.Message); }
         SelectedAiVoice = AiVoices.FirstOrDefault(v => v.Id == Settings.SelectedAiVoice) ?? AiVoices.FirstOrDefault();
@@ -146,7 +149,7 @@ public partial class MainViewModel
     {
         if(AiBusy || !voicesWritable) return;
         var name=Dialogs.Prompt(T["VoiceName"]);if(name==null)return;
-        var dialog=new OpenFileDialog { Filter="Audio|*.wav;*.mp3;*.flac;*.m4a",Multiselect=true };
+        var dialog=new OpenFileDialog { Filter = MyVoice.Core.MediaValidation.AudioFilter,Multiselect=true };
         if(dialog.ShowDialog()!=true)return;
         var voice=new VoiceReference { Name=name };
         AiVoices.Add(voice);SelectedAiVoice=voice;AiBusy=true;
@@ -202,7 +205,7 @@ public partial class MainViewModel
         var list = AiVoices.ToArray();
         AiVoices.Clear();
         foreach (var v in list)
-            { v.Samples ??=new();v.Revisions ??=new();AiVoices.Add(v); }
+            { v.Samples ??=new();v.Revisions ??=new();v.EnsurePreparedReferences();AiVoices.Add(v); }
         SelectedAiVoice = selected;
     }
     [RelayCommand]
@@ -237,7 +240,7 @@ public partial class MainViewModel
             AiState = "Ready · " + ai.Device;
             Save();
         }
-        catch (OperationCanceledException) { AiReady=false;AiState="Démarrage annulé · données conservées"; }
+        catch (OperationCanceledException) { AiReady=false;AiState=T["Runtime42"]; }
         catch (Exception e) { AiReady = false; AiState = "Moteur indisponible · " + e.Message; StudioError(e.Message); }
         finally { if(ReferenceEquals(engineStartCancellation,engineOperation))engineStartCancellation=null;AiBusy = false; }
         if(AiReady && Settings.ActiveAiVoice && VoiceEnabled && !aiActivating && !lifetime.IsCancellationRequested) await UseAiVoiceAsync(ResumeAiVoice);
@@ -261,7 +264,7 @@ public partial class MainViewModel
             Status = T["AiSelectFirst"];
             return;
         }
-        var input = new OpenFileDialog { Filter = "Audio|*.wav;*.mp3;*.flac" };
+        var input = new OpenFileDialog { Filter = MyVoice.Core.MediaValidation.AudioFilter };
         if (input.ShowDialog() != true)
             return;
         var output = new SaveFileDialog { Filter = "WAV|*.wav", FileName = "MyVoice-converted.wav" };
@@ -277,7 +280,7 @@ public partial class MainViewModel
             if(ai.Model!=AiFileModel){ai.Stop();ai.Model=AiFileModel;}
             if (!ai.Ready) await ai.StartAsync(AiPython, AiRepository, Path.Combine(AppContext.BaseDirectory, "voice-engine", "worker.py"), AiDevice, lifetime.Token);
             AiReady = ai.Ready;
-            ai.ReferenceFiles=SelectedAiVoice.Samples.Where(s=>!s.Excluded).SelectMany(s=>s.Segments.OrderByDescending(x=>x.Score).Take(3)).Select(s=>s.File).Where(File.Exists).ToArray();
+            ai.ReferenceFiles=SelectedAiVoice.ActiveReferenceFiles;
             await ai.LoadAsync(SelectedAiVoice.ReferenceFile, lifetime.Token);
             await ai.ConvertFileAsync(input.FileName, output.FileName, AiFileModel=="studio"?(AiProfile=="Quality"?40:AiProfile=="Low latency"?20:30):AiProfile=="Quality"?24:AiProfile=="Low latency"?6:12, lifetime.Token);
             AiState = "Ready · " + ai.Device;
@@ -300,13 +303,13 @@ public partial class MainViewModel
             Status = T["AiLiveRequirements"];
             return;
         }
-        if(ai.Device=="CPU") Status="CPU : conversion par phrases, qualité conservée. Le calcul peut dépasser dix secondes.";
+        if(ai.Device=="CPU") Status=T["Runtime10"];
         var requestedVoice=SelectedAiVoice;var request=voiceSwitchRevision;
         AiBusy = true;
         try
         {
             if(liveWorker!=null)await liveWorker;
-            ai.ReferenceFiles=requestedVoice.Samples.Where(s=>!s.Excluded).SelectMany(s=>s.Segments.OrderByDescending(x=>x.Score).Take(3)).Select(s=>s.File).Where(File.Exists).ToArray();
+            ai.ReferenceFiles=requestedVoice.ActiveReferenceFiles;
             await ai.LoadAsync(requestedVoice.ReferenceFile, lifetime.Token);
             if(request!=voiceSwitchRevision)return;
             OnPropertyChanged(nameof(AiAdvancedMetrics));
@@ -334,11 +337,11 @@ public partial class MainViewModel
         {
             while(!token.IsCancellationRequested)
             {
-                await Application.Current.Dispatcher.InvokeAsync(()=>AiState=phrases?"À vous de parler · pause pour terminer (8 s maximum)":"Écoute en cours");
+                await Application.Current.Dispatcher.InvokeAsync(()=>AiState=phrases?"À vous de parler · pause pour terminer (8 s maximum)":T["Runtime120"]);
                 while(aiInput.Count<count && !(phrases && aiInput.Count>=96000 && (Volatile.Read(ref aiQuietSamples)>=33600||finishAiPhrase)))await Task.Delay(20,token);
                 if(phrases)aiAcceptInput=false;
                 var generation=Volatile.Read(ref aiGeneration);var input=new float[Math.Min(count,aiInput.Count)];aiInput.Take(input);
-                await Application.Current.Dispatcher.InvokeAsync(()=>AiState="Conversion fidèle en cours…");
+                await Application.Current.Dispatcher.InvokeAsync(()=>AiState=T["Runtime31"]);
                 var watch=System.Diagnostics.Stopwatch.StartNew();
         int steps=AiModel=="studio"?(AiProfile=="Quality"?40:AiProfile=="Low latency"?20:30):AiProfile=="Quality"?24:AiProfile=="Low latency"?6:12;
                 var output=await ai.ConvertChunkAsync(input,steps,token);

@@ -179,6 +179,7 @@ public partial class App : Application
                 encoder.Save(file);
             }
             if(args.Contains("--ui-details")){await VerifyImageUi(window,folder);VerifyProductUi(folder);await VerifyMixerUi(window,folder);await VerifyStartupUi(window,folder);}
+            if(args.Contains("--targeted-update"))await VerifyTargetedUpdate(window,folder);
             if(args.Contains("--focused-community"))await VerifyFocusedCommunity(window,folder);
             if(args.Contains("--revision-ui"))await VerifyRevisionUi(window,folder);
             if(args.Contains("--keyboard-discovery"))await VerifyKeyboardDiscovery(window,folder);

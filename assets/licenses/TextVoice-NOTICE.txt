@@ -1,0 +1,8 @@
+Text to Voice optionally installs chatterbox-tts 0.1.7 in a separate per-user environment.
+Chatterbox code: https://github.com/resemble-ai/chatterbox (MIT, license included).
+Multilingual model: https://huggingface.co/ResembleAI/chatterbox
+Pinned model revision: 5bb1f6ee58e50c3b8d408bc82a6d3740c2db6e18 (MIT).
+Model weights are downloaded on first generation and are not bundled in MyVoice.
+The upstream audio watermark remains enabled. Inference is local; MyVoice does not
+upload text, reference recordings or generated audio to the model provider.
+The separate Python environment retains installed packages' individual license files.

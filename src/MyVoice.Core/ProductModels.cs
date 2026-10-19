@@ -17,6 +17,7 @@ public sealed class ProductState
     public string PublicationCategory {get;set;}="Other";
     public string PublicationTags {get;set;}="";
     public string? PublicationCover {get;set;}
+    public bool LiquidGlass {get;set;}
     public string Theme { get; set; } = "Midnight";
     public string Accent { get; set; } = "#B7A5FF";
     public string Motion { get; set; } = "Full";

@@ -44,14 +44,14 @@ public partial class MainViewModel
         {if(MixerApplication==null){MixerStatus="Choisissez une application.";return;}updated=c with{ApplicationName=MixerApplication.Name,ApplicationPath=MixerApplication.ExecutablePath,ApplicationPackage=MixerApplication.PackageFamily,ApplicationId=MixerApplication.AppUserModelId,CaptureEnabled=false};}
         else
         {var d=c.Type=="system"?MixerSystemInput:MixerInput;if(d==null)return;updated=c with{DeviceId=d.Id=="@default"?null:d.Id,DeviceName=d.Name,DeviceMode=d.Id=="@default"?"Default":"Fixed",CaptureEnabled=false};}
-        SetMixerProfile(mixerState.Current with{Channels=mixerState.Current.Channels.Select(x=>x.Id==c.Id?updated:x).ToList()});SelectedMixerChannel=MixerChannels.First(x=>x.Id==c.Id);MixerStatus="Source reliée. Son bouton Capture permet de la démarrer.";
+        SetMixerProfile(mixerState.Current with{Channels=mixerState.Current.Channels.Select(x=>x.Id==c.Id?updated:x).ToList()});SelectedMixerChannel=MixerChannels.First(x=>x.Id==c.Id);MixerStatus=T["Runtime102"];
     }
     partial void OnMixerSourceTypeChanged(string value){OnPropertyChanged(nameof(IsApplicationSource));OnPropertyChanged(nameof(IsSystemSource));OnPropertyChanged(nameof(IsDeviceSource));}
     private void RefreshMixerSourceChoices()
     {
         var input=MixerInput;var system=MixerSystemInput;var app=MixerApplication;
-        var inputs=new[]{new AudioDevice("@default","Microphone Windows par défaut")}.Concat(mixerInputCache).ToList();
-        var outputs=new[]{new AudioDevice("@default","Sortie Windows par défaut")}.Concat(mixerOutputCache).ToList();
+        var inputs=new[]{new AudioDevice("@default",T["Runtime55"])}.Concat(mixerInputCache).ToList();
+        var outputs=new[]{new AudioDevice("@default",T["Runtime99"])}.Concat(mixerOutputCache).ToList();
         if(input!=null&&!inputs.Any(d=>d.Id==input.Id))inputs.Add(input with{Name=input.Name.Replace(" · indisponible","")+" · indisponible"});
         if(system!=null&&!outputs.Any(d=>d.Id==system.Id))outputs.Add(system with{Name=system.Name.Replace(" · indisponible","")+" · indisponible"});
         Services.CollectionSync.ByKey(MixerInputs,inputs,d=>d.Id);Services.CollectionSync.ByKey(MixerSystemInputs,outputs,d=>d.Id);
@@ -63,7 +63,7 @@ public partial class MainViewModel
     private void RefreshRecordingSources()
     {
         var selected=RecordingSource;
-        RecordingSources.Clear();RecordingSources.Add(new("raw-mic","Microphone avant traitement"));RecordingSources.Add(new("processed-mic","Microphone traité / voix IA"));
+        RecordingSources.Clear();RecordingSources.Add(new("raw-mic","Microphone avant traitement"));RecordingSources.Add(new("processed-mic",T["Runtime58"]));
         foreach(var b in MixerOutputs)RecordingSources.Add(new(b.Id,b.Name));
         foreach(var c in MixerChannels)RecordingSources.Add(new("channel:"+c.Id,"Canal · "+c.Name));
         SelectedRecordingTarget=RecordingSources.FirstOrDefault(s=>s.Id==selected)??RecordingSources.FirstOrDefault(s=>s.Id=="recording")??RecordingSources.FirstOrDefault();
@@ -75,14 +75,14 @@ public partial class MainViewModel
         AudioChannel channel;
         if(MixerSourceType=="Application")
         {
-            if(!ApplicationAudioCatalog.Supported||MixerApplication==null){MixerStatus="Choisissez une application ouverte ou son fichier .exe. La capture nécessite Windows build 20348 minimum.";return;}
-            if(MixerChannels.Any(c=>c.Value.Type=="application"&&ApplicationDiscoveryService.Matches(MixerApplication,c.Value))){MixerStatus="Cette application est déjà dans le mix.";return;}
+            if(!ApplicationAudioCatalog.Supported||MixerApplication==null){MixerStatus=T["Runtime17"];return;}
+            if(MixerChannels.Any(c=>c.Value.Type=="application"&&ApplicationDiscoveryService.Matches(MixerApplication,c.Value))){MixerStatus=T["Runtime14"];return;}
             channel=new(){Name=MixerApplication.Label,Type="application",ApplicationName=MixerApplication.Name,ApplicationPath=MixerApplication.ExecutablePath,ApplicationPackage=MixerApplication.PackageFamily,ApplicationId=MixerApplication.AppUserModelId,CaptureEnabled=false};
         }
         else
         {
             var device=MixerSourceType=="System Audio"?MixerSystemInput:MixerInput;if(device==null)return;
-            if(MixerSourceType!="System Audio"&&device.Id==Settings.InputDeviceId){MixerStatus="Ce microphone possède déjà son canal.";return;}
+            if(MixerSourceType!="System Audio"&&device.Id==Settings.InputDeviceId){MixerStatus=T["Runtime11"];return;}
             channel=new(){Name=device.Name,Type=MixerSourceType=="System Audio"?"system":"capture",DeviceId=device.Id=="@default"?null:device.Id,DeviceMode=device.Id=="@default"?"Default":"Fixed",DeviceName=device.Name,CaptureEnabled=false};
         }
         channel=channel with{Name=channel.Name[..Math.Min(80,channel.Name.Length)]};
@@ -90,20 +90,20 @@ public partial class MainViewModel
         bool virtualSend=channel.Type=="application"&&NewApplicationPolicy=="Monitor + Virtual Mic";
         if(channel.Type=="application"&&NewApplicationPolicy=="Ask")virtualSend=System.Windows.MessageBox.Show("Envoyer cette application dans le microphone virtuel ?", "Routage de l’application",System.Windows.MessageBoxButton.YesNo,System.Windows.MessageBoxImage.Question,System.Windows.MessageBoxResult.No)==System.Windows.MessageBoxResult.Yes;
         var p=mixerState.Current with{Channels=mixerState.Current.Channels.Append(channel).ToList(),Routes=mixerState.Current.Routes.Concat(MixerOutputs.Select(b=>new AudioRoute(channel.Id,b.Id,channel.Type=="application"?(b.Id=="monitor"||b.Id=="virtual"&&virtualSend):b.Id is "stream" or "recording" or "master"))).ToList()};
-        SetMixerProfile(p);SelectedMixerChannel=MixerChannels.First(c=>c.Id==channel.Id);MixerStatus="Source ajoutée à l’arrêt. Activez Capture sur sa tranche quand vous êtes prêt.";
+        SetMixerProfile(p);SelectedMixerChannel=MixerChannels.First(c=>c.Id==channel.Id);MixerStatus=T["Runtime101"];
     }
     [RelayCommand] private void RemoveMixerSource(MixerChannelCard? channel)
     {if(channel?.CanRemove==true)SetMixerProfile(mixerState.Current with{Channels=mixerState.Current.Channels.Where(c=>c.Id!=channel.Id).ToList(),Routes=mixerState.Current.Routes.Where(r=>r.ChannelId!=channel.Id).ToList()});}
     [RelayCommand] private void RequestMixerRecording()
     {
         if(graph.Recorder.Recording)return;
-        var dialog=new SaveFileDialog{Title="Enregistrer le mix sélectionné",Filter="WAV 48 kHz / float32|*.wav",FileName="MyVoice-"+DateTime.Now.ToString("yyyyMMdd-HHmmss")+".wav",OverwritePrompt=true};
+        var dialog=new SaveFileDialog{Title=T["Runtime46"],Filter="WAV 48 kHz / float32|*.wav",FileName="MyVoice-"+DateTime.Now.ToString("yyyyMMdd-HHmmss")+".wav",OverwritePrompt=true};
         if(dialog.ShowDialog()!=true)return;
         try{graph.Recorder.Start(dialog.FileName,RecordingSource);IsRecording=true;RecordingStatus="● REC · "+Path.GetFileName(dialog.FileName);}
         catch(Exception e){RecordingStatus=e.Message;}
     }
     [RelayCommand] private async Task StopMixerRecordingAsync()
-    {await graph.Recorder.StopAsync();IsRecording=false;RecordingStatus=graph.Recorder.Error??"Enregistré · "+graph.Recorder.FilePath;}
+    {await graph.Recorder.StopAsync();IsRecording=false;RecordingStatus=graph.Recorder.Error??T["Runtime47"]+graph.Recorder.FilePath;}
     private void TickMixerRecording()
     {
         IsRecording=graph.Recorder.Recording;

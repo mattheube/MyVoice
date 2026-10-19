@@ -1,0 +1,12 @@
+FFmpeg 7.1 binary from imageio-ffmpeg 0.6.0 Windows wheel.
+FFmpeg source and licensing: https://ffmpeg.org/legal.html
+Upstream Windows build: GyanD/codexffmpeg 7.1 essentials, GCC 14.2.0 / MSYS2.
+Original distribution: https://github.com/GyanD/codexffmpeg/releases/tag/7.1
+Exact FFmpeg source revision published by that release:
+https://github.com/FFmpeg/FFmpeg/commit/b08d7969c5
+Source archive: https://github.com/FFmpeg/FFmpeg/archive/b08d7969c5.zip
+Binary mirror used by imageio: https://github.com/imageio/imageio-binaries/tree/master/ffmpeg
+Build configuration is included in BUILD-CONFIGURATION.txt. The binary is unmodified.
+This is a separate GPLv3 executable, invoked as a child process. See LICENSE-GPL-3.0.txt.
+Run ffmpeg -L and -buildconf for exact configuration.
+SHA256: 2CE797A0F88D7F067180338FB227F7B1928EA727BD9A4D7A1D022F7C52AF71A3

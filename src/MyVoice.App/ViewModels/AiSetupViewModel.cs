@@ -23,7 +23,7 @@ public partial class MainViewModel
             await MyVoice.AI.EngineBootstrapper.EnsureConversationAsync(AiPython,EngineRepairLog,operation.Token);
             operation.Token.ThrowIfCancellationRequested();Save();verified=true;
         }
-        catch(OperationCanceledException){AiState="Réparation annulée · données conservées";}
+        catch(OperationCanceledException){AiState=T["Runtime94"];}
         catch(Exception e){StudioError(e.Message);AiState="ERROR · "+e.Message;}
         finally{if(ReferenceEquals(engineStartCancellation,operation))engineStartCancellation=null;AiBusy=false;}
         if(verified)await StartAiAsync();

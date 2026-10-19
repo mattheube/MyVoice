@@ -14,7 +14,7 @@ public partial class MainViewModel
             case "Quiet Room":Gate=false;NoiseSuppression=0;CompressorRatio=2;break;
             case "Noisy Room":NoiseSuppression=2;GateThreshold=-40;GateHold=140;CompressorRatio=2;break;
         }
-        Save();ShowToast("Réglage appliqué · "+name);
+        Save();ShowToast(T["Runtime93"]+name);
     }
     [RelayCommand] private void ResetMicSection(string name)
     {

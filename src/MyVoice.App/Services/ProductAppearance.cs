@@ -8,10 +8,13 @@ namespace MyVoice.App.Services;
 
 public static class ProductAppearance
 {
+    private static ProductState? current;
+    static ProductAppearance(){UiActivity.Changed+=(_,_)=>{if(current?.LiquidGlass==true)Apply(current);};}
+    public static bool GlassActive {get;private set;}
     public static bool Animate {get;private set;}=true;
     public static void Apply(ProductState state)
     {
-        Animate=state.Motion=="Full" && SystemParameters.ClientAreaAnimation;
+        current=state;Animate=state.Motion=="Full" && SystemParameters.ClientAreaAnimation && UiActivity.VisualsActive;
         var palette=state.Theme switch
         {
             "Graphite"=>new[]{"#191C20","#23272D","#2D333B","#3A414B"},
@@ -38,6 +41,13 @@ public static class ProductAppearance
         SetBrush("AccentSoftBrush",new SolidColorBrush(Color.FromArgb(32,accent.R,accent.G,accent.B)));
         var brightness=.2126*accent.R+.7152*accent.G+.0722*accent.B;
         SetBrush("AccentInkBrush",Brush(brightness>145?"#101117":"#FFFFFF"));
+        GlassActive=state.LiquidGlass && state.Motion=="Full" && SystemParameters.ClientAreaAnimation && !SystemParameters.HighContrast && (RenderCapability.Tier>>16)>0 && UiActivity.VisualsActive;
+        if(GlassActive){
+            // Static layered reflections: no per-frame backdrop capture, blur pass or render timer.
+            Brush Glass(string basis){var c=(Color)ColorConverter.ConvertFromString(basis);Color Blend(double amount,byte alpha)=>Color.FromArgb(alpha,(byte)(c.R*(1-amount)+accent.R*amount),(byte)(c.G*(1-amount)+accent.G*amount),(byte)(c.B*(1-amount)+accent.B*amount));var b=new LinearGradientBrush{StartPoint=new Point(0,0),EndPoint=new Point(.75,1)};b.GradientStops.Add(new(Blend(.24,250),0));b.GradientStops.Add(new(Blend(.07,246),.12));b.GradientStops.Add(new(Blend(.02,242),.55));b.GradientStops.Add(new(Blend(.13,250),1));b.Freeze();return b;}
+            resources["SurfaceBrush"]=Glass(palette[1]);resources["RaisedBrush"]=Glass(palette[2]);
+            var edge=new LinearGradientBrush(Color.FromArgb(130,accent.R,accent.G,accent.B),Color.FromArgb(40,accent.R,accent.G,accent.B),90);edge.Freeze();resources["LineBrush"]=edge;
+        }
         resources["AmbientOpacity"]=state.Background=="Minimal"?0d:state.Background=="Rich"?.15d:.07d;
     }
     private static void SetBrush(string key,SolidColorBrush target)

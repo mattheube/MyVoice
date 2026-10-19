@@ -3,6 +3,32 @@ public sealed record PublicationDraftMetadata(string Title,string Description,st
 public sealed class PublicationDraftStore(string root)
 {
     public string PackagePath=>Path.Combine(root,"drafts","publication.myvoice");
+    public void Discard(){if(File.Exists(PackagePath))File.Delete(PackagePath);}
+    public void ChangeCover(string image)
+    {
+        MyVoice.Core.MediaValidation.RequireImage(image);
+        if(new FileInfo(image).Length>20_000_000)throw new InvalidDataException("Cover exceeds 20 MB.");
+        var manifest=CreationPackage.Inspect(PackagePath);
+        var temporary=PackagePath+"."+Guid.NewGuid().ToString("N")+".part";
+        try
+        {
+            File.Copy(PackagePath,temporary);
+            var name="publication-cover"+Path.GetExtension(image).ToLowerInvariant();
+            using(var archive=System.IO.Compression.ZipFile.Open(temporary,System.IO.Compression.ZipArchiveMode.Update))
+            {
+                archive.GetEntry(name)?.Delete();
+                using(var input=File.OpenRead(image))using(var output=archive.CreateEntry(name).Open())input.CopyTo(output);
+                using(var input=File.OpenRead(image))manifest.Files[name]=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(input));
+                manifest.Cover=name;
+                if(manifest.AiVoice!=null)manifest.AiVoice.Cover=name;
+                archive.GetEntry("manifest.json")!.Delete();
+                using var descriptor=archive.CreateEntry("manifest.json").Open();
+                System.Text.Json.JsonSerializer.Serialize(descriptor,manifest);
+            }
+            CreationPackage.Inspect(temporary);File.Move(temporary,PackagePath,true);PreparedCoverPath=image;
+        }
+        finally{if(File.Exists(temporary))File.Delete(temporary);}
+    }
     public string? PreparedCoverPath {get;private set;}
     public async Task<CreationManifest> PrepareAsync(string source, PublicationDraftMetadata? metadata=null)
     {

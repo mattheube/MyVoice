@@ -17,6 +17,7 @@ public partial class MainViewModel
     public string[] MotionModes {get;}=["Full","Reduced","Off"];
     public string[] BackgroundModes {get;}=["Minimal","Balanced","Rich"];
     public string[] DensityModes {get;}=["Comfortable","Compact"];
+    public bool LiquidGlass {get=>Product.LiquidGlass;set{Product.LiquidGlass=value;ApplyAppearance();OnPropertyChanged();}}
     public string Density {get=>Product.Density;set{Product.Density=value;ApplyAppearance();OnPropertyChanged();}}
     public string Theme {get=>Product.Theme;set{Product.Theme=value;Product.Accent=value switch{"Graphite"=>"#BDCAD5","Deep Ocean"=>"#6ACDFA","Crimson"=>"#FF899B","Emerald"=>"#65DDB2","Warm Dark"=>"#E9BB88",_=>"#B7A5FF"};ApplyAppearance();}}
     public string Accent {get=>Product.Accent;set{if(!System.Text.RegularExpressions.Regex.IsMatch(value??"","^#[0-9a-fA-F]{6}$"))return;Product.Accent=value!;ApplyAppearance();}}
@@ -25,8 +26,8 @@ public partial class MainViewModel
     public string ProfileName {get=>Product.DisplayName;set{Product.DisplayName=value;SaveProduct();OnPropertyChanged(nameof(ProfileName));OnPropertyChanged(nameof(Welcome));OnPropertyChanged(nameof(AccountLabel));}}
     public string ProfileBio {get=>Product.Bio;set{Product.Bio=value;SaveProduct();OnPropertyChanged(nameof(ProfileBio));}}
     public string? ProfileAvatar=>Product.Avatar;
-    public string Welcome=>string.IsNullOrWhiteSpace(Product.DisplayName)?"Bienvenue chez vous.":"Bonjour, "+Product.DisplayName+".";
-    public string LibrarySummary=>$"{SoundCards.Count} sons · {AiVoices.Count} voix IA · tout reste sur votre PC";
+    public string Welcome=>string.IsNullOrWhiteSpace(Product.DisplayName)?T["WelcomeHome"]:string.Format(T["HelloName"],Product.DisplayName);
+    public string LibrarySummary=>string.Format(T["LibraryCount"],SoundCards.Count,AiVoices.Count);
     public string PageTitle=>T[Page switch{0=>"Voice",1=>"Soundboard",2=>"Studio",3=>"Settings",4=>"Home",5=>"Community",6=>"Mic Setup",7=>"Profile",8=>"Mixer",9=>"Publish & Share",_=>"MyVoice"}];
     [ObservableProperty] private bool showWelcome;
     [ObservableProperty] private bool advancedMicrophone;
@@ -61,14 +62,14 @@ public partial class MainViewModel
     private void SaveProduct(){try{productStore?.Save(Product);}catch(Exception e){Error(e);}}
     private void ApplyAppearance(){ProductAppearance.Apply(Product);Settings.Animations=ProductAppearance.Animate;SaveProduct();OnPropertyChanged(nameof(Theme));OnPropertyChanged(nameof(Accent));OnPropertyChanged(nameof(MotionMode));OnPropertyChanged(nameof(BackgroundMode));}
     partial void OnPageChanged(int value){OnPropertyChanged(nameof(PageTitle));OnPropertyChanged(nameof(LibrarySummary));}
-    [RelayCommand] private void ContinueLocally(){Product.OnboardingCompleted=true;ShowWelcome=false;SaveProduct();ShowToast("Votre espace local est prêt.");}
+    [RelayCommand] private void ContinueLocally(){Product.OnboardingCompleted=true;ShowWelcome=false;SaveProduct();ShowToast(T["Runtime117"]);}
     [RelayCommand] private void OpenAccount(){ShowWelcome=false;Page=7;}
     [RelayCommand] private void CreateBoardInStudio(){Page=2;StudioTab=0;}
     [RelayCommand] private void GoVoiceLab(){Page=2;StudioTab=1;}
     [RelayCommand] private void OpenBoard(SoundFolder? folder){SelectedFolder=folder;Page=1;}
     [RelayCommand] private void QuitApplication()=>((App)Application.Current).ExitApplication();
     [RelayCommand] private void ChangeAvatar(){try{var path=ImportCover(true,Product.Avatar);if(path==null)return;Product.Avatar=path;SaveProduct();OnPropertyChanged(nameof(ProfileAvatar));}catch(Exception e){Error(e);}}
-    [RelayCommand] private void CopyCableName(){Clipboard.SetText(VirtualCaptureName);ShowToast("Nom du microphone copié.");}
+    [RelayCommand] private void CopyCableName(){Clipboard.SetText(VirtualCaptureName);ShowToast(T["Runtime62"]);}
     public double GateHold {get=>Settings.Processing.GateHoldMs;set=>ApplyProcessing(Settings.Processing with{GateHoldMs=Math.Clamp(value,0,500)},nameof(GateHold));}
     public double CompressorAttack {get=>Settings.Processing.CompressorAttackMs;set=>ApplyProcessing(Settings.Processing with{CompressorAttackMs=Math.Clamp(value,1,100)},nameof(CompressorAttack));}
     public double CompressorRelease {get=>Settings.Processing.CompressorReleaseMs;set=>ApplyProcessing(Settings.Processing with{CompressorReleaseMs=Math.Clamp(value,20,1000)},nameof(CompressorRelease));}
@@ -81,9 +82,9 @@ public partial class MainViewModel
     public void ShowToast(string text){RecordNotification(text);ToastText=text;var timer=new System.Windows.Threading.DispatcherTimer{Interval=TimeSpan.FromSeconds(4)};timer.Tick+=(_,_)=>{if(ToastText==text)ToastText="";timer.Stop();};timer.Start();}
     [RelayCommand] private void SaveDesignedVoice()
     {
-        if(string.IsNullOrWhiteSpace(DesignerName)){ShowToast("Donnez un nom à votre voix.");return;}
+        if(string.IsNullOrWhiteSpace(DesignerName)){ShowToast(T["Runtime40"]);return;}
         var voice=new DesignedVoice{Name=DesignerName.Trim(),Base=DesignerBase,Pitch=DesignerPitch,Bass=DesignerBass,Mid=DesignerMid,Treble=DesignerTreble,Distortion=DesignerDistortion/100,Delay=DesignerDelay/100,Mix=DesignerMix/100};
-        Product.Presets.Add(voice);DesignedVoices.Add(voice);SaveProduct();ShowToast("Voice Preset enregistré dans Voice.");
+        Product.Presets.Add(voice);DesignedVoices.Add(voice);SaveProduct();ShowToast(T["Runtime116"]);
     }
     [RelayCommand] private void UseDesignedVoice(DesignedVoice? voice)
     {
@@ -91,6 +92,6 @@ public partial class MainViewModel
         SelectPreset(Presets.FirstOrDefault(p=>p.Name==voice.Base)??Presets[0]);
         foreach(var preset in Presets)preset.Selected=false;
         Settings.LastVoiceIsAi=false;graph.Processor.Designed=voice;Settings.LastDesignedVoiceId=voice.Id;Settings.ActiveDesignedVoiceId=voice.Id;
-        OnPropertyChanged(nameof(DisplayVoice));OnPropertyChanged(nameof(VoiceSwitchLabel));Save();ShowToast(voice.Name+" activée");
+        OnPropertyChanged(nameof(DisplayVoice));OnPropertyChanged(nameof(VoiceSwitchLabel));Save();ShowToast(voice.Name+T["Runtime123"]);
     }
 }

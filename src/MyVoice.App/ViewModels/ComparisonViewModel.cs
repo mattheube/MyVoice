@@ -21,13 +21,15 @@ public partial class MainViewModel
     private bool finishComparison;
     public bool AiSupportsExpression=>AiModel=="studio"||AiFileModel=="studio";
     [RelayCommand] private void FinishComparison()=>finishComparison=true;
-    [RelayCommand] private void PlayComparison(VoiceComparison? result){if(result==null)return;lastConvertedFile=result.File;PreviewResult();}
+    [RelayCommand] private void PlayComparison(VoiceComparison? result){if(result==null)return;PreviewLocalFile(result.File);}
     [RelayCommand] private async Task CompareFileAsync()
     {
         if(AiBusy||SelectedAiVoice==null)return;
-        var dialog=new OpenFileDialog{Filter="Audio|*.wav;*.mp3;*.flac"};if(dialog.ShowDialog()!=true)return;
-        using(var probe=new AudioFileReader(dialog.FileName))if(probe.TotalTime.TotalSeconds>15){ComparisonStatus="Choisissez un extrait de 15 secondes maximum.";return;}
-        await RunComparisons(dialog.FileName);
+        var dialog=new OpenFileDialog{Filter=MyVoice.Core.MediaValidation.AudioFilter};if(dialog.ShowDialog()!=true)return;
+        var normalized=WorkflowFile("comparison.wav");
+        try{await Task.Run(()=>MyVoice.Core.AudioCodec.Decode(dialog.FileName,normalized,lifetime.Token));}catch(Exception e){ComparisonStatus=e.Message;return;}
+        using(var probe=new AudioFileReader(normalized))if(probe.TotalTime.TotalSeconds>15){ComparisonStatus="Choisissez un extrait de 15 secondes maximum.";return;}
+        await RunComparisons(normalized);
     }
     [RelayCommand] private async Task RecordComparisonAsync()
     {
@@ -59,13 +61,13 @@ public partial class MainViewModel
         {
             foreach(var mode in new[]{"fast","conversation","studio"})
             {
-                var name=mode=="fast"?"Direct":mode=="studio"?"Expressive":"Conversation";ComparisonStatus=name+" · conversion de la même phrase…";
-                using var engine=new SeedBackend{Model=mode,Profile=AiProfile,Expression=AiExpression,CpuThreads=AiCpuThreads,Similarity=AiSimilarity/100,PreserveDynamics=AiPreserveDynamics,ReduceArtifacts=AiReduceArtifacts,ReferenceFiles=voice.Samples.Where(s=>!s.Excluded).SelectMany(s=>s.Segments.OrderByDescending(x=>x.Score).Take(3)).Select(s=>s.File).Where(File.Exists).ToArray()};
+                var name=mode=="fast"?"Direct":mode=="studio"?"Expressive":"Conversation";ComparisonStatus=name+T["Runtime121"];
+                using var engine=new SeedBackend{Model=mode,Profile=AiProfile,Expression=AiExpression,CpuThreads=AiCpuThreads,Similarity=AiSimilarity/100,PreserveDynamics=AiPreserveDynamics,ReduceArtifacts=AiReduceArtifacts,ReferenceFiles=voice.ActiveReferenceFiles};
                 await engine.StartAsync(AiPython,AiRepository,Path.Combine(AppContext.BaseDirectory,"voice-engine","worker.py"),AiDevice,lifetime.Token);
                 await engine.LoadAsync(voice.ReferenceFile,lifetime.Token);var output=Path.Combine(folder,name+".wav");
                 await engine.ConvertFileAsync(input,output,mode=="studio"?30:12,lifetime.Token);VoiceComparisons.Add(new(name,output,engine.LastSeconds));
             }
-            ComparisonStatus="Trois rendus prêts à écouter. Temps affiché = calcul, pas latence microphone. Les fichiers restent locaux.";
+            ComparisonStatus=T["Runtime108"];
         }
         catch(Exception e){ComparisonStatus=e.Message;}
         finally{AiBusy=false;}

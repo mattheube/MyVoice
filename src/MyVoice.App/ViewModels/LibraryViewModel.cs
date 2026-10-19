@@ -120,6 +120,7 @@ public partial class MainViewModel
         SelectedSound = null;
         sounds.Save();
     }
+    public void DropImage(string target,string path){try{MyVoice.Core.MediaValidation.RequireImage(path);if(target=="voice"&&SelectedAiVoice==null||target=="sound"&&SelectedSound==null||target=="folder"&&SelectedFolder==null)return;var cover=ImportCover(target is "voice" or "avatar",path);if(cover==null)return;switch(target){case "publication":SetPublicationCover(cover);break;case "avatar":Product.Avatar=cover;SaveProduct();OnPropertyChanged(nameof(ProfileAvatar));break;case "voice":SelectedAiVoice!.Cover=cover;SaveVoices();ReloadVoices();break;case "sound":SelectedSound!.Item.Cover=cover;SelectedSound.Refresh();sounds.Save();break;case "folder":SelectedFolder!.Cover=cover;sounds.Save();break;}}catch(Exception e){ShowToast(e.Message);}}
     private string? ImportCover(bool circular = false, string? existing = null)
     {
         string? source = existing;
@@ -130,6 +131,7 @@ public partial class MainViewModel
             if (dialog.ShowDialog() != true) return null;
             source = dialog.FileName;
         }
+        MyVoice.Core.MediaValidation.RequireImage(source);
         var crop = new MyVoice.App.ImageCropWindow(source, circular) { Owner = System.Windows.Application.Current.MainWindow };
         if (crop.ShowDialog() != true || crop.Result == null) return null;
         var id = Guid.NewGuid().ToString("N");

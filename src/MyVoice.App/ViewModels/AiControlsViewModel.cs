@@ -29,7 +29,7 @@ public partial class MainViewModel
     [RelayCommand(AllowConcurrentExecutions=true)] private async Task UseAiVoiceAsync(VoiceReference? voice)
     {
         if(voice==null||!voice.Ready){Status=T["FileMissing"];return;}
-        if(AiBusy&&!aiActivating){Status="Une opération IA est déjà en cours.";return;}
+        if(AiBusy&&!aiActivating){Status=T["Runtime112"];return;}
         var request=++voiceSwitchRevision;
         try{await voiceSwitchGate.WaitAsync(lifetime.Token);}catch(OperationCanceledException){return;}
         try
@@ -41,10 +41,10 @@ public partial class MainViewModel
             OnPropertyChanged(nameof(DisplayVoice));OnPropertyChanged(nameof(DisplayVoiceCover));
             EnsureMicrophone();if(!ai.Ready)await StartAiAsync();
             if(request!=voiceSwitchRevision)return;
-            if(!AiReady||!Running)throw new InvalidOperationException("La voix IA n’est pas prête. Default Clean reste actif.");
+            if(!AiReady||!Running)throw new InvalidOperationException(T["Runtime49"]);
             await ToggleAiLiveAsync();
             if(request!=voiceSwitchRevision)return;
-            if(!AiLive)throw new InvalidOperationException("Le chargement de la voix a échoué. Default Clean reste actif.");
+            if(!AiLive)throw new InvalidOperationException(T["Runtime50"]);
         }
         catch(OperationCanceledException){}
         catch(Exception e){if(request==voiceSwitchRevision){SelectPreset(Presets.First(p=>p.Name=="Clean"));Status=e.Message;}}

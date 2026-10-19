@@ -36,7 +36,7 @@ public partial class MainViewModel
     private bool EnsureKeyboardChannel()
     {
         if(MixerChannels.Any(c=>c.Id=="keyboard"))return true;
-        if(MixerChannels.Count>=24){KeyboardStatus="Le mix contient déjà 24 sources. Retirez une source pour ajouter Keyboard Sound.";return false;}
+        if(MixerChannels.Count>=24){KeyboardStatus=T["Runtime51"];return false;}
         var profile=mixerState.Current with{Channels=mixerState.Current.Channels.Append(new AudioChannel{Id="keyboard",Name="Keyboard Sound",Type="keyboard"}).ToList(),Routes=mixerState.Current.Routes.Concat(MixerOutputs.Select(b=>new AudioRoute("keyboard",b.Id,b.Id=="monitor"))).ToList()};
         mixerState.Current=profile;LoadMixerCards(profile);ApplyMixer();return true;
     }
@@ -50,7 +50,7 @@ public partial class MainViewModel
     private async Task ApplyKeyboardAsync()
     {
         int revision=++keyboardRevision;var settings=mixerState.Current.Keyboard;
-        if(!settings.Enabled){keyboardListener?.Dispose();keyboardListener=null;graph.Keyboard.Disable();KeyboardStatus="Désactivé · samples libérés · écoute clavier arrêtée";}
+        if(!settings.Enabled){keyboardListener?.Dispose();keyboardListener=null;graph.Keyboard.Disable();KeyboardStatus=T["Runtime43"];}
         await keyboardLoadGate.WaitAsync();
         try
         {

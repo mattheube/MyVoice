@@ -34,14 +34,14 @@ public partial class MainViewModel
             if(lifetime.IsCancellationRequested)return;
             mixerApplicationCache=found;RefreshMixerSourceChoices();
         }
-        catch(Exception e){MixerStatus="Détection des applications : "+e.Message;}
+        catch(Exception e){MixerStatus=T["Runtime44"]+e.Message;}
         finally{discoveringApplications=false;}
     }
     [RelayCommand] private async Task ForceRefreshApplicationsAsync()
     {
         if(discoveringApplications)return;
         try{var saved=mixerState.Current.Channels.ToArray();await Task.Run(()=>ApplicationDiscoveryService.Shared.Discover(saved,force:true));await RefreshApplicationsAsync();}
-        catch(Exception e){MixerStatus="Détection des applications : "+e.Message;}
+        catch(Exception e){MixerStatus=T["Runtime44"]+e.Message;}
     }
     [RelayCommand] private void ChooseMixerApplication()
     {
@@ -51,7 +51,7 @@ public partial class MainViewModel
         {
             var item=ApplicationDiscoveryService.FromFile(picker.FileName);
             mixerApplicationCache=ApplicationDiscoveryService.Merge(mixerApplicationCache.Append(item));ApplicationSearch="";RefreshMixerSourceChoices();MixerApplication=MixerApplications.First(a=>a.Identity.Equals(item.Identity,StringComparison.OrdinalIgnoreCase));
-            MixerStatus="Application choisie. Ajoutez la source puis activez Capture pour appliquer ses règles à son ouverture.";
+            MixerStatus=T["Runtime2"];
         }
         catch(Exception e){MixerStatus=e.Message;}
     }

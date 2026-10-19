@@ -57,7 +57,16 @@ public sealed class SoundboardService : ISoundboardService, IDisposable
     }
     public async Task<Guid> ImportAsync(string file, CancellationToken token)
     {
-        return await Task.Run(() => { token.ThrowIfCancellationRequested(); using var probe = new AudioFileReader(file); if (probe.TotalTime.TotalSeconds <= 0) throw new InvalidDataException("Empty audio"); var id = Guid.NewGuid(); var dest = Path.Combine(root, "sounds", id + Path.GetExtension(file).ToLowerInvariant()); File.Copy(file, dest); var item = new SoundItem { Id = id, File = dest, Name = Path.GetFileNameWithoutExtension(file) }; lock (gate) Library.Sounds.Add(item); return id; }, token);
+        return await Task.Run(() => {
+            token.ThrowIfCancellationRequested();MediaValidation.RequireAudio(file);var id=Guid.NewGuid();
+            var dest=Path.Combine(root,"sounds",id+(AudioCodec.Available?".wav":Path.GetExtension(file).ToLowerInvariant()));
+            try{
+                if(AudioCodec.Available)AudioCodec.Decode(file,dest,token,2);else File.Copy(file,dest);
+                using(var probe=new AudioFileReader(dest)){var samples=new float[4096];if(probe.TotalTime.TotalSeconds<=0||probe.Read(samples,0,samples.Length)==0)throw new InvalidDataException("Empty audio");}
+                var originals=Path.Combine(root,"sounds","originals");Directory.CreateDirectory(originals);File.Copy(file,Path.Combine(originals,id+Path.GetExtension(file).ToLowerInvariant()));
+                var item=new SoundItem{Id=id,File=dest,Name=Path.GetFileNameWithoutExtension(file)};lock(gate)Library.Sounds.Add(item);return id;
+            }catch{if(File.Exists(dest))File.Delete(dest);throw;}
+        },token);
     }
     public void Play(Guid id)=>Play(id,false);
     public void Preview(Guid id)=>Play(id,true);

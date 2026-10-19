@@ -9,9 +9,9 @@ public partial class MainViewModel
     public string VirtualPlaybackName=>virtualConnection.Playback?.Name??"CABLE Input introuvable";
     public string VirtualCaptureName=>virtualConnection.Capture?.Name??"CABLE Output (VB-Audio Virtual Cable)";
     public bool VirtualMicrophoneMissing => !virtualConnection.Detected;
-    public string VirtualMicrophoneStatus => !virtualConnection.Detected ? "Périphérique audio virtuel requis" :
+    public string VirtualMicrophoneStatus => !virtualConnection.Detected ? T["Runtime83"] :
         graph.DeviceStatuses.FirstOrDefault(s => s.Id == "virtual") is { Available: true } && graph.VirtualId == virtualConnection.Playback?.Id
-        ? "Connecté ✓" : "Connexion audio en cours…";
+        ? T["Runtime25"] : "Connexion audio en cours…";
     public string VirtualMicrophoneDiagnostics => $"{virtualBackend.Name}\n{VirtualMicrophoneStatus}\nSortie Windows : {virtualConnection.Playback?.Id ?? "absente"}\nEntrée des applications : {virtualConnection.Capture?.Name ?? "absente"}\n{graph.DeviceStatuses.FirstOrDefault(s => s.Id == "virtual")?.Message}\n48 000 Hz · stéréo · WASAPI · tampon demandé 30 ms";
     private void ReconcileVirtualMicrophone()
     {
@@ -41,7 +41,7 @@ public partial class MainViewModel
     [CommunityToolkit.Mvvm.Input.RelayCommand] private void RestoreCableRouting()
     {
         RefreshCable();
-        if(!virtualConnection.Detected){MixerStatus="VB-CABLE non détecté. Vérifiez que CABLE Input et CABLE Output sont activés dans Windows.";ShowToast(MixerStatus);return;}
+        if(!virtualConnection.Detected){MixerStatus=T["Runtime115"];ShowToast(MixerStatus);return;}
         var profile=mixerState.Current;
         SetMixerProfile(profile with
         {

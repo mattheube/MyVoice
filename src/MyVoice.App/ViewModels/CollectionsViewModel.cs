@@ -57,7 +57,7 @@ public partial class MainViewModel
     }
     [RelayCommand] private void DeleteCollection()
     {
-        if(SelectedCollection is not {} c||c.Id=="liked"||!Dialogs.Confirm("Supprimer cette collection ? Les sons et les voix restent dans votre bibliothèque."))return;
+        if(SelectedCollection is not {} c||c.Id=="liked"||!Dialogs.Confirm(T["Runtime104"]))return;
         Product.Collections.Remove(c);Collections.Remove(c);SelectedCollection=null;SaveProduct();
     }
     public void RefreshCollectionVoices()
@@ -77,8 +77,8 @@ public partial class MainViewModel
     [RelayCommand] private void PreviewSound(SoundCard? card)
     {
         if(card==null)return;
-        if(graph.MonitorId==null&&enableOutputs){ShowToast("Choisissez votre casque dans le mixeur pour la préécoute.");return;}
-        try{SelectedSound=card;sounds.Preview(card.Item.Id);NowPlayingVisible=true;ShowToast("Préécoute casque uniquement · aucun envoi vers VB-CABLE.");}catch(Exception e){StudioError(e.Message);}
+        if(graph.MonitorId==null&&enableOutputs){ShowToast(T["Runtime18"]);return;}
+        try{SelectedSound=card;sounds.Preview(card.Item.Id);NowPlayingVisible=true;ShowToast(T["Runtime78"]);}catch(Exception e){StudioError(e.Message);}
     }
     public void OpenSoundInspector(SoundCard card){SelectedSound=card;NowPlayingVisible=true;}
     public void AssignSoundKeybind(SoundCard card){SelectedSound=card;HotkeyTarget="Selected sound";Page=3;ShowToast("Cliquez sur Associer puis appuyez sur votre raccourci.");}

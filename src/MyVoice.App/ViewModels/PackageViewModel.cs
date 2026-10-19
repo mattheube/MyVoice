@@ -11,22 +11,22 @@ public partial class MainViewModel
 {
     [RelayCommand] private async Task ExportBoardAsync()
     {
-        if(SelectedFolder==null){ShowToast("Sélectionnez un Soundboard.");return;}
+        if(SelectedFolder==null){ShowToast(T["Runtime107"]);return;}
         var dialog=new SaveFileDialog{Filter="MyVoice package|*.myvoice",FileName="Soundboard.myvoice"};if(dialog.ShowDialog()!=true)return;
         var staging=Path.Combine(store.Root,"temp",Guid.NewGuid()+".zip");
-        try{var folder=SelectedFolder;var items=sounds.Library.Sounds.Where(s=>s.Folder==folder.Name).ToArray();await Task.Run(()=>CreationPackage.ExportBoard(staging,folder,items));File.Copy(staging,dialog.FileName,true);ShowToast("Package exporté. Aucun envoi en ligne.");}catch(Exception e){StudioError(e.Message);}finally{if(File.Exists(staging))File.Delete(staging);}
+        try{var folder=SelectedFolder;var items=sounds.Library.Sounds.Where(s=>s.Folder==folder.Name).ToArray();await Task.Run(()=>CreationPackage.ExportBoard(staging,folder,items));File.Copy(staging,dialog.FileName,true);ShowToast(T["Runtime65"]);}catch(Exception e){StudioError(e.Message);}finally{if(File.Exists(staging))File.Delete(staging);}
     }
     [RelayCommand] private async Task ExportPresetAsync(DesignedVoice? preset)
     {
         if(preset==null)return;
         var dialog=new SaveFileDialog{Filter="MyVoice package|*.myvoice",FileName="VoicePreset.myvoice"};if(dialog.ShowDialog()!=true)return;
         var staging=Path.Combine(store.Root,"temp",Guid.NewGuid()+".zip");
-        try{Directory.CreateDirectory(Path.GetDirectoryName(staging)!);await Task.Run(()=>CreationPackage.ExportPreset(staging,preset));File.Copy(staging,dialog.FileName,true);ShowToast("Preset exporté. Aucun envoi en ligne.");}catch(Exception e){StudioError(e.Message);}finally{if(File.Exists(staging))File.Delete(staging);}
+        try{Directory.CreateDirectory(Path.GetDirectoryName(staging)!);await Task.Run(()=>CreationPackage.ExportPreset(staging,preset));File.Copy(staging,dialog.FileName,true);ShowToast(T["Runtime67"]);}catch(Exception e){StudioError(e.Message);}finally{if(File.Exists(staging))File.Delete(staging);}
     }
     [RelayCommand] private async Task ImportPackageAsync()
     {
         var dialog=new OpenFileDialog{Filter="MyVoice package|*.myvoice;*.zip"};if(dialog.ShowDialog()!=true)return;
-        try{await InstallCreation(dialog.FileName);ShowToast("Création installée dans votre bibliothèque.");}catch(Exception e){StudioError(e.Message);}
+        try{await InstallCreation(dialog.FileName);ShowToast(T["Runtime34"]);}catch(Exception e){StudioError(e.Message);}
     }
     private async Task InstallCreation(string path,string? sourceId=null)
     {
@@ -34,7 +34,7 @@ public partial class MainViewModel
         if(m.Kind=="ai-voice"){
             var voice=m.AiVoice!;voice.Id=Guid.NewGuid().ToString("N");voice.SourceContentId=sourceId??"imported-package";
             voice.ReferenceFile=Path.Combine(result.Directory,voice.ReferenceFile);if(voice.Cover!=null)voice.Cover=Path.Combine(result.Directory,voice.Cover);
-            using(var reader=new NAudio.Wave.AudioFileReader(voice.ReferenceFile)){if(reader.TotalTime.TotalSeconds<=0)throw new InvalidDataException("Référence vide.");voice.Duration=reader.TotalTime.TotalSeconds;}
+            using(var reader=new NAudio.Wave.AudioFileReader(voice.ReferenceFile)){if(reader.TotalTime.TotalSeconds<=0)throw new InvalidDataException(T["Runtime92"]);voice.Duration=reader.TotalTime.TotalSeconds;}
             foreach(var s in voice.Samples){s.OriginalFile=Path.Combine(result.Directory,s.OriginalFile);s.Segments=s.Segments.Select(x=>x with{File=Path.Combine(result.Directory,x.File)}).ToList();}
             AiVoices.Add(voice);SaveVoices();return;
         }

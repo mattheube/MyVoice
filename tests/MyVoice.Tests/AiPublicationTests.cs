@@ -4,6 +4,10 @@ using MyVoice.Infrastructure;
 using NAudio.Wave;
 internal static class AiPublicationTests {
  internal static void Run(Action<string,Action> test){
+ test("Draft cover update is packaged and discard preserves the original",()=>{
+ var root=Path.Combine(Path.GetTempPath(),"MyVoice-cover-"+Guid.NewGuid());Directory.CreateDirectory(root);
+ try{var original=Path.Combine(root,"original.myvoice");CreationPackage.ExportPreset(original,new(){Name="Original"});var before=File.ReadAllBytes(original);var drafts=new PublicationDraftStore(root);drafts.PrepareAsync(original).GetAwaiter().GetResult();var image=Path.Combine(root,"cover.png");File.WriteAllBytes(image,Convert.FromBase64String("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRZkAAAAASUVORK5CYII="));drafts.ChangeCover(image);var manifest=CreationPackage.Inspect(drafts.PackagePath);if(manifest.Cover!="publication-cover.png"||!manifest.Files.ContainsKey(manifest.Cover))throw new Exception("Cover missing from draft");drafts.Discard();if(File.Exists(drafts.PackagePath)||!File.ReadAllBytes(original).SequenceEqual(before))throw new Exception("Discard changed original");
+ }finally{Directory.Delete(root,true);}});
  test("AI package contains usable audio without local paths or excluded originals",()=>{
  var root=Path.Combine(Path.GetTempPath(),"MyVoice-publication-"+Guid.NewGuid());Directory.CreateDirectory(root);
  try{var reference=Path.Combine(root,"reference.wav");using(var writer=new WaveFileWriter(reference,new WaveFormat(48000,1))){writer.WriteSamples(Enumerable.Range(0,4800).Select(i=>(float)(.1*Math.Sin(i*.1))).ToArray(),0,4800);}

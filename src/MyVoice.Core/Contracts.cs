@@ -78,7 +78,7 @@ public sealed partial class AppSettings
     }
     public bool LaunchAtStartup {get;set;} = true;
     public bool Animations { get; set; } = true;
-    public string Language { get; set; } = "fr";
+    public string Language { get; set; } = System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName=="fr"?"fr":"en";
     public uint HotkeyModifiers
     {
         get; set;

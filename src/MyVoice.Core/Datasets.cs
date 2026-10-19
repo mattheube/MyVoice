@@ -7,6 +7,9 @@ public sealed partial class VoiceReference
     [JsonExtensionData] public Dictionary<string, JsonElement>? AdditionalData { get; set; }
     public string Backend { get; set; } = "Seed-VC";
     public string BackendVersion { get; set; } = "tiny-xlsr / 51383efd";
+    public List<string>? PreparedReferenceFiles {get;set;}
+    public void EnsurePreparedReferences(){PreparedReferenceFiles ??= Samples.Where(s=>!s.Excluded).SelectMany(s=>s.Segments.OrderByDescending(x=>x.Score).Take(3)).Select(s=>s.File).Distinct().ToList();}
+    [JsonIgnore] public string[] ActiveReferenceFiles {get{EnsurePreparedReferences();var files=PreparedReferenceFiles!.Where(File.Exists).ToArray();return files.Length>0?files:[ReferenceFile];}}
     public List<DatasetSample> Samples { get; set; } = new();
     public List<VoiceRevision> Revisions { get; set; } = new();
     public int Revision { get; set; } = 1;
@@ -34,4 +37,4 @@ public sealed class DatasetSample
     [JsonIgnore] public string Summary => $"{Duration:0}s · {UsableSeconds:0}s active · {Quality}";
 }
 public sealed record DatasetSegment(string File, double Seconds, double Score);
-public sealed record VoiceRevision(int Number, string ReferenceFile, DateTime Created);
+public sealed record VoiceRevision(int Number, string ReferenceFile, DateTime Created,string[]? References=null);

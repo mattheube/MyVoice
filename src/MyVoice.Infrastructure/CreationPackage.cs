@@ -51,7 +51,7 @@ public static class CreationPackage
         if(m.Cover!=null)Reference(m.Cover,m);
         if(m.Kind=="ai-voice"){
             var v=m.AiVoice??throw new InvalidDataException("Référence IA absente.");Reference(v.ReferenceFile,m);
-            if(v.Samples.Count>100||v.Revisions.Count>0||v.AdditionalData?.Count>0||!double.IsFinite(v.Duration)||v.Duration<=0)throw new InvalidDataException("Référence IA invalide.");
+            if(v.Samples.Count>100||v.PreparedReferenceFiles?.Count>0||v.Revisions.Count>0||v.AdditionalData?.Count>0||!double.IsFinite(v.Duration)||v.Duration<=0)throw new InvalidDataException("Référence IA invalide.");
             foreach(var sample in v.Samples){Reference(sample.OriginalFile,m);foreach(var segment in sample.Segments)Reference(segment.File,m);}
             if(v.Cover!=null)Reference(v.Cover,m);
         }
@@ -92,7 +92,8 @@ public static class CreationPackage
         var v=new VoiceReference{Name=voice.Name,ReferenceFile=Add(voice.ReferenceFile,"reference"),Duration=voice.Duration,Backend=voice.Backend,BackendVersion=voice.BackendVersion};
         if(voice.Cover is {} cover&&File.Exists(cover))m.Cover=v.Cover=Add(cover,"cover");
         // Export only the selected usable segments, never local paths, revisions or excluded originals.
-        int i=0;foreach(var sample in voice.Samples.Where(s=>!s.Excluded))foreach(var segment in sample.Segments.OrderByDescending(s=>s.Score).Take(3).Where(s=>File.Exists(s.File))){var path=Add(segment.File,"samples/"+(++i));v.Samples.Add(new DatasetSample{Name="Extrait "+i,OriginalFile=path,Duration=segment.Seconds,UsableSeconds=segment.Seconds,Segments=[new(path,segment.Seconds,segment.Score)]});}
+        var active=voice.ActiveReferenceFiles.ToHashSet(StringComparer.OrdinalIgnoreCase);
+        int i=0;foreach(var sample in voice.Samples.Where(s=>!s.Excluded))foreach(var segment in sample.Segments.OrderByDescending(s=>s.Score).Take(3).Where(s=>File.Exists(s.File)&&active.Contains(s.File))){var path=Add(segment.File,"samples/"+(++i));v.Samples.Add(new DatasetSample{Name="Extrait "+i,OriginalFile=path,Duration=segment.Seconds,UsableSeconds=segment.Seconds,Segments=[new(path,segment.Seconds,segment.Score)]});}
         m.AiVoice=v;Write(file,m,files);
     }
     private static void Write(string file,CreationManifest m,Dictionary<string,string> files)

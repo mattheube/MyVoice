@@ -1,0 +1,48 @@
+MyVoice 2.7.0-beta.9 — targeted update audit, 19 October 2026
+
+IMPLEMENTATION
+Draft close: Save / Discard / Cancel; unchanged closes directly. Save updates the same draft. Discard only removes the current unpublished package. Cover changes update the package and hashes. Original creations and archived drafts remain intact.
+Language: first-run and Settings French/English selection; expanded labels, tooltips and runtime messages. Stable model/device choices retain selection. User content, device names and engine diagnostics remain original. Portuguese is a speech language, not an application UI language.
+Glass: optional static theme-coloured reflections and layered surfaces/borders, unchanged layout. OFF restores the original palette. Tray/background, reduced effects, disabled Windows animations, high contrast and unsupported rendering tiers use the fallback. No continuous backdrop capture.
+Studio: Live Microphone, Audio Conversion, Text to Voice. Import or record up to 120 seconds; export, headphones preview or play through the existing My Voice mixer channel (routing/volume/mute retained). Cancellation supported. Text uses the selected prepared reference, a separate optional runtime, and bounded phrases up to 1000 characters total.
+Formats: WAV/FLAC/MP3/OGG/OPUS/M4A/AAC import; WAV PCM24, FLAC, MP3 320k, OGG q8, OPUS 192k export at 44.1/48kHz. Extension/header validation followed by actual decoding. Originals preserved. Mixed imports report rejected files. Image drops use the crop editor.
+Reference review: pending samples do not activate until explicit Update Voice confirmation. Approved banks persist across restart and revisions; publication excludes pending samples and private paths. Peak-aware normalization avoids introducing clipped transients. Analysis detects short audio, silence/low level and clipping; music, multiple speakers and reverberation are not reliably classified, as explained in tips.
+
+LOCAL BENCHMARK
+Two real prepared MyVoice voices, same four-second source, RTX 4060 Ti 8GB. Times exclude engine loading and are not microphone latency.
+Mode                        Voice 1 s  Voice 2 s  Allocated VRAM MB
+Seed-VC Direct, 24 steps       0.418      0.391       690
+Seed-VC Conversation, 24       4.176      4.122       2233
+Seed-VC Expressive, 40         6.989     10.017       2233–2667
+Chatterbox VC                  2.572      0.674       1466–1646
+Chatterbox VC first result cold, second warm.
+Direct CPU, eight threads: 47.58 / 46.46 seconds for four seconds of source.
+Additional two-second CPU tests: Conversation 21.86 s; Expressive 84.53 s.
+All tested outputs finite and nonempty. CPU supported with substantial delay. Real-time throughput is not claimed for Conversation at these quality settings.
+
+Speaker embedding cosine (CAMPPlus; proxy, NOT a likeness percentage/listening score):
+                        Voice 1  Voice 2
+Direct                   .715     .766
+Conversation             .588     .749
+Expressive               .641     .876
+Chatterbox VC             .750     .838
+Encoder related to Seed-VC conditioning; comparison bias possible. No universal winner. Retain established modes; Chatterbox VC remains an audited candidate. Use Chatterbox Multilingual for new text synthesis. Accent, breathing and unusual synthetic textures are not guaranteed by this metric. No claim of identical cloning or objectively improved perceptual quality.
+
+TEXT SYNTHESIS
+chatterbox-tts 0.1.7; model revision 5bb1f6ee58e50c3b8d408bc82a6d3740c2db6e18.
+French GPU: 16.15 s processing / 4.36 s audio / 3255 MB VRAM.
+English GPU: 11.25 s / 4.00 s audio. Portuguese GPU: 5.77 s / 2.56 s audio.
+French CPU: 11.83 s / 1.16 s audio. Actual selected MyVoice reference in each case.
+Local Whisper-small transcription recovered all four intended sentences. This checks intelligibility, not accent or speaker similarity. Installed application backend also generated French successfully. Download/model loading add delay; hardware load, text and references affect results.
+
+SOURCES AND LICENCES
+Seed-VC: GPL-3.0, https://github.com/Plachtaa/seed-vc
+Chatterbox: MIT, https://github.com/resemble-ai/chatterbox
+Model: https://huggingface.co/ResembleAI/chatterbox
+F5-TTS: suitability review only, not benchmarked/integrated; pretrained CC-BY-NC weights, https://github.com/SWivid/F5-TTS
+FFmpeg: separate GPLv3 executable; exact build/source notices included.
+Personal reference audio, generated samples and transcripts remain local.
+
+VALIDATION
+.NET regressions include revision activation/restart, publication privacy, packaged cover updates, original preservation, strict media types and transient normalization.
+WPF tests cover draft outcomes, Glass restoration/suspension, language switching without selection loss, seven import/five export formats, mixed sound/sample import, audio rejected by image target, physical microphone recording in isolated profile, My Voice routing/headphone isolation and cancellation. Isolated bus test sends no physical virtual-device audio. Live engine and VB-CABLE retain the established pipeline.

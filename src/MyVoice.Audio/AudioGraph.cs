@@ -8,6 +8,10 @@ public sealed class AudioGraph : IDisposable
     // Capacity absorbs short Windows scheduling/GC stalls; it does not prefill or delay playback.
     // 100 ms overflowed during a real Conversation run (20 ms lost at the input).
     private readonly SampleRing mic=new(24000,trackTimestamps:true),converted=new(48000*60,trackTimestamps:true),soundQueue=new(2880*8,2);
+    private readonly SampleRing voicePlayback=new(48000*2);
+    public int VoicePlaybackFrames=>voicePlayback.Count;
+    public void PushVoicePlayback(ReadOnlySpan<float> samples)=>voicePlayback.Write(samples);
+    public void StopVoicePlayback()=>voicePlayback.Clear();
     private readonly SoundboardService sounds;
     private readonly Thread worker,soundWorker;
     private readonly CancellationTokenSource stop=new();
@@ -82,7 +86,7 @@ public sealed class AudioGraph : IDisposable
     }
     private void Run()
     {
-        var voice=new float[480];var ai=new float[480];var raw=new float[960];var sb=new float[2880];var test=new float[960];var keyboard=new float[960];
+        var playback=new float[480];var voice=new float[480];var ai=new float[480];var raw=new float[960];var sb=new float[2880];var test=new float[960];var keyboard=new float[960];
         var clock=Stopwatch.StartNew();long next=0;
         while(!stop.IsCancellationRequested)
         {
@@ -92,7 +96,7 @@ public sealed class AudioGraph : IDisposable
                 mic.Take(voice);for(int i=0;i<480;i++)raw[i*2]=raw[i*2+1]=voice[i];Recorder.Offer("raw-mic",raw);
                 Processor.Process(voice,true,!AiLive,!AiLive);
                 if(AiLive){AiInputTimestamp=mic.LastReadTimestamp;AiInput?.Invoke(voice);converted.Take(ai);if(Interlocked.Exchange(ref convertedDiscontinuity,0)==1)for(int j=0;j<ai.Length;j++){float w=j/(float)(ai.Length-1);ai[j]=lastConvertedSample*(1-w)+ai[j]*w;}lastConvertedSample=ai[^1];aiPost.Settings=Processor.Settings;aiPost.Process(ai,false,true,false);}
-                var processed=AiLive?ai:voice;ProcessedPeak=MixerRouter.Measure(processed).PeakDb;
+                var processed=AiLive?ai:voice;voicePlayback.Take(playback);for(int i=0;i<processed.Length;i++)processed[i]+=playback[i];ProcessedPeak=MixerRouter.Measure(processed).PeakDb;
                 soundQueue.Take(sb);Array.Clear(test);
                 if(testFrames>0){for(int i=0;i<480;i++){var tone=(float)(.025*Math.Sin(testPhase));testPhase+=2*Math.PI*733/48000;test[i*2]=test[i*2+1]=tone;}Interlocked.Add(ref testFrames,-480);}
                 Keyboard.Render(keyboard);Mixer.Render(processed,sb.AsSpan(0,960),sb.AsSpan(960,960),sb.AsSpan(1920,960),test,keyboard);

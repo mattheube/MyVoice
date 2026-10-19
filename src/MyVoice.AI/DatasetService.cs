@@ -7,13 +7,21 @@ public static class DatasetService
 {
     public static DatasetSample Import(string root, string voiceId, string file, CancellationToken token)
     {
+        MediaValidation.RequireAudio(file);
+        var decoded=Path.Combine(Path.GetTempPath(),"MyVoice-decode-"+Guid.NewGuid()+".wav");
+        try{if(AudioCodec.Available)AudioCodec.Decode(file,decoded,token);else {using var probe=new AudioFileReader(file);var check=new float[4096];if(probe.Read(check,0,check.Length)==0)throw new InvalidDataException("Empty or unreadable audio.");}
+        return ImportValidated(root,voiceId,file,File.Exists(decoded)?decoded:file,token);}
+        finally{if(File.Exists(decoded))File.Delete(decoded);}
+    }
+    private static DatasetSample ImportValidated(string root,string voiceId,string file,string decoded,CancellationToken token)
+    {
         var sample = new DatasetSample { Name=Path.GetFileName(file) };
         var folder=Path.Combine(root,"datasets",voiceId,sample.Id); Directory.CreateDirectory(folder);
         sample.OriginalFile=Path.Combine(folder,"original"+Path.GetExtension(file));
         File.Copy(file,sample.OriginalFile,false);
         try
         {
-            using var reader=new AudioFileReader(sample.OriginalFile);
+            using var reader=new AudioFileReader(decoded);
             sample.SampleRate=reader.WaveFormat.SampleRate; sample.Channels=reader.WaveFormat.Channels; sample.Duration=reader.TotalTime.TotalSeconds;
             ISampleProvider source=reader;
             if(source.WaveFormat.Channels==2) source=new StereoToMonoSampleProvider(source);
@@ -34,7 +42,8 @@ public static class DatasetService
                     var start=0;var end=count-1;while(start<end&&Math.Abs(block[start])<.004)start++;while(end>start&&Math.Abs(block[end])<.004)end--;
                     start=Math.Max(0,start-2400);end=Math.Min(count-1,end+2400);
                     var length=end-start+1; var rms=Math.Sqrt(windowSum/count);
-                    var gain=Math.Min(3,.12/Math.Max(.001,rms));
+                    var localPeak=block.AsSpan(start,length).ToArray().Max(x=>Math.Abs(x));
+                    var gain=Math.Min(Math.Min(3,.12/Math.Max(.001,rms)),.95/Math.Max(.00001,localPeak));
                     var data=block.AsSpan(start,length).ToArray();for(int i=0;i<data.Length;i++)data[i]=(float)Math.Clamp(data[i]*gain,-.95,.95);
                     var path=Path.Combine(folder,$"segment-{index++:D4}.wav");
                     using(var writer=new WaveFileWriter(path,WaveFormat.CreateIeeeFloatWaveFormat(48000,1)))writer.WriteSamples(data,0,data.Length);
@@ -45,7 +54,7 @@ public static class DatasetService
             sample.UsableSeconds=active/48000d; sample.ClippingRatio=clipped/(double)Math.Max(1,total);sample.PeakDb=Calibration.Db(peak);sample.RmsDb=Calibration.Db(Math.Sqrt(sum/Math.Max(1,total)));
             sample.Excluded=sample.Segments.Count==0 || sample.ClippingRatio>.03;
             sample.Quality=sample.Excluded?"Poor":sample.ClippingRatio>.001||sample.UsableSeconds<sample.Duration*.4?"Usable":"Good";
-            sample.Notes=sample.ClippingRatio>.001?"Clipping detected":sample.UsableSeconds<sample.Duration*.4?"Long silence / low level":"Signal levels suitable";
+            sample.Notes=sample.Duration<1?"Audio too short (less than one second)":sample.ClippingRatio>.001?"Clipping detected":sample.UsableSeconds<sample.Duration*.4?"Long silence / low level":"Signal levels suitable";
             sample.Notes+=" · Activity is an energy estimate; music / speakers / reverb not classified.";
         }
         catch(OperationCanceledException){throw;}
@@ -55,6 +64,8 @@ public static class DatasetService
     public static void BuildReference(string root, VoiceReference voice)
     {
         // The dataset is unlimited; this backend has a short conditioning window, not a training stage.
+        voice.EnsurePreparedReferences();
+        var previousReferences=voice.ActiveReferenceFiles;
         var candidates=voice.Samples.Where(s=>!s.Excluded).SelectMany(s=>s.Segments.OrderByDescending(x=>x.Score).Take(3)).OrderByDescending(s=>s.Score).ToList();
         if(candidates.Count==0) throw new InvalidDataException("No usable segments. Keep a clean sample before preparing the voice.");
         var data=new List<float>(576000);
@@ -69,7 +80,7 @@ public static class DatasetService
         var folder=Path.Combine(root,"voice-models",voice.Id);Directory.CreateDirectory(folder);
         var path=Path.Combine(folder,$"reference-v{version}-{Guid.NewGuid():N}.wav");
         using(var writer=new WaveFileWriter(path,WaveFormat.CreateIeeeFloatWaveFormat(48000,1)))writer.WriteSamples(data.ToArray(),0,data.Count);
-        if(File.Exists(voice.ReferenceFile)&&!voice.Revisions.Any(r=>r.ReferenceFile==voice.ReferenceFile))voice.Revisions.Add(new(voice.Revision,voice.ReferenceFile,DateTime.UtcNow));
-        voice.Revisions.Add(new(version,path,DateTime.UtcNow));voice.Revision=version;voice.ReferenceFile=path;voice.Duration=data.Count/48000d;
+        if(File.Exists(voice.ReferenceFile)&&!voice.Revisions.Any(r=>r.ReferenceFile==voice.ReferenceFile))voice.Revisions.Add(new(voice.Revision,voice.ReferenceFile,DateTime.UtcNow,previousReferences));
+        voice.PreparedReferenceFiles=candidates.Select(s=>s.File).Distinct().ToList();voice.Revisions.Add(new(version,path,DateTime.UtcNow,voice.PreparedReferenceFiles.ToArray()));voice.Revision=version;voice.ReferenceFile=path;voice.Duration=data.Count/48000d;
     }
 }

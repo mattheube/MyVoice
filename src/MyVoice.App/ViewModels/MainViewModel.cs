@@ -91,6 +91,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
             OnPropertyChanged(nameof(MicState));
             OnPropertyChanged(nameof(StartLabel));
             OnPropertyChanged(nameof(HotkeyLabel));
+            OnPropertyChanged(nameof(Welcome));OnPropertyChanged(nameof(LibrarySummary));OnPropertyChanged(nameof(AiDeviceChoices));OnPropertyChanged(nameof(AiProfileChoices));OnPropertyChanged(nameof(AiModelChoices));OnPropertyChanged(nameof(AiExpressionChoices));OnPropertyChanged(nameof(AiDevice));OnPropertyChanged(nameof(AiProfile));OnPropertyChanged(nameof(AiModel));OnPropertyChanged(nameof(AiFileModel));OnPropertyChanged(nameof(AiExpression));OnPropertyChanged(nameof(PublicationContents));OnPropertyChanged(nameof(PublicationAvailability));RefreshDataset();
         }
     }
     public MainViewModel(LocalStore store, IMicrophoneService mic, bool enableOutputs = true)
@@ -248,7 +249,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
             finally { refreshingDevices = false; }
             if (automaticAudio) EnsureMicrophone();
             if (Devices.Count == 0) Status = T["NoInput"];
-            else if(SelectedDevice==null)Status="Microphone sauvegardé indisponible · reconnectez-le ou choisissez une autre entrée dans Mic Setup.";
+            else if(SelectedDevice==null)Status=T["Runtime57"];
             store.Log($"Device enumeration: {Devices.Count} active capture devices");
         }
         catch (Exception e) { Error(e); }

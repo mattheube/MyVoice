@@ -26,13 +26,13 @@ public partial class MainViewModel
     public bool HasEditableSound=>editingSound?.Owned==true;
     public void EditSoundInStudio(SoundCard card)
     {
-        if(!card.Owned){ShowToast("Cette création téléchargée conserve son auteur. Elle ne peut pas être modifiée ou republiée comme la vôtre.");return;}
+        if(!card.Owned){ShowToast(T["Runtime15"]);return;}
         try
         {
             using var reader=new NAudio.Wave.AudioFileReader(card.Item.File);editingSound=card;SelectedSound=card;
             EditorName=card.Name;EditorDescription=card.Item.Description;EditorCategory=card.Item.Category;EditorTags=string.Join(", ",card.Item.Tags);
             EditorStart=0;EditorEnd=reader.TotalTime.TotalSeconds;EditorFadeIn=0;EditorFadeOut=0;EditorNormalize=false;
-            EditorStatus="Les modifications audio produisent un nouveau fichier. L’original est conservé.";OnPropertyChanged(nameof(HasEditableSound));Page=2;StudioTab=3;
+            EditorStatus=T["Runtime52"];OnPropertyChanged(nameof(HasEditableSound));Page=2;StudioTab=3;
         }
         catch(Exception e){StudioError(e.Message);}
     }
@@ -49,7 +49,7 @@ public partial class MainViewModel
             card.Item.Category=SoundCategories.Contains(EditorCategory)?EditorCategory:"Other";
             card.Item.Tags=EditorTags.Split(',',StringSplitOptions.RemoveEmptyEntries|StringSplitOptions.TrimEntries).Select(t=>t[..Math.Min(t.Length,32)]).Distinct(StringComparer.OrdinalIgnoreCase).Take(12).ToList();
             sounds.Save();card.Refresh();SoundView.Refresh();EditorStart=0;using var reader=new NAudio.Wave.AudioFileReader(destination);EditorEnd=reader.TotalTime.TotalSeconds;
-            EditorStatus="Modifications enregistrées. Votre fichier audio d’origine est conservé.";
+            EditorStatus=T["Runtime60"];
         }
         catch(Exception e){EditorStatus=e.Message;}
         finally{EditorBusy=false;}
@@ -57,7 +57,7 @@ public partial class MainViewModel
     [RelayCommand] private async Task PublishSelectedSoundAsync(){if(SelectedSound is {} card)await PrepareSoundPublication(card);}
     public async Task PrepareSoundPublication(SoundCard card)
     {
-        if(!card.Owned){ShowToast("Une création téléchargée ne peut pas être republiée comme votre création.");return;}
+        if(!card.Owned){ShowToast(T["Runtime111"]);return;}
         var file=Path.Combine(store.Root,"temp",Guid.NewGuid()+".myvoice");Directory.CreateDirectory(Path.GetDirectoryName(file)!);
         try{await Task.Run(()=>CreationPackage.ExportBoard(file,new SoundFolder{Name=card.Name,Cover=card.Cover},new[]{card.Item}));await PreparePublicationAsync(file);PublishDescription=card.Item.Description;PublishCategory=card.Item.Category;PublishTags=string.Join(", ",card.Item.Tags);ShowPublication=true;}
         catch(Exception e){StudioError(e.Message);}finally{if(File.Exists(file))File.Delete(file);}

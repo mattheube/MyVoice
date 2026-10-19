@@ -332,12 +332,13 @@ public partial class MainViewModel
     [RelayCommand]
     private async Task ImportSoundsAsync()
     {
-        var dialog = new OpenFileDialog { Filter = "Audio|*.wav;*.mp3;*.flac;*.m4a;*.ogg", Multiselect = true };
+        var dialog = new OpenFileDialog { Filter = MyVoice.Core.MediaValidation.AudioFilter, Multiselect = true };
         if (dialog.ShowDialog() == true)
             await ImportPathsAsync(dialog.FileNames);
     }
     public async Task ImportPathsAsync(string[] paths)
     {
+        int added=0,rejected=0;string lastError="";
         foreach (var path in paths)
         {
             try
@@ -346,10 +347,11 @@ public partial class MainViewModel
                 var item = sounds.Library.Sounds.First(s => s.Id == id);
                 item.Folder = SelectedFolder?.Name ?? Folders.First().Name;
                 SoundCards.Add(new(item));
-                Status = T["Imported"] + " " + item.Name;
+                added++;
             }
-            catch (Exception e) { StudioError(e.Message); }
+            catch (Exception e) { rejected++;lastError=e.Message; }
         }
+        Status=string.Format(T["SamplesAdded"],added,rejected)+" "+lastError;ShowToast(Status);
         sounds.Save();
     }
     [RelayCommand]

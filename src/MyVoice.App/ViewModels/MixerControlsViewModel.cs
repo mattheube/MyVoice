@@ -35,17 +35,17 @@ public partial class MainViewModel
     {
         var dialog=new SaveFileDialog{Title="Exporter le mix actuel",Filter="Profil MyVoice|*.json",FileName="MyVoice-audio-profile.json",OverwritePrompt=true};
         if(dialog.ShowDialog()!=true)return;
-        try{MixerStore.Export(dialog.FileName,mixerState.Current);MixerStatus="Profil exporté sans les identifiants des périphériques de ce PC.";}catch(Exception e){MixerStatus=e.Message;}
+        try{MixerStore.Export(dialog.FileName,mixerState.Current);MixerStatus=T["Runtime70"];}catch(Exception e){MixerStatus=e.Message;}
     }
     [RelayCommand] private void ImportAudioProfile()
     {
         if(AudioProfiles.Count>=50){MixerStatus="50 profils maximum. Retirez un profil avant d’en importer un.";return;}
         var dialog=new OpenFileDialog{Title="Importer un profil audio",Filter="Profil MyVoice|*.json"};if(dialog.ShowDialog()!=true)return;
-        try{var p=MixerStore.Import(dialog.FileName);mixerState.Profiles.Add(p);AudioProfiles.Add(p);SelectedAudioProfile=p;ScheduleSave();MixerStatus="Profil importé. Chargez-le puis choisissez vos périphériques ; ses captures sont arrêtées.";}catch(Exception e){MixerStatus="Import impossible : "+e.Message;}
+        try{var p=MixerStore.Import(dialog.FileName);mixerState.Profiles.Add(p);AudioProfiles.Add(p);SelectedAudioProfile=p;ScheduleSave();MixerStatus=T["Runtime71"];}catch(Exception e){MixerStatus="Import impossible : "+e.Message;}
     }
     [RelayCommand] private void ResetMixerRouting()
     {
-        if(MessageBox.Show("Rétablir le routage recommandé ? Les niveaux, les sources et les profils enregistrés sont conservés.","Routing Matrix",MessageBoxButton.YesNo,MessageBoxImage.Question)!=MessageBoxResult.Yes)return;
+        if(MessageBox.Show(T["Runtime95"],"Routing Matrix",MessageBoxButton.YesNo,MessageBoxImage.Question)!=MessageBoxResult.Yes)return;
         var p=mixerState.Current;
         SetMixerProfile(p with{Routes=p.Channels.SelectMany(c=>p.Outputs.Select(b=>new AudioRoute(c.Id,b.Id,b.Id is "master" or "recording" or "stream"||b.Id=="monitor"&&c.Id=="soundboard"||b.Id=="virtual"&&c.Id is "mic" or "soundboard"))).ToList()});
     }
@@ -59,15 +59,15 @@ public partial class MainViewModel
     [RelayCommand] private void RefreshMidiDevices()
     {try{var chosen=SelectedMidiDevice;MidiDevices.Clear();foreach(var d in MixerMidi.Devices())MidiDevices.Add(d);SelectedMidiDevice=chosen;}catch(Exception e){MidiStatus=e.Message;}}
     [RelayCommand] private void ConnectMidi()
-    {try{mixerMidi.Open(SelectedMidiDevice);mixerState.MidiDevice=SelectedMidiDevice;MidiStatus=string.IsNullOrEmpty(SelectedMidiDevice)?"MIDI déconnecté.":"Connecté · "+SelectedMidiDevice;ScheduleSave();}catch(Exception e){MidiStatus=e.Message;}}
-    [RelayCommand] private void DisconnectMidi(){mixerMidi.Dispose();mixerState.MidiDevice=null;midiLearning=false;MidiStatus="MIDI déconnecté.";ScheduleSave();}
+    {try{mixerMidi.Open(SelectedMidiDevice);mixerState.MidiDevice=SelectedMidiDevice;MidiStatus=string.IsNullOrEmpty(SelectedMidiDevice)?T["Runtime54"]:T["Runtime24"]+SelectedMidiDevice;ScheduleSave();}catch(Exception e){MidiStatus=e.Message;}}
+    [RelayCommand] private void DisconnectMidi(){mixerMidi.Dispose();mixerState.MidiDevice=null;midiLearning=false;MidiStatus=T["Runtime54"];ScheduleSave();}
     [RelayCommand] private void LearnMidi()
     {
-        if(string.IsNullOrEmpty(mixerState.MidiDevice)){MidiStatus="Connectez d’abord un contrôleur MIDI.";return;}
+        if(string.IsNullOrEmpty(mixerState.MidiDevice)){MidiStatus=T["Runtime22"];return;}
         if(mixerState.MidiMappings.Count>=200){MidiStatus="200 commandes maximum.";return;}
-        midiLearning=true;MidiStatus="Apprentissage… bougez un fader ou appuyez sur une touche. Le canal / la sortie sélectionnés seront associés.";
+        midiLearning=true;MidiStatus=T["Runtime4"];
     }
-    [RelayCommand] private void CancelMidiLearn(){midiLearning=false;MidiStatus="Apprentissage annulé.";}
+    [RelayCommand] private void CancelMidiLearn(){midiLearning=false;MidiStatus=T["Runtime3"];}
     [RelayCommand] private void RemoveMidiAssignment()
     {if(SelectedMidiAssignment is {} a){mixerState.MidiMappings.Remove(a.Mapping);RefreshMidiAssignments();ScheduleSave();}}
     private void RefreshMidiAssignments()
@@ -80,10 +80,10 @@ public partial class MainViewModel
             if(midiLearning)
             {
                 string? target=MidiAction.Contains("sortie")?SelectedMixerOutput?.Id:MidiAction=="Charger le profil"?SelectedAudioProfile?.Id:SelectedMixerChannel?.Id;
-                if(target==null){MidiStatus="Sélectionnez d’abord le canal, la sortie ou le profil à contrôler.";midiLearning=false;continue;}
+                if(target==null){MidiStatus=T["Runtime106"];midiLearning=false;continue;}
                 if(MidiAction.StartsWith("Volume")&&signal.Kind!="CC"){MidiStatus="Pour un volume, utilisez un fader ou bouton rotatif MIDI CC.";continue;}
                 mixerState.MidiMappings.RemoveAll(m=>m.Device==signal.Device&&m.Kind==signal.Kind&&m.Channel==signal.Channel&&m.Number==signal.Number);
-                mixerState.MidiMappings.Add(new(signal.Device,signal.Kind,signal.Channel,signal.Number,MidiAction,target));midiLearning=false;RefreshMidiAssignments();ScheduleSave();MidiStatus="Commande mémorisée.";continue;
+                mixerState.MidiMappings.Add(new(signal.Device,signal.Kind,signal.Channel,signal.Number,MidiAction,target));midiLearning=false;RefreshMidiAssignments();ScheduleSave();MidiStatus=T["Runtime19"];continue;
             }
             var key=$"{signal.Device}:{signal.Kind}:{signal.Channel}:{signal.Number}";
             bool pressed=signal.Value>=64,rising=signal.Kind=="Note"||pressed&&!midiPressed.GetValueOrDefault(key);midiPressed[key]=pressed;

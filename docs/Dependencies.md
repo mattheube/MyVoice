@@ -29,3 +29,7 @@ Hydra/OmegaConf construisent les modules depuis la configuration amont V2. Les d
 
 Conversation utilise WebRTC VAD via webrtcvad-wheels 2.0.14 (https://pypi.org/project/webrtcvad-wheels/2.0.14/). Le module Python et le code WebRTC conservent leurs licences séparées (voir les notices du paquet). Aucun modèle personnel ne figure dans les assets publics.
 SkiaSharp 4.153.1 : décodage GIF/WebP, licence MIT et notices natives fournies par le paquet. Documentation : https://learn.microsoft.com/en-us/dotnet/api/skiasharp.skcodec . Les bibliothèques natives Windows sont distribuées avec l’application.
+
+## Beta 9 : texte et codecs
+Chatterbox 0.1.7 et PyTorch 2.6.0 sont installés séparément, selon requirements-tts-lock.txt. Modèle multilingue MIT épinglé à 5bb1f6ee58e50c3b8d408bc82a6d3740c2db6e18, téléchargé au premier usage. Licence et notice dans assets/licenses.
+FFmpeg 7.1 essentials Gyan, distribué via imageio-ffmpeg 0.6.0 : exécutable séparé GPLv3. Source FFmpeg b08d7969c5, configuration exacte et notices dans assets/media. Aucun audio personnel dans les assets.

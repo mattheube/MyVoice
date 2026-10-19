@@ -72,7 +72,7 @@ public partial class MainViewModel
         try
         {
             MixerStore.Validate(mixerState.Current);
-            MixerWarnings=string.Join("\n",RoutingSafety.Inspect(mixerState.Current).Select(x=>"Boucle bloquée : "+x.Description));
+            MixerWarnings=string.Join("\n",RoutingSafety.Inspect(mixerState.Current).Select(x=>T["Runtime6"]+x.Description));
             if(mixerState.Current.Outputs.Any(b=>b.DeviceMode!="Internal"&&b.Volume>1.5))MixerWarnings+="\nNiveau de sortie élevé : baissez le volume avant l’écoute.";
             graph.ApplyMixer(mixerState.Current,enableOutputs);sounds.MasterVolume=1;
             mixerLoading=true;
@@ -104,7 +104,7 @@ public partial class MainViewModel
     private void RefreshMixerDevices(){RefreshMixerSourceChoices();foreach(var b in MixerOutputs)RefreshOutputChoices(b);_ = RefreshMixerDevicesAsync();}
     [RelayCommand] private async System.Threading.Tasks.Task RefreshMixerDevicesAsync()
     {
-        var version=++mixerRefreshVersion;MixerStatus="Recherche des périphériques…";
+        var version=++mixerRefreshVersion;MixerStatus=T["Runtime87"];
         try
         {
             var devices=await System.Threading.Tasks.Task.Run(()=>
@@ -117,7 +117,7 @@ public partial class MainViewModel
             if(version!=mixerRefreshVersion||lifetime.IsCancellationRequested)return;
             mixerInputCache=devices.inputs;mixerOutputCache=devices.outputs;mixerApplicationCache=devices.applications;mixerMmeCache=devices.mme;mixerAsioCache=devices.asio;
             var previous=mixerLoading;mixerLoading=true;
-            try{RefreshMixerSourceChoices();foreach(var output in MixerOutputs)RefreshOutputChoices(output);OnPropertyChanged(nameof(MixerBackends));MixerStatus="Périphériques actualisés. Les appareils absents gardent leur configuration.";}
+            try{RefreshMixerSourceChoices();foreach(var output in MixerOutputs)RefreshOutputChoices(output);OnPropertyChanged(nameof(MixerBackends));MixerStatus=T["Runtime85"];}
             finally{mixerLoading=previous;}
         }
         catch(Exception e){MixerStatus=e.Message;}
@@ -128,9 +128,9 @@ public partial class MainViewModel
         var choices=new System.Collections.Generic.List<AudioDevice>{new("@internal","Bus interne · aucune sortie physique")};
         if(output.Backend=="ASIO")foreach(var driver in mixerAsioCache)choices.Add(new(driver,driver));
         else if(output.Backend=="MME")
-        {choices.Add(new("-1","Sortie Windows par défaut (MME)"));choices.AddRange(mixerMmeCache);}
-        else{choices.Add(new("@default","Suivre la sortie Windows par défaut"));choices.AddRange(mixerOutputCache);}
-        if(!choices.Any(d=>d.Id==selected))choices.Add(new(selected,(output.Value.DeviceName??"Périphérique sauvegardé")+" · indisponible"));
+        {choices.Add(new("-1",T["Runtime100"]));choices.AddRange(mixerMmeCache);}
+        else{choices.Add(new("@default",T["Runtime103"]));choices.AddRange(mixerOutputCache);}
+        if(!choices.Any(d=>d.Id==selected))choices.Add(new(selected,(output.Value.DeviceName??T["Runtime84"])+" · indisponible"));
         if(output.Choices.SequenceEqual(choices))return;
         output.SetChoices(choices);
     }
@@ -156,7 +156,7 @@ public partial class MainViewModel
         var bus=new AudioOutputBus{Name="Sortie "+(MixerOutputs.Count+1)};
         SetMixerProfile(mixerState.Current with{Outputs=mixerState.Current.Outputs.Append(bus).ToList(),Routes=mixerState.Current.Routes.Concat(MixerChannels.Select(c=>new AudioRoute(c.Id,bus.Id,false))).ToList()});SelectedMixerOutput=MixerOutputs.Last();
     }
-    [RelayCommand] private void FixMixerLoops(){SetMixerProfile(RoutingSafety.Fix(mixerState.Current));MixerStatus="Routes en boucle désactivées.";}
+    [RelayCommand] private void FixMixerLoops(){SetMixerProfile(RoutingSafety.Fix(mixerState.Current));MixerStatus=T["Runtime89"];}
     [RelayCommand] private void ResetMixerChannel()
     {if(SelectedMixerChannel is {} c)SetMixerProfile(mixerState.Current with{Channels=mixerState.Current.Channels.Select(x=>x.Id==c.Id?x with{Volume=1,GainDb=0,Pan=0,Mute=false,Solo=false,Effects=new()}:x).ToList()});}
     [RelayCommand] private void SaveAudioProfile()
@@ -164,9 +164,9 @@ public partial class MainViewModel
         if(AudioProfiles.Count>=50){MixerStatus="50 profils maximum.";return;}
         if(string.IsNullOrWhiteSpace(MixerProfileName))return;
         var name=MixerProfileName.Trim();var profile=mixerState.Current with{Id=Guid.NewGuid().ToString("N"),Name=name[..Math.Min(80,name.Length)]};
-        mixerState.Profiles.Add(profile);AudioProfiles.Add(profile);SelectedAudioProfile=profile;ScheduleSave();MixerStatus="Profil sauvegardé sur ce PC.";
+        mixerState.Profiles.Add(profile);AudioProfiles.Add(profile);SelectedAudioProfile=profile;ScheduleSave();MixerStatus=T["Runtime73"];
     }
-    [RelayCommand] private void LoadAudioProfile(){if(SelectedAudioProfile is {} p){SetMixerProfile(p);MixerStatus="Profil chargé · "+p.Name;}}
+    [RelayCommand] private void LoadAudioProfile(){if(SelectedAudioProfile is {} p){SetMixerProfile(p);MixerStatus=T["Runtime68"]+p.Name;}}
     [RelayCommand] private void DuplicateAudioProfile()
     {if(AudioProfiles.Count>=50){MixerStatus="50 profils maximum.";return;}if(SelectedAudioProfile is {} p){var copy=p with{Id=Guid.NewGuid().ToString("N"),Name=p.Name[..Math.Min(70,p.Name.Length)]+" copie"};mixerState.Profiles.Add(copy);AudioProfiles.Add(copy);SelectedAudioProfile=copy;ScheduleSave();}}
     [RelayCommand] private void RenameAudioProfile()
@@ -176,7 +176,7 @@ public partial class MainViewModel
     private void TickMixer()
     {
         if(mixerStore==null||Page!=8)return;
-        foreach(var c in MixerChannels){c.RefreshMeter(graph.Mixer.ChannelMeter(c.Id));c.State=c.Id=="mic"?(Running?"Microphone actif · "+DisplayVoice:"Microphone arrêté"):c.Id=="soundboard"?"Lecture locale":c.Id=="keyboard"?KeyboardStatus:graph.DeviceStatuses.FirstOrDefault(s=>s.Id==c.Id)?.Message??"Connexion…";}
+        foreach(var c in MixerChannels){c.RefreshMeter(graph.Mixer.ChannelMeter(c.Id));c.State=c.Id=="mic"?(Running?"Microphone actif · "+DisplayVoice:T["Runtime56"]):c.Id=="soundboard"?"Lecture locale":c.Id=="keyboard"?KeyboardStatus:graph.DeviceStatuses.FirstOrDefault(s=>s.Id==c.Id)?.Message??"Connexion…";}
         foreach(var b in MixerOutputs){b.RefreshMeter(graph.Mixer.BusMeter(b.Id));b.State=graph.DeviceStatuses.FirstOrDefault(s=>s.Id==b.Id)?.Message??"Connexion…";}
         if(++mixerTicks%10!=0)return;
         var d=graph.Diagnostics;MixerDiagnostics=$"48 000 Hz · float32 · 2 canaux / bus\nBloc : 480 samples / 10 ms · calcul {d.AverageBlockMs:0.00} ms (max {d.MaximumBlockMs:0.00}) · charge {d.AverageBlockMs*10:0.0} %\nBlocs en retard : {d.LateBlocks} · tampons incomplets : {d.Underruns} · samples écartés : {d.DroppedSamples}\nTampon logiciel estimé : n’inclut pas le matériel, la voix IA ou le réseau.";
