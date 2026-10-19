@@ -8,6 +8,7 @@ namespace MyVoice.App.Services;
 
 public static class ProductAppearance
 {
+    public static event EventHandler? Changed;
     private static ProductState? current;
     static ProductAppearance(){UiActivity.Changed+=(_,_)=>{if(current?.LiquidGlass==true)Apply(current);};}
     public static bool GlassActive {get;private set;}
@@ -48,6 +49,7 @@ public static class ProductAppearance
             resources["SurfaceBrush"]=Glass(palette[1]);resources["RaisedBrush"]=Glass(palette[2]);
             var edge=new LinearGradientBrush(Color.FromArgb(130,accent.R,accent.G,accent.B),Color.FromArgb(40,accent.R,accent.G,accent.B),90);edge.Freeze();resources["LineBrush"]=edge;
         }
+        Changed?.Invoke(null,EventArgs.Empty);
         resources["AmbientOpacity"]=state.Background=="Minimal"?0d:state.Background=="Rich"?.15d:.07d;
     }
     private static void SetBrush(string key,SolidColorBrush target)

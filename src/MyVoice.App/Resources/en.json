@@ -759,5 +759,19 @@
   "Runtime121": " · converting the same phrase…",
   "Runtime122": " creations available.",
   "Runtime123": " enabled",
-  "EnterVoiceText": "Enter the text to generate."
+  "EnterVoiceText": "Enter the text to generate.",
+  "CardAddLibrary": "Add to my library",
+  "CardCollection": "Add to collection",
+  "CardPreview": "Try / listen",
+  "CardCreator": "View creator",
+  "CardDetails": "Details",
+  "CardLike": "Like",
+  "CardUnlike": "Unlike",
+  "CardReport": "Report",
+  "ProfileFollowers": "Followers",
+  "ProfileFollowing": "Following",
+  "ProfileLikes": "Likes received",
+  "ProfileListLimit": "Showing up to 50 results.",
+  "ProfileListEmpty": "No results yet.",
+  "CommunityVoiceTrial": "Voice enabled for a trial. Speak into your microphone; add it to your library to keep it."
 }

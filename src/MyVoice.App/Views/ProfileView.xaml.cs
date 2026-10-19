@@ -6,6 +6,7 @@ namespace MyVoice.App.Views;
 public partial class ProfileView:UserControl
 {
  public ProfileView(){InitializeComponent();Loaded+=async(_,_)=>{if(DataContext is MainViewModel vm&&vm.SignedIn)await vm.RefreshPublicProfileCommand.ExecuteAsync(null);};}
+ private async void ShowActivity(object sender,RoutedEventArgs e){if(sender is Button {Tag:string kind} button && DataContext is MainViewModel vm){button.IsEnabled=false;try{await vm.ShowProfileActivity(kind);}finally{button.IsEnabled=true;}}}
  private void ShowRegister(object sender,RoutedEventArgs e){AccountForm.Visibility=Visibility.Visible;RegistrationFields.Visibility=ConfirmationFields.Visibility=RegisterButton.Visibility=Visibility.Visible;LoginButton.Visibility=Visibility.Collapsed;}
  private void ShowLogin(object sender,RoutedEventArgs e){AccountForm.Visibility=Visibility.Visible;RegistrationFields.Visibility=ConfirmationFields.Visibility=RegisterButton.Visibility=Visibility.Collapsed;LoginButton.Visibility=Visibility.Visible;}
  private async void ChangePassword(object sender,RoutedEventArgs e){await ((MainViewModel)DataContext).ChangeAccountPassword(NewPassword.Password,NewConfirmation.Password);NewPassword.Clear();NewConfirmation.Clear();}

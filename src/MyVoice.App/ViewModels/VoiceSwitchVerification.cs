@@ -21,7 +21,11 @@ public partial class MainViewModel
             if(!AiLive||activeAiVoiceId!=last.Id||DisplayVoice!="Switch B")throw new Exception("Browsing changed the voice resumed by the dock");
             var pending=UseAiVoiceAsync(first);await Task.Delay(10);SelectPreset(Presets.First(p=>p.Name=="Clean"));await pending;
             if(AiLive||DisplayVoice!="Default Clean"||Settings.ActiveAiVoice)throw new Exception("Obsolete voice load overrode Default Clean");
-            File.WriteAllText(report,"PASS real engine: newest switch wins; browsing preserves resumed voice; Default Clean cancels an in-flight activation.");
+            var remembered=Settings.LastAiVoiceId;var selected=Settings.SelectedAiVoice;
+            communityTrialVoice=new VoiceReference{Id="trial-fixture",Name="Community trial",ReferenceFile=reference};
+            await UseAiVoiceAsync(communityTrialVoice);
+            if(!AiLive||DisplayVoice!="Community trial"||Settings.LastAiVoiceId!=remembered||Settings.SelectedAiVoice!=selected||AiVoices.Contains(communityTrialVoice))throw new Exception("Community trial persisted or failed to activate");
+            File.WriteAllText(report,"PASS real engine: newest switch wins; browsing preserves resumed voice; Default Clean cancels an in-flight activation; Community trial activates the actual voice without adding it to the library or replacing remembered voices.");
         }
         finally{StopLive();if(liveWorker!=null)await liveWorker;StopAi();}
     }

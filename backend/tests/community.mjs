@@ -6,6 +6,8 @@ await db.exec(fs.readFileSync('backend/supabase/migrations/202610090001_communit
 await db.exec(fs.readFileSync('backend/supabase/migrations/202610090002_social_overview.sql','utf8'));
 await db.exec(fs.readFileSync('backend/supabase/migrations/202610130001_publication_ownership.sql','utf8'));
 await db.exec(fs.readFileSync('backend/supabase/migrations/20261018005355_focused_community_profile.sql','utf8'));
+await db.exec(fs.readFileSync('backend/supabase/migrations/20261019173116_profile_activity_lists.sql','utf8'));
+await db.exec(fs.readFileSync('backend/supabase/migrations/20261019214850_profile_activity_privacy.sql','utf8'));
 const ids=['00000000-0000-0000-0000-000000000001','00000000-0000-0000-0000-000000000002','00000000-0000-0000-0000-000000000003'];
 for(let i=0;i<3;i++)await db.query('insert into auth.users values($1,$2,now())',[ids[i],JSON.stringify({username:['ALICE','bobby','carol'][i],display_name:'Same display name'})]);
 const eq=(ok,name)=>{if(!ok)throw Error(name);console.log('PASS '+name)};
@@ -58,4 +60,15 @@ eq((await db.query("select public.community_browse('GÁMING') r")).rows[0].r.som
 eq((await db.query("select public.community_browse('carol') r")).rows[0].r.length===2,'creator search');
 eq((await db.query("select public.profile_totals($1) r",[ids[0]])).rows[0].r===null,'private profile statistics withheld');
 await as(0);eq((await db.query("select public.profile_totals($1) r",[ids[0]])).rows[0].r.likes>=1,'owner receives actual aggregate likes');
+await as(null);await denied("select public.profile_activity('followers')",[],'anonymous cannot enumerate profile activity');
+await as(0);await denied("select public.profile_activity('invalid')",[],'unknown activity list rejected');
+const received=(await db.query("select public.profile_activity('likes') r")).rows[0].r;
+eq(received.every(x=>x.id&&x.username&&x.detail),'received likes contain only display identities and publication titles');
+await db.exec('reset role');
+await db.query("insert into auth.users select gen_random_uuid(),jsonb_build_object('username','follower'||n,'display_name','Follower '||n),now() from generate_series(1,65) n");
+await db.query("insert into public.follows(follower,following,accepted) select id,$1,true from public.profiles where username like 'follower%'",[ids[0]]);
+await db.exec("update public.profiles set private=true where username='follower1'");
+await as(0);eq(!(await db.query("select public.profile_activity('followers') r")).rows[0].r.some(x=>x.username==='follower1'),'private follower identity is not exposed without an accepted follow');
+await as(0);eq((await db.query("select jsonb_array_length(public.profile_activity('followers')) n")).rows[0].n===50,'large follower list capped at server to 50');
+await as(1);eq((await db.query("select public.profile_activity('followers') r")).rows[0].r.every(x=>!x.username.startsWith('follower')),'activity always scoped to authenticated owner');
 await db.close();

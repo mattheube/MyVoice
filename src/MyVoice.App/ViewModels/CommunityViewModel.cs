@@ -18,6 +18,8 @@ public sealed partial class CommunityCard : ObservableObject
     public string Kind {get;init;}="";
     public string Owner {get;init;}="";
     public string Username {get;init;}="";
+    public bool IsVoice=>Kind!="soundboard";
+    public string Shape=>IsVoice?"circle":"square";
     public string CreatorLabel=>Official?"MyVoice ✓":"@"+Username;
     public string Visibility {get;init;}="public";
     public string[] Tags {get;init;}=[];
@@ -93,7 +95,7 @@ public partial class MainViewModel
     [RelayCommand] private async Task ReportCreationAsync(){if(SelectedCreation==null)return;try{await community.Rpc("report_content",new{target=SelectedCreation.Id,reason="other",details="Signalement depuis MyVoice. À examiner."});ShowToast(T["Runtime98"]);}catch(Exception e){CommunityStatus=e.Message;}}
     [RelayCommand] private async Task InstallCommunityCreationAsync()
     {
-        if(SelectedCreation is not {} card||CommunityBusy)return;CommunityBusy=true;card.State=T["Runtime109"];
+        if(SelectedCreation is not {} card||CommunityBusy)return;if(InstalledEntries(card).Any()){card.State=T["Runtime48"];ShowToast(card.State);return;}CommunityBusy=true;card.State=T["Runtime109"];
         try{var path=await community.Download(card.Id,Path.Combine(store.Root,"cache","community"),new Progress<double>(value=>card.Progress=value));await InstallCreation(path,card.Id);card.State=T["Runtime48"];Product.Installed.Add(new(card.Id,"",card.Kind,card.Title,DateTime.UtcNow));SaveProduct();ShowToast(T["Runtime35"]);}catch(Exception e){card.State=T["Runtime90"];CommunityStatus=e.Message;}finally{CommunityBusy=false;}
     }
     [RelayCommand] private async Task PublishPackageAsync()

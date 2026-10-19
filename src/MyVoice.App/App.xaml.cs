@@ -103,6 +103,8 @@ public partial class App : Application
             var window = new MainWindow(vm);
             MainWindow = window;
             tray = new Forms.NotifyIcon { Icon = new System.Drawing.Icon(Path.Combine(AppContext.BaseDirectory, "MyVoice.Tray.ico")), Text = "MyVoice", Visible = true };
+            Services.ThemedAppIcon.Refresh(tray);
+            Services.ProductAppearance.Changed += (_,_) => Services.ThemedAppIcon.Refresh(tray);
             vm.PropertyChanged += (_, args) => { if (args.PropertyName == nameof(vm.Muted) && vm.Running && vm.Notifications) { tray.Text = "MyVoice · " + vm.MicState; tray.ShowBalloonTip(1200, "MyVoice", vm.MicState, Forms.ToolTipIcon.None); } };
             var menu = new Forms.ContextMenuStrip();
             menu.Opening += (_, _) => { menu.Items.Clear(); menu.Items.Add(vm.T["Open"], null, (_, _) => window.Reveal()); var mute = menu.Items.Add(vm.MicState, null, (_, _) => vm.ToggleMute()); mute.Enabled = vm.Running; menu.Items.Add(vm.T["HearMyself"], null, (_, _) => vm.HearMyself = !vm.HearMyself); menu.Items.Add(vm.T["VoiceEnabled"], null, (_, _) => vm.VoiceEnabled = !vm.VoiceEnabled); menu.Items.Add(vm.T["StopAll"], null, (_, _) => vm.StopAllSounds()); menu.Items.Add(new Forms.ToolStripSeparator()); menu.Items.Add(vm.T["Exit"], null, (_, _) => ExitApplication()); };
@@ -180,6 +182,7 @@ public partial class App : Application
             }
             if(args.Contains("--ui-details")){await VerifyImageUi(window,folder);VerifyProductUi(folder);await VerifyMixerUi(window,folder);await VerifyStartupUi(window,folder);}
             if(args.Contains("--targeted-update"))await VerifyTargetedUpdate(window,folder);
+            if(args.Contains("--appearance-cards"))await VerifyAppearanceCards(window,folder);
             if(args.Contains("--focused-community"))await VerifyFocusedCommunity(window,folder);
             if(args.Contains("--revision-ui"))await VerifyRevisionUi(window,folder);
             if(args.Contains("--keyboard-discovery"))await VerifyKeyboardDiscovery(window,folder);

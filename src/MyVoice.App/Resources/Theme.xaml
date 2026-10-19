@@ -57,4 +57,20 @@
 <Style TargetType="TabControl"><Setter Property="Background" Value="Transparent"/><Setter Property="BorderThickness" Value="0"/><Setter Property="Foreground" Value="{DynamicResource TextBrush}"/></Style>
 <Style TargetType="TabItem"><Setter Property="Foreground" Value="{DynamicResource MutedBrush}"/><Setter Property="Padding" Value="18,10"/><Setter Property="Template"><Setter.Value><ControlTemplate TargetType="TabItem"><Border x:Name="Tab" Background="Transparent" CornerRadius="16" Padding="{TemplateBinding Padding}" Margin="0,0,8,18"><ContentPresenter ContentSource="Header"/></Border><ControlTemplate.Triggers><Trigger Property="IsSelected" Value="True"><Setter TargetName="Tab" Property="Background" Value="{DynamicResource AccentSoftBrush}"/><Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/></Trigger><Trigger Property="IsKeyboardFocused" Value="True"><Setter TargetName="Tab" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/><Setter TargetName="Tab" Property="BorderThickness" Value="1"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter></Style>
 <Style x:Key="Pill" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}"><Setter Property="Padding" Value="18,9"/></Style>
+
+<Style x:Key="CreationImageButton" TargetType="Button">
+ <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}"/>
+ <Setter Property="Width" Value="164"/><Setter Property="Height" Value="164"/><Setter Property="Padding" Value="0"/><Setter Property="Margin" Value="0"/><Setter Property="Cursor" Value="Hand"/>
+ <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button"><Grid>
+  <Border x:Name="Shadow" CornerRadius="12" Background="{DynamicResource LineBrush}"/>
+  <Border x:Name="Face" CornerRadius="12" Background="{DynamicResource SurfaceBrush}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1"><ContentPresenter Margin="4" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/></Border>
+ </Grid><ControlTemplate.Triggers>
+ <Trigger Property="Tag" Value="circle"><Setter TargetName="Shadow" Property="CornerRadius" Value="82"/><Setter TargetName="Face" Property="CornerRadius" Value="82"/></Trigger>
+ <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Face" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/></Trigger>
+ <Trigger Property="IsKeyboardFocused" Value="True"><Setter TargetName="Face" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/><Setter TargetName="Face" Property="BorderThickness" Value="2"/></Trigger>
+ <Trigger Property="IsPressed" Value="True"><Setter TargetName="Face" Property="RenderTransform"><Setter.Value><TranslateTransform Y="2"/></Setter.Value></Setter></Trigger>
+ <Trigger Property="IsEnabled" Value="False"><Setter TargetName="Face" Property="Opacity" Value="0.4"/></Trigger>
+ </ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter>
+</Style>
+<Style x:Key="SelectedVoiceImageButton" TargetType="Button" BasedOn="{StaticResource CreationImageButton}"><Style.Triggers><DataTrigger Binding="{Binding Selected}" Value="True"><Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/></DataTrigger></Style.Triggers></Style>
 </ResourceDictionary>

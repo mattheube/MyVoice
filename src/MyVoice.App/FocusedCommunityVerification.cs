@@ -23,8 +23,8 @@ public partial class App {
   await vm.PrepareAiPublication(ai);window.UpdateLayout();await Task.Delay(150);if(!vm.ShowPublication||!vm.HasPublicationPackage||vm.Product.PublicationKind!="ai-voice")throw new Exception("AI publication modal missing");Shot("publish-ai-modal.png");
   vm.SavePublicationDraftCommand.Execute(null);vm.ClosePublicationCommand.Execute(null);if(vm.ShowPublication||!vm.HasPublicationPackage)throw new Exception("Closing modal discarded draft");
   // Render a disconnected social-profile fixture: no real user or server mutation.
-  var social=new Views.ProfileView{DataContext=new ProfileFixture{SignedIn=true,ProfileName="Profil de test",ProfileUsername="fixture",ProfileBio="Aperçu de la mise en page publique",ProfileMetrics="12 abonnés · 8 abonnements · 42 likes reçus",ProfileVerified=true,ProfilePublicationKind="all",ProfilePublications=vm.CommunityItems,CommunityConfigured=false}};
-  var host=new Window{Content=social,Width=950,Height=850,ShowInTaskbar=false,WindowStyle=WindowStyle.None};host.SetResourceReference(Window.BackgroundProperty,"CanvasBrush");host.SetResourceReference(Window.ForegroundProperty,"TextBrush");host.Show();host.UpdateLayout();await Task.Delay(100);Save(host,"profile-public-fixture.png");host.Close();
+  var social=new Views.ProfileView{DataContext=new ProfileFixture{T=vm.T,ProfileFollowerCount=12,ProfileFollowingCount=8,ProfileLikeCount=42,SignedIn=true,ProfileName="Profil de test",ProfileUsername="fixture",ProfileBio="Aperçu de la mise en page publique",ProfileMetrics="12 abonnés · 8 abonnements · 42 likes reçus",ProfileVerified=true,ProfilePublicationKind="all",ProfilePublications=vm.CommunityItems,CommunityConfigured=false}};
+  var host=new Window{DataContext=vm,Content=social,Width=950,Height=850,ShowInTaskbar=false,WindowStyle=WindowStyle.None};host.SetResourceReference(Window.BackgroundProperty,"CanvasBrush");host.SetResourceReference(Window.ForegroundProperty,"TextBrush");host.Show();host.UpdateLayout();await Task.Delay(100);Save(host,"profile-public-fixture.png");host.Close();
   File.WriteAllText(Path.Combine(folder,"focused-community-result.txt"),"PASS discovery excludes publication UI; guest profile; owned AI/preset publication menus; downloaded/classic publication denied; AI draft/modal/close preservation; social profile fixture rendered. No real account or publication created.");
   void Shot(string name)=>Save(window,name);
   void Save(Window target,string name){var bitmap=new RenderTargetBitmap((int)target.ActualWidth,(int)target.ActualHeight,96,96,PixelFormats.Pbgra32);bitmap.Render(target);var png=new PngBitmapEncoder();png.Frames.Add(BitmapFrame.Create(bitmap));using var file=File.Create(Path.Combine(folder,name));png.Save(file);}
@@ -32,6 +32,7 @@ public partial class App {
 }
 
 internal sealed class ProfileFixture {
+ public object? T{get;set;} public long ProfileFollowerCount{get;set;} public long ProfileFollowingCount{get;set;} public long ProfileLikeCount{get;set;}
  public bool SignedIn{get;set;} public bool CommunityConfigured{get;set;} public bool ProfileVerified{get;set;} public bool ProfilePrivate{get;set;}
  public string ProfileName{get;set;}="";public string ProfileUsername{get;set;}="";public string ProfileBio{get;set;}="";public string ProfileMetrics{get;set;}="";public string ProfilePublicationKind{get;set;}="all";
  public object? ProfilePublications{get;set;}

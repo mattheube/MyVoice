@@ -137,7 +137,7 @@ public partial class MainViewModel
     }
     partial void OnSelectedAiVoiceChanged(VoiceReference? value)
     {
-        if(value!=null) Settings.SelectedAiVoice = value.Id;
+        if(value!=null && value!=communityTrialVoice) Settings.SelectedAiVoice = value.Id;
         RefreshDataset();
         OnPropertyChanged(nameof(DisplayVoiceCover));OnPropertyChanged(nameof(DisplayVoice));
         ConvertFileCommand.NotifyCanExecuteChanged();

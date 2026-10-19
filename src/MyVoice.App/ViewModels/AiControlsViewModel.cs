@@ -12,7 +12,7 @@ public partial class MainViewModel
     private readonly System.Threading.SemaphoreSlim voiceSwitchGate=new(1,1);
     private int voiceSwitchRevision;
     private string? activeAiVoiceId;
-    private VoiceReference? ActiveAiVoice=>AiVoices.FirstOrDefault(v=>v.Id==activeAiVoiceId);
+    private VoiceReference? ActiveAiVoice=>AiVoices.FirstOrDefault(v=>v.Id==activeAiVoiceId)??(communityTrialVoice?.Id==activeAiVoiceId?communityTrialVoice:null);
     private VoiceReference? ResumeAiVoice=>ActiveAiVoice??AiVoices.FirstOrDefault(v=>v.Id==Settings.LastAiVoiceId)??SelectedAiVoice;
     private int aiRestarts;
     private DateTime nextAiRetry;
@@ -54,7 +54,7 @@ public partial class MainViewModel
     {
         activeAiVoiceId=voice.Id;foreach(var preset in Presets)preset.Selected=false;
         Settings.ActiveAiVoice=true;Settings.VoiceEnabled=true;graph.Processor.Enabled=true;
-        Settings.LastDesignedVoiceId=null;Settings.LastVoiceIsAi=true;Settings.LastAiVoiceId=voice.Id;
+        if(voice!=communityTrialVoice){Settings.LastDesignedVoiceId=null;Settings.LastVoiceIsAi=true;Settings.LastAiVoiceId=voice.Id;}
         OnPropertyChanged(nameof(VoiceEnabled));OnPropertyChanged(nameof(DisplayVoice));OnPropertyChanged(nameof(DisplayVoiceCover));OnPropertyChanged(nameof(VoiceSwitchLabel));ScheduleSave();
     }
     [RelayCommand] private void ToggleVoice() => VoiceEnabled=!VoiceEnabled;
