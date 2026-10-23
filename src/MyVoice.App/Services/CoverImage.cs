@@ -59,6 +59,8 @@ public sealed class CoverImage : Image
             }
             if(current!=generation)return;
             frames=decoded;Source=frames.Frames[0];
+            DependencyObject? parent=this;
+            while((parent=VisualTreeHelper.GetParent(parent))!=null)if(parent is CreationImageButton button){if(decoded.Accent is Color accent){var brush=new SolidColorBrush(accent);brush.Freeze();button.Resources["AccentBrush"]=brush;}else button.Resources.Remove("AccentBrush");break;}
             if(frames.Frames.Length>1&&ProductAppearance.Animate&&UiActivity.VisualsActive)StartAnimation();
         }
         catch{if(current==generation)Source=null;}

@@ -1,16 +1,20 @@
 <UserControl x:Class="MyVoice.App.Views.PublicationView" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:ui="clr-namespace:MyVoice.App.Services">
-<Border Style="{StaticResource Card}"><StackPanel>
+<Border><Border.Style><Style TargetType="Border" BasedOn="{StaticResource Card}"><Style.Triggers><DataTrigger Binding="{Binding CommunityBusy}" Value="True"><Setter Property="IsEnabled" Value="False"/></DataTrigger></Style.Triggers></Style></Border.Style><StackPanel>
  <TextBlock Text="PUBLISH &amp; SHARE" Style="{StaticResource Label}"/><TextBlock Text="{Binding T[RevisionLabel22]}" FontSize="24"/>
  <TextBlock Text="{Binding PublicationAvailability}" Style="{StaticResource MutedText}"/>
+ <TextBlock Text="{Binding T[PublicationSectionContent]}" Style="{StaticResource Label}" Margin="0,20,0,0"/>
  <DockPanel Margin="0,14,0,8"><ui:CoverImage ui:MediaDrop.ImageTarget="publication" DockPanel.Dock="Left" Width="92" Height="92" FilePath="{Binding PublicationCover}" Margin="0,0,16,0"/><StackPanel><TextBlock Text="{Binding T[RevisionLabel10]}"/><TextBox Text="{Binding PublicationTitle,UpdateSourceTrigger=LostFocus}" MaxLength="100" IsEnabled="{Binding HasPublicationPackage}"/></StackPanel></DockPanel><TextBlock Text="{Binding PublicationKind}" Style="{StaticResource Label}"/>
  <WrapPanel><Button Content="{Binding T[Cover]}" Command="{Binding ChangePublicationCoverCommand}" ui:MediaDrop.ImageTarget="publication"/><Button Content="{Binding DataContext.T[Ui426],RelativeSource={RelativeSource AncestorType=Window}}" Command="{Binding PreviewPublicationCommand}"/><Button Content="{Binding DataContext.T[Ui427],RelativeSource={RelativeSource AncestorType=Window}}" Command="{Binding ImportPackageCommand}"/><Button Content="{Binding T[RevisionLabel17]}" Command="{Binding ChoosePublicationPackageCommand}"/><Button Content="{Binding T[RevisionLabel18]}" Command="{Binding CreateBoardInStudioCommand}"/></WrapPanel>
+ <TextBlock Text="{Binding T[PublicationSectionDetails]}" Style="{StaticResource Label}" Margin="0,20,0,0"/>
  <TextBlock Text="{Binding T[RevisionLabel4]}" Margin="0,14,0,0"/><TextBox Text="{Binding PublishDescription,UpdateSourceTrigger=PropertyChanged}" MaxLength="2000" Height="90" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"/>
  <TextBlock Text="{Binding T[RevisionLabel2]}"/><ComboBox ItemsSource="{Binding SoundCategories}" SelectedItem="{Binding PublishCategory}"/>
  <TextBlock Text="{Binding T[RevisionLabel13]}"/><TextBox Text="{Binding PublishTags,UpdateSourceTrigger=LostFocus}" MaxLength="250"/>
+ <TextBlock Text="{Binding T[PublicationSectionVisibility]}" Style="{StaticResource Label}" Margin="0,20,0,0"/>
  <TextBlock Text="{Binding T[RevisionLabel24]}"/><ComboBox SelectedValuePath="Tag" SelectedValue="{Binding PublishVisibility}"><ComboBoxItem Content="Public" Tag="public"/><ComboBoxItem Content="{Binding DataContext.T[Ui554],RelativeSource={RelativeSource AncestorType=Window}}" Tag="friends"/><ComboBoxItem Content="{Binding DataContext.T[Ui599],RelativeSource={RelativeSource AncestorType=Window}}" Tag="unlisted"/><ComboBoxItem Content="{Binding DataContext.T[Ui583],RelativeSource={RelativeSource AncestorType=Window}}" Tag="private"/></ComboBox>
  <TextBlock Text="{Binding T[RevisionLabel26]}" Style="{StaticResource MutedText}"/>
  <CheckBox Content="{Binding T[RevisionLabel20]}" IsChecked="{Binding PublishRights}"/>
  <WrapPanel><Button Content="{Binding DataContext.T[Ui428],RelativeSource={RelativeSource AncestorType=Window}}" Command="{Binding RestorePublicationDraftCommand}"/><Button Content="{Binding T[RevisionLabel19]}" Command="{Binding SavePublicationDraftCommand}"/><Button Content="{Binding T[RevisionLabel23]}" Command="{Binding PublishPackageCommand}" IsEnabled="{Binding CanPublishDraft}" Style="{StaticResource PrimaryButton}"/></WrapPanel>
+ <ProgressBar Height="4" IsIndeterminate="True" Visibility="{Binding CommunityBusy,Converter={StaticResource BoolVisibility}}" Margin="0,12"/>
  <TextBlock Text="{Binding PublicationStatus}" Style="{StaticResource MutedText}"/>
  <TextBlock Text="{Binding PublicationContents}" Style="{StaticResource MutedText}"/>
 </StackPanel></Border></UserControl>

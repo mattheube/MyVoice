@@ -116,6 +116,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
         mic.DevicesChanged += OnDevicesChanged;
         Refresh();
         InitializeMixer();
+        SoundCards.CollectionChanged+=(_,_)=>OnPropertyChanged(nameof(ShortcutRows));
         if (store.RecoveryMessage != null)
             Status = T["Recovered"];
     }
@@ -324,14 +325,15 @@ public partial class MainViewModel : ObservableObject, IDisposable
         if (Running)
             ToggleMute();
     }
-    public bool SetHotkey(uint mods, uint key)
+    public bool SetHotkey(uint mods,uint key)=>SetShortcut(ShortcutAction,mods,key);
+    public bool SetShortcut(string action,uint mods, uint key)
     {
-        if (ShortcutAction == "none" || hotkey == null || !hotkey.SetAction(ShortcutAction, mods, key))
+        if (action == "none" || hotkey == null || !hotkey.SetAction(action, mods, key))
         {
             Status = T["Conflict"];
             return false;
         }
-        if (ShortcutAction == "mute")
+        if (action == "mute")
         {
             Settings.HotkeyModifiers = mods;
             Settings.HotkeyKey = key;
@@ -339,11 +341,12 @@ public partial class MainViewModel : ObservableObject, IDisposable
         else
         {
             if (key == 0)
-                Settings.Shortcuts.Remove(ShortcutAction);
+                Settings.Shortcuts.Remove(action);
             else
-                Settings.Shortcuts[ShortcutAction] = new(mods, key);
+                Settings.Shortcuts[action] = new(mods, key);
         }
         OnPropertyChanged(nameof(HotkeyLabel));
+        OnPropertyChanged(nameof(ShortcutRows));OnPropertyChanged(nameof(SelectedSoundShortcutLabel));
         Save();
         return true;
     }
@@ -368,7 +371,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
             hotkey.Pressed -= OnHotkey;
         mic.Faulted -= OnFault;
         mic.DevicesChanged -= OnDevicesChanged;
-        DisposeKeyboard();mixerMidi.Dispose();community?.Dispose();DisposeStudio();
+        DisposeDiscord();DisposeKeyboard();mixerMidi.Dispose();community?.Dispose();DisposeStudio();
         mic.Dispose();
         Save();
     }

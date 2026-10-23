@@ -23,7 +23,7 @@ public sealed class MixerStore(string root)
     public static void Validate(AudioProfile p)
     {
         if(p==null||p.Channels==null||p.Outputs==null||p.Routes==null||p.Channels.Any(c=>c==null)||p.Outputs.Any(b=>b==null)||p.Routes.Any(r=>r==null))throw new InvalidDataException("Profil audio incomplet.");
-        if(p.Keyboard==null||!double.IsFinite(p.Keyboard.Volume)||p.Keyboard.Volume is <0 or >2||!double.IsFinite(p.Keyboard.Pitch)||Math.Abs(p.Keyboard.Pitch)>6||!double.IsFinite(p.Keyboard.Intensity)||p.Keyboard.Intensity is <0 or >1||!double.IsFinite(p.Keyboard.SpacebarVolume)||p.Keyboard.SpacebarVolume is <0 or >2)throw new InvalidDataException("Keyboard settings invalid.");
+        if(p.Keyboard==null||!p.Keyboard.IsValid())throw new InvalidDataException("Keyboard settings invalid.");
         if(p.Channels.Any(c=>c.Type=="keyboard"&&c.Id!="keyboard"))throw new InvalidDataException("Duplicate keyboard source.");
         if(p.Channels.Any(c=>c.Type=="microphone"&&c.Id!="mic"||c.Type=="soundboard"&&c.Id!="soundboard"))throw new InvalidDataException("Le microphone principal et le bus Soundboard ne peuvent pas être dupliqués.");
         if(string.IsNullOrWhiteSpace(p.Name)||p.Name.Length>80||p.Channels.Count is <2 or >24||p.Outputs.Count is <2 or >12||p.Routes.Count>288)throw new InvalidDataException("Profil audio trop volumineux ou incomplet.");

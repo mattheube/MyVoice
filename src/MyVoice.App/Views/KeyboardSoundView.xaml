@@ -1,19 +1,82 @@
-<UserControl x:Class="MyVoice.App.Views.KeyboardSoundView" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:ui="clr-namespace:MyVoice.App.Services">
-<UserControl.Resources><ui:SameValue x:Key="SameValue"/></UserControl.Resources>
-<Border Style="{StaticResource Card}" Margin="0,14"><StackPanel>
-<DockPanel><CheckBox DockPanel.Dock="Right" Content="{Binding DataContext.T[Ui318],RelativeSource={RelativeSource AncestorType=Window}}" IsChecked="{Binding KeyboardEnabled}" VerticalAlignment="Center"/><StackPanel><TextBlock Text="Keyboard Sound" FontSize="23" FontWeight="SemiBold"/><TextBlock Text="{Binding SelectedKeyboardName,StringFormat=Switch · {0}}" Foreground="{DynamicResource AccentBrush}"/></StackPanel></DockPanel>
-<TextBlock Text="{Binding DataContext.T[Ui319],RelativeSource={RelativeSource AncestorType=Window}}" Style="{StaticResource MutedText}" Margin="0,10"/>
-<ItemsControl ItemsSource="{Binding KeyboardPacks}"><ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel/></ItemsPanelTemplate></ItemsControl.ItemsPanel><ItemsControl.ItemTemplate><DataTemplate>
-<Button Width="148" Height="94" Margin="0,0,8,8" Command="{Binding DataContext.SelectKeyboardPackCommand,RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" ToolTip="{Binding DataContext.T[Ui320],RelativeSource={RelativeSource AncestorType=Window}}">
-<Button.Style><Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}"><Style.Triggers><DataTrigger Value="True"><DataTrigger.Binding><MultiBinding Converter="{StaticResource SameValue}"><Binding Path="Id"/><Binding Path="DataContext.SelectedKeyboardPack" RelativeSource="{RelativeSource AncestorType=UserControl}"/></MultiBinding></DataTrigger.Binding><Setter Property="Background" Value="{DynamicResource AccentSoftBrush}"/><Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/></DataTrigger></Style.Triggers></Style></Button.Style>
-<StackPanel><DockPanel><Border Width="17" Height="17" Background="{Binding Color}" CornerRadius="4" Margin="0,0,8,0"/><TextBlock Text="{Binding Name}" FontWeight="SemiBold"/></DockPanel><TextBlock Text="{Binding Type}" FontSize="11" Foreground="{DynamicResource MutedBrush}" Margin="0,7,0,0"/></StackPanel></Button>
-</DataTemplate></ItemsControl.ItemTemplate></ItemsControl>
-<WrapPanel Margin="0,6"><Button Content="{Binding DataContext.T[Ui321],RelativeSource={RelativeSource AncestorType=Window}}" Command="{Binding PreviewKeyboardCommand}"/><CheckBox Content="{Binding DataContext.T[Ui322],RelativeSource={RelativeSource AncestorType=Window}}" IsChecked="{Binding KeyboardMonitor}"/><CheckBox Content="My Voice" IsChecked="{Binding KeyboardVirtual}" Margin="12,0"/><CheckBox Content="Stream" IsChecked="{Binding KeyboardStream}"/><CheckBox Content="{Binding DataContext.T[Ui585],RelativeSource={RelativeSource AncestorType=Window}}" IsChecked="{Binding KeyboardRecording}" Margin="12,0"/></WrapPanel>
-<TextBlock Text="{Binding DataContext.T[Ui323],RelativeSource={RelativeSource AncestorType=Window}}" Style="{StaticResource Label}"/><DockPanel><TextBox DockPanel.Dock="Right" Width="65" Text="{Binding KeyboardVolume,StringFormat=F0,ValidatesOnExceptions=True}"/><Slider Minimum="0" Maximum="200" Value="{Binding KeyboardVolume}"/></DockPanel>
-<Expander Header="{Binding DataContext.T[Advanced],RelativeSource={RelativeSource AncestorType=Window}}"><StackPanel>
-<TextBlock Text="{Binding DataContext.T[Ui324],RelativeSource={RelativeSource AncestorType=Window}}"/><Slider Minimum="-6" Maximum="6" Value="{Binding KeyboardPitch}" TickFrequency="1" IsSnapToTickEnabled="True"/><TextBlock Text="{Binding DataContext.T[Ui325],RelativeSource={RelativeSource AncestorType=Window}}"/><Slider Minimum="0" Maximum="100" Value="{Binding KeyboardIntensity}"/><TextBlock Text="{Binding DataContext.T[Ui326],RelativeSource={RelativeSource AncestorType=Window}}"/><Slider Minimum="0" Maximum="200" Value="{Binding KeyboardSpaceVolume}"/>
-<CheckBox Content="{Binding DataContext.T[Ui327],RelativeSource={RelativeSource AncestorType=Window}}" IsChecked="{Binding KeyboardRepeat}"/><CheckBox Content="{Binding DataContext.T[Ui328],RelativeSource={RelativeSource AncestorType=Window}}" IsChecked="{Binding KeyboardExcludeModifiers}"/><CheckBox Content="{Binding DataContext.T[Ui329],RelativeSource={RelativeSource AncestorType=Window}}" IsChecked="{Binding KeyboardExcludeFunctions}"/>
-<TextBlock Text="{Binding DataContext.T[Ui330],RelativeSource={RelativeSource AncestorType=Window}}" Style="{StaticResource MutedText}"/>
-</StackPanel></Expander>
-<TextBlock Text="{Binding KeyboardStatus}" Style="{StaticResource MutedText}" Margin="0,10,0,0"/><TextBlock Text="{Binding DataContext.T[Ui331],RelativeSource={RelativeSource AncestorType=Window}}" Style="{StaticResource MutedText}" FontSize="11"/>
-</StackPanel></Border></UserControl>
+<UserControl xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:ui="clr-namespace:MyVoice.App.Services" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" x:Class="MyVoice.App.Views.KeyboardSoundView">
+ <UserControl.Resources>
+  <ui:SameValue x:Key="SameValue" />
+ </UserControl.Resources>
+ <Border Style="{StaticResource Card}" Margin="0,14">
+  <StackPanel>
+   <DockPanel>
+    <CheckBox DockPanel.Dock="Right" Content="{Binding DataContext.T[Ui318],RelativeSource={RelativeSource AncestorType=Window}}" IsChecked="{Binding KeyboardEnabled}" VerticalAlignment="Center" />
+    <StackPanel>
+     <TextBlock Text="{Binding T[KeyboardTitle]}" FontSize="23" FontWeight="SemiBold" />
+     <TextBlock Text="{Binding SelectedKeyboardName,StringFormat=Switch · {0}}" Foreground="{DynamicResource AccentBrush}" />
+    </StackPanel>
+   </DockPanel>
+   <ComboBox ItemsSource="{Binding KeyboardPacks}" SelectedValuePath="Id" SelectedValue="{Binding SelectedKeyboardPack}" DisplayMemberPath="Name" MaxWidth="280" HorizontalAlignment="Left" />
+   <TextBlock Text="{Binding DataContext.T[Ui319],RelativeSource={RelativeSource AncestorType=Window}}" Style="{StaticResource MutedText}" Margin="0,10" />
+   <WrapPanel Margin="0,6">
+    <Button Content="{Binding DataContext.T[Ui321],RelativeSource={RelativeSource AncestorType=Window}}" Command="{Binding PreviewKeyboardCommand}" />
+    <CheckBox Content="{Binding DataContext.T[Ui322],RelativeSource={RelativeSource AncestorType=Window}}" IsChecked="{Binding KeyboardMonitor}" />
+    <CheckBox Content="My Voice" IsChecked="{Binding KeyboardVirtual}" Margin="12,0" />
+    <CheckBox Content="Stream" IsChecked="{Binding KeyboardStream}" />
+    <CheckBox Content="{Binding DataContext.T[Ui585],RelativeSource={RelativeSource AncestorType=Window}}" IsChecked="{Binding KeyboardRecording}" Margin="12,0" />
+   </WrapPanel>
+   <TextBlock Text="{Binding DataContext.T[Ui323],RelativeSource={RelativeSource AncestorType=Window}}" Style="{StaticResource Label}" />
+   <DockPanel>
+    <TextBox DockPanel.Dock="Right" Width="65" Text="{Binding KeyboardVolume,StringFormat=F0,ValidatesOnExceptions=True}" />
+    <Slider Minimum="0" Maximum="200" Value="{Binding KeyboardVolume}" />
+   </DockPanel>
+   <Expander Header="{Binding DataContext.T[Advanced],RelativeSource={RelativeSource AncestorType=Window}}">
+    <StackPanel><TextBlock Text="{Binding T[KeyboardDown]}"/><Slider Minimum="0" Maximum="200" Value="{Binding KeyboardDownVolume}"/><TextBlock Text="{Binding T[KeyboardUp]}"/><Slider Minimum="0" Maximum="200" Value="{Binding KeyboardUpVolume}"/><TextBlock Text="{Binding T[KeyboardEnter]}"/><Slider Minimum="0" Maximum="200" Value="{Binding KeyboardEnterVolume}"/><TextBlock Text="{Binding T[KeyboardVariation]}"/><Slider Minimum="0" Maximum="100" Value="{Binding KeyboardVariation}"/><TextBlock Text="{Binding T[KeyboardWidth]}"/><Slider Minimum="0" Maximum="100" Value="{Binding KeyboardStereoWidth}"/>
+     <ItemsControl ItemsSource="{Binding KeyboardPacks}">
+      <ItemsControl.ItemsPanel>
+       <ItemsPanelTemplate>
+        <WrapPanel />
+       </ItemsPanelTemplate>
+      </ItemsControl.ItemsPanel>
+      <ItemsControl.ItemTemplate>
+       <DataTemplate>
+        <Button Width="148" Height="94" Margin="0,0,8,8" Command="{Binding DataContext.SelectKeyboardPackCommand,RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" ToolTip="{Binding DataContext.T[Ui320],RelativeSource={RelativeSource AncestorType=Window}}">
+         <Button.Style>
+          <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+           <Style.Triggers>
+            <DataTrigger Value="True">
+             <DataTrigger.Binding>
+              <MultiBinding Converter="{StaticResource SameValue}">
+               <Binding Path="Id" />
+               <Binding Path="DataContext.SelectedKeyboardPack" RelativeSource="{RelativeSource AncestorType=UserControl}" />
+              </MultiBinding>
+             </DataTrigger.Binding>
+             <Setter Property="Background" Value="{DynamicResource AccentSoftBrush}" />
+             <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+            </DataTrigger>
+           </Style.Triggers>
+          </Style>
+         </Button.Style>
+         <StackPanel>
+          <DockPanel>
+           <Border Width="17" Height="17" Background="{Binding Color}" CornerRadius="4" Margin="0,0,8,0" />
+           <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
+          </DockPanel>
+          <TextBlock Text="{Binding Type}" FontSize="11" Foreground="{DynamicResource MutedBrush}" Margin="0,7,0,0" />
+         </StackPanel>
+        </Button>
+       </DataTemplate>
+      </ItemsControl.ItemTemplate>
+     </ItemsControl>
+     <TextBlock Text="{Binding DataContext.T[Ui324],RelativeSource={RelativeSource AncestorType=Window}}" />
+     <Slider Minimum="-6" Maximum="6" Value="{Binding KeyboardPitch}" TickFrequency="1" IsSnapToTickEnabled="True" />
+     <TextBlock Text="{Binding DataContext.T[Ui325],RelativeSource={RelativeSource AncestorType=Window}}" />
+     <Slider Minimum="0" Maximum="100" Value="{Binding KeyboardIntensity}" />
+     <TextBlock Text="{Binding DataContext.T[Ui326],RelativeSource={RelativeSource AncestorType=Window}}" />
+     <Slider Minimum="0" Maximum="200" Value="{Binding KeyboardSpaceVolume}" />
+     <CheckBox Content="{Binding DataContext.T[Ui327],RelativeSource={RelativeSource AncestorType=Window}}" IsChecked="{Binding KeyboardRepeat}" />
+     <CheckBox Content="{Binding DataContext.T[Ui328],RelativeSource={RelativeSource AncestorType=Window}}" IsChecked="{Binding KeyboardExcludeModifiers}" />
+     <CheckBox Content="{Binding DataContext.T[Ui329],RelativeSource={RelativeSource AncestorType=Window}}" IsChecked="{Binding KeyboardExcludeFunctions}" />
+     <TextBlock Text="{Binding DataContext.T[Ui330],RelativeSource={RelativeSource AncestorType=Window}}" Style="{StaticResource MutedText}" />
+    </StackPanel>
+   </Expander>
+   <TextBlock Text="{Binding KeyboardStatus}" Style="{StaticResource MutedText}" Margin="0,10,0,0" />
+   <TextBlock Text="{Binding DataContext.T[Ui331],RelativeSource={RelativeSource AncestorType=Window}}" Style="{StaticResource MutedText}" FontSize="11" />
+  </StackPanel>
+ </Border>
+</UserControl>

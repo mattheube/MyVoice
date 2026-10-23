@@ -1,6 +1,12 @@
 using MyVoice.Core;
 using MyVoice.Infrastructure;
 using MyVoice.Audio;
+if(args.Contains("--release-discovery"))
+{
+    using var updater=new MyVoice.Updater.UpdateService();
+    var release=await updater.ReadManifestAsync(MyVoice.Updater.DistributionDefaults.BetaManifestUrl,CancellationToken.None);
+    Console.WriteLine("GitHub Beta: "+release.Tag+" | "+release.PackageSha256);return;
+}
 if(args.Contains("--discovery-child")){Console.ReadLine();return;}
 if(args.FirstOrDefault()=="--engine-bootstrap"){await EngineRepairTests.Full(Path.GetFullPath(args[1]),Path.GetFullPath(args[2]));return;}
 if(args.FirstOrDefault()=="--engine-repair"){await EngineRepairTests.Run(args[1]);return;}
@@ -9,7 +15,18 @@ if(args.Contains("--mixer-hardware")){await MixerHardwareTests.Run();return;}
 int passed = 0;
 void Test(string name, Action action) { action(); passed++; Console.WriteLine("PASS " + name); }
 void Assert(bool condition, string message = "assertion failed") { if (!condition) throw new Exception(message); }
-KeyboardDiscoveryTests.Run(Test);
+ReleaseDiscoveryTests.Run(Test);KeyboardDiscoveryTests.Run(Test);DiscordPresenceTests.Run(Test);DiscordSignInTests.Run(Test);MicrophoneEnhanceTests.Run(Test);CommunityAttachmentTests.Run(Test);OfficialPackTests.Run(Test);
+Test("Mixer reset retains custom channels, outputs, routes and keyboard settings",()=>{
+    var profile=MixerState.Recommended(new AppSettings());
+    var user=new AudioChannel{Id="user",Name="Application",Volume=.32};
+    var output=new AudioOutputBus{Id="user-out",Name="Secondary",Volume=.6};
+    profile=profile with{Channels=profile.Channels.Append(user).ToList(),Outputs=profile.Outputs.Append(output).ToList(),
+        Routes=profile.Routes.Append(new("user","virtual")).Append(new("mic","user-out")).ToList(),Keyboard=new(){Pack="blue",KeyUpVolume=.2}};
+    var restored=MixerReset.Essentials(profile,new AppSettings());
+    Assert(restored.Channels.Single(c=>c.Id=="user")==user && restored.Outputs.Single(b=>b.Id=="user-out")==output);
+    Assert(restored.Routes.Any(r=>r.ChannelId=="user"&&r.BusId=="virtual")&&restored.Routes.Any(r=>r.ChannelId=="mic"&&r.BusId=="user-out"));
+    Assert(restored.Keyboard==profile.Keyboard);MixerStore.Validate(restored);
+});
 AiPublicationTests.Run(Test);MediaValidationTests.Run(Test);
 Test("Gain scales real samples", () => { var dsp = new GainProcessor { GainDb = 6.020599913 }; float[] data = [.1f, -.1f]; dsp.Process(data); Assert(Math.Abs(data[0] - .2) < .00001 && Math.Abs(data[1] + .2) < .00001); });
 Test("Mute zeros physical mic samples", () => { var dsp = new GainProcessor { Muted = true, GainDb = 30 }; float[] data = [.1f, -.5f, 1f]; dsp.Process(data); Assert(data.All(x => x == 0)); });

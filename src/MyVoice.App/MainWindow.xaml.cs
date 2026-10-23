@@ -9,6 +9,8 @@ namespace MyVoice.App;
 public partial class MainWindow : Window
 {
     private readonly MainViewModel vm; private HotkeyService? hotkey;
+    private NativeBackdrop? nativeBackdrop;
+    public int NativeBackdropType=>nativeBackdrop?.ReadNativeType()??1;
     public MainWindow(MainViewModel vm)
     {
         InitializeComponent();
@@ -16,13 +18,14 @@ public partial class MainWindow : Window
         this.vm = vm;
         DataContext = vm;
         InitializePages();
-        PreviewKeyDown+=(_,e)=>{if(e.Key==System.Windows.Input.Key.K && System.Windows.Input.Keyboard.Modifiers==System.Windows.Input.ModifierKeys.Control){ShowSearch();e.Handled=true;}};
+        PreviewKeyDown+=(_,e)=>{if(System.Windows.Input.Keyboard.FocusedElement is ShortcutCaptureButton {IsCapturing:true})return;if(e.Key==System.Windows.Input.Key.K && System.Windows.Input.Keyboard.Modifiers==System.Windows.Input.ModifierKeys.Control){ShowSearch();e.Handled=true;}};
         Width=Math.Clamp(vm.Settings.WindowWidth,MinWidth,Math.Max(MinWidth,SystemParameters.WorkArea.Width));
         Height=Math.Clamp(vm.Settings.WindowHeight,MinHeight,Math.Max(MinHeight,SystemParameters.WorkArea.Height));
         if(vm.Settings.WindowMaximized)WindowState=WindowState.Maximized;
         SizeChanged+=(_,_)=>{PlayerPanel.Width=ActualWidth<1150?230:270;};
         vm.PropertyChanged += Changed;
-        SourceInitialized += (_, _) => { hotkey = new(new WindowInteropHelper(this).Handle); vm.AttachHotkey(hotkey); };
+        SourceInitialized += (_, _) => { hotkey = new(new WindowInteropHelper(this).Handle); vm.AttachHotkey(hotkey);nativeBackdrop=new(this); };
+        Closed+=(_,_)=>nativeBackdrop?.Dispose();
     }
     private void Changed(object? sender, PropertyChangedEventArgs e)
     {

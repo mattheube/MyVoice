@@ -8,12 +8,14 @@ await db.exec(fs.readFileSync('backend/supabase/migrations/202610130001_publicat
 await db.exec(fs.readFileSync('backend/supabase/migrations/20261018005355_focused_community_profile.sql','utf8'));
 await db.exec(fs.readFileSync('backend/supabase/migrations/20261019173116_profile_activity_lists.sql','utf8'));
 await db.exec(fs.readFileSync('backend/supabase/migrations/20261019214850_profile_activity_privacy.sql','utf8'));
+await db.exec(`alter table auth.users add column raw_app_meta_data jsonb;`);
+await db.exec(fs.readFileSync('backend/supabase/migrations/20261023194232_discord_profiles.sql','utf8'));
 const ids=['00000000-0000-0000-0000-000000000001','00000000-0000-0000-0000-000000000002','00000000-0000-0000-0000-000000000003'];
-for(let i=0;i<3;i++)await db.query('insert into auth.users values($1,$2,now())',[ids[i],JSON.stringify({username:['ALICE','bobby','carol'][i],display_name:'Same display name'})]);
+for(let i=0;i<3;i++)await db.query('insert into auth.users(id,raw_user_meta_data,email_confirmed_at) values($1,$2,now())',[ids[i],JSON.stringify({username:['ALICE','bobby','carol'][i],display_name:'Same display name'})]);
 const eq=(ok,name)=>{if(!ok)throw Error(name);console.log('PASS '+name)};
 async function denied(sql,args,name){try{await db.query(sql,args);throw Error('NOT DENIED '+name)}catch(e){if(e.message.startsWith('NOT DENIED'))throw e;console.log('PASS '+name)}}
-await denied('insert into auth.users values(gen_random_uuid(),$1,now())',[JSON.stringify({username:'Alice',display_name:'Different'})],'case-insensitive duplicate username rejected');
-await denied('insert into auth.users values(gen_random_uuid(),$1,now())',[JSON.stringify({username:'admin',display_name:'Admin'})],'reserved handle rejected');
+await denied('insert into auth.users(id,raw_user_meta_data,email_confirmed_at) values(gen_random_uuid(),$1,now())',[JSON.stringify({username:'Alice',display_name:'Different'})],'case-insensitive duplicate username rejected');
+await denied('insert into auth.users(id,raw_user_meta_data,email_confirmed_at) values(gen_random_uuid(),$1,now())',[JSON.stringify({username:'admin',display_name:'Admin'})],'reserved handle rejected');
 eq((await db.query('select count(*)::int n from public.profiles')).rows[0].n===3,'duplicate display names allowed');
 async function as(i){await db.exec('reset role');await db.query("select set_config('request.jwt.claim.sub',$1,false)",[i==null?'':ids[i]]);await db.exec('set role '+(i==null?'anon':'authenticated'));}
 await as(0);await denied('update public.profiles set verified=true where id=$1',[ids[0]],'client cannot award verified badge');
@@ -71,4 +73,53 @@ await db.exec("update public.profiles set private=true where username='follower1
 await as(0);eq(!(await db.query("select public.profile_activity('followers') r")).rows[0].r.some(x=>x.username==='follower1'),'private follower identity is not exposed without an accepted follow');
 await as(0);eq((await db.query("select jsonb_array_length(public.profile_activity('followers')) n")).rows[0].n===50,'large follower list capped at server to 50');
 await as(1);eq((await db.query("select public.profile_activity('followers') r")).rows[0].r.every(x=>!x.username.startsWith('follower')),'activity always scoped to authenticated owner');
+
+
+await db.exec('reset role');
+const discordId='00000000-0000-0000-0000-000000000099';
+await db.query("insert into auth.users(id,raw_user_meta_data,raw_app_meta_data,email_confirmed_at) values($1,$2,$3,now())",[discordId,JSON.stringify({username:'admin',full_name:'Discord Creator',verified:true}),JSON.stringify({provider:'discord'})]);
+const discordProfile=(await db.query('select username,display_name,verified from public.profiles where id=$1',[discordId])).rows[0];
+eq(/^user_[a-f0-9]{19}$/.test(discordProfile.username)&&discordProfile.display_name==='Discord Creator'&&!discordProfile.verified,'Discord receives a safe handle and no trusted badges from user metadata');
+await denied("insert into auth.users(id,raw_user_meta_data,raw_app_meta_data) values(gen_random_uuid(),$1,'{}')",[JSON.stringify({provider:'discord',username:'admin'})],'user metadata cannot impersonate a trusted OAuth provider');
+
+
+
+await db.exec('reset role');
+await db.exec('alter default privileges grant execute on functions to anon,authenticated;');
+await db.exec(fs.readFileSync('backend/supabase/migrations/20261023194508_publication_edits.sql','utf8'));
+await db.exec(fs.readFileSync('backend/supabase/migrations/20261023195443_publication_edit_grants.sql','utf8'));
+eq(!(await db.query("select has_function_privilege('anon','public.edit_publication(uuid,text,text,text[],text,text,text,text,text)','EXECUTE') allowed")).rows[0].allowed,'Supabase default function grants cannot expose publication editing anonymously');
+await as(0);
+const edited=(await db.query("select public.edit_publication($1,'Edited title','Description',array['test'],'Other','fr','private') r",[content[0]])).rows[0].r;
+eq(edited.title==='Edited title'&&edited.audio_locked,'public content remains permanently locked after becoming private');
+await as(1);await denied("select public.edit_publication($1,'Stolen','',array[]::text[],'Other','fr','public')",[content[0]],'another account cannot edit a publication');
+await as(null);await denied("select public.edit_publication($1,'Anon','',array[]::text[],'Other','fr','public')",[content[0]],'anonymous cannot edit');
+await as(0);await denied("select public.edit_publication($1,'X','',array[]::text[],'Other','fr','private',$2)",[content[0],ids[1]+'/'+content[0]+'/cover-'+('a'.repeat(32))+'.jpg'],'cover cannot reference another owner');
+await denied("select public.replace_private_audio($1,$2,$3,$4,$5,100,'1.0.1')",[content[2],ids[0],'a'.repeat(64),'x','b'.repeat(64)],'client cannot bypass upload verification');
+await db.exec('reset role');
+for(const id of [content[0],content[1],content[3]]){
+ await denied("update public.content_versions set sha256=$2 where content_id=$1",[id,'b'.repeat(64)],'shared audio version cannot be replaced');
+}
+await db.query('update public.content set audio_locked=false where id=$1',[content[0]]);
+eq((await db.query('select audio_locked from public.content where id=$1',[content[0]])).rows[0].audio_locked,'lock cannot be cleared');
+await db.query('update public.content_versions set sha256=$2 where content_id=$1',[content[2],'b'.repeat(64)]);
+eq((await db.query('select sha256 from public.content_versions where content_id=$1',[content[2]])).rows[0].sha256==='b'.repeat(64),'never-shared private audio may change');
+
+
+await db.query("select public.replace_private_audio($1,$2,$3,$4,$5,100,'1.0.1')",[content[2],ids[0],'b'.repeat(64),ids[0]+'/'+content[2]+'/replacement.zip','c'.repeat(64)]);
+eq((await db.query('select sha256 from public.content_versions where content_id=$1',[content[2]])).rows[0].sha256==='c'.repeat(64),'verified service transaction replaces private audio');
+await denied("select public.replace_private_audio($1,$2,$3,$4,$5,100,'1.0.2')",[content[2],ids[0],'b'.repeat(64),ids[0]+'/'+content[2]+'/race.zip','d'.repeat(64)],'stale replacement cannot overwrite concurrent audio');
+await as(0);
+await db.query("select public.edit_publication($1,'Ready','',array[]::text[],'Other','fr','friends',$2,$3)",[content[2],ids[0]+'/'+content[2]+'/cover-'+('a'.repeat(32))+'.jpg',ids[0]+'/'+content[2]+'/preview-'+('b'.repeat(32))+'.wav']);
+await db.exec('reset role');
+await denied("select public.replace_private_audio($1,$2,$3,$4,$5,100,'1.0.2')",[content[2],ids[0],'c'.repeat(64),ids[0]+'/'+content[2]+'/later.zip','d'.repeat(64)],'sharing atomically prevents later private audio replacement');
+await db.query('delete from auth.users where id=$1',[ids[0]]);
+eq((await db.query('select count(*)::int n from public.content where owner_id=$1',[ids[0]])).rows[0].n===0,'account deletion can cascade through locked audio');
+await db.exec(fs.readFileSync('backend/supabase/migrations/20261023201020_profile_banner_username.sql','utf8'));
+await as(1);await db.query('update public.profiles set banner=$1,private=true where id=$2',['data:image/jpeg;base64,AAAA',ids[1]]);
+eq((await db.query("select public.creator_by_username('bobby') r")).rows[0].r.banner==='data:image/jpeg;base64,AAAA','owner can read own private banner');
+await denied('update public.profiles set banner=$1 where id=$2',['data:image/svg+xml;base64,AAAA',ids[1]],'banner rejects active image types');
+await as(null);eq((await db.query("select public.creator_by_username('bobby') r")).rows[0].r.banner===null,'private banner hidden anonymously');
+for(const [handle,expected] of [['bobby',false],['admin',false],['unused_name_2026',true],['bad name',false]])eq((await db.query('select public.username_available($1) available',[handle])).rows[0].available===expected,'username availability: '+handle);
+await as(2);const changed=await db.query('update public.profiles set banner=$1 where id=$2 returning id',['data:image/jpeg;base64,BBBB',ids[1]]);eq(changed.rows.length===0,'another account cannot edit a banner');
 await db.close();

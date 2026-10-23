@@ -10,6 +10,8 @@ public partial class MainViewModel
     {
         if(enableOutputs)throw new InvalidOperationException("Requires isolated audio outputs");
         StopAi();Settings.ActiveAiVoice=false;AiModel="fast";Muted=true;
+        Settings.AutoStartAi=true;StartServices();await Task.Delay(6000);
+        if(AiReady||AiBusy||ai.Ready)throw new Exception("Default Clean loaded an idle AI engine");
         var first=new VoiceReference{Name="Switch A",ReferenceFile=reference};var last=new VoiceReference{Name="Switch B",ReferenceFile=reference};AiVoices.Add(first);AiVoices.Add(last);
         try
         {
@@ -20,7 +22,7 @@ public partial class MainViewModel
             if(UseAiVoiceCommand.ExecutionTask is {} resume)await resume;
             if(!AiLive||activeAiVoiceId!=last.Id||DisplayVoice!="Switch B")throw new Exception("Browsing changed the voice resumed by the dock");
             var pending=UseAiVoiceAsync(first);await Task.Delay(10);SelectPreset(Presets.First(p=>p.Name=="Clean"));await pending;
-            if(AiLive||DisplayVoice!="Default Clean"||Settings.ActiveAiVoice)throw new Exception("Obsolete voice load overrode Default Clean");
+            if(AiLive||AiReady||ai.Ready||DisplayVoice!="Default Clean"||Settings.ActiveAiVoice)throw new Exception("Default Clean retained an unused engine or obsolete activation");
             var remembered=Settings.LastAiVoiceId;var selected=Settings.SelectedAiVoice;
             communityTrialVoice=new VoiceReference{Id="trial-fixture",Name="Community trial",ReferenceFile=reference};
             await UseAiVoiceAsync(communityTrialVoice);

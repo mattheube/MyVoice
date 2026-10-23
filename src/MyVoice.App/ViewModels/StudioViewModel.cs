@@ -88,7 +88,7 @@ public partial class MainViewModel
         {
             Settings.VoiceEnabled = value;
             graph.Processor.Enabled = value;
-            if(!value){++voiceSwitchRevision;StopLive();} else if(Settings.ActiveAiVoice&&!AiLive) _=UseAiVoiceCommand.ExecuteAsync(ResumeAiVoice);
+            if(!value){StopAi();} else if(Settings.ActiveAiVoice&&!AiLive) _=UseAiVoiceCommand.ExecuteAsync(ResumeAiVoice);
             OnPropertyChanged(nameof(DisplayVoice));OnPropertyChanged(nameof(DisplayVoiceCover));
             Changed(nameof(VoiceEnabled));
         }
@@ -195,6 +195,7 @@ public partial class MainViewModel
     {
         sounds = new(store.Root);
         graph = new(sounds);
+        graph.MicEnhance.Mode=Enum.TryParse<MicrophoneEnhanceMode>(Settings.MicEnhanceMode,out var enhance)?enhance:MicrophoneEnhanceMode.Balanced;
         graph.Error += StudioError;
         sounds.Error += StudioError;
         if (mic is MicrophoneService source)
@@ -272,6 +273,7 @@ public partial class MainViewModel
     private void RefreshSoundSearch(object? sender,EventArgs e){soundSearchTimer!.Stop();SoundView?.Refresh();}
     partial void OnSelectedSoundChanged(SoundCard? value)
     {
+        OnPropertyChanged(nameof(SelectedSoundShortcutAction));OnPropertyChanged(nameof(SelectedSoundShortcutLabel));
         NowPlayingVisible = value != null;
         foreach (var name in new[] { nameof(SoundHear), nameof(SoundSend), nameof(SoundLoop), nameof(SoundVolume), nameof(SoundVolumeSlider), nameof(SoundBass), nameof(SoundSaturation), nameof(SoundMode), nameof(SoundFolderName) })
             OnPropertyChanged(name);
@@ -308,7 +310,7 @@ public partial class MainViewModel
     {
         if (preset == null)
             return;
-        ++voiceSwitchRevision;StopLive(); Settings.ActiveAiVoice=false;
+        StopAi(); Settings.ActiveAiVoice=false;
         graph.Processor.Designed=null;Settings.ActiveDesignedVoiceId=null;
         if(preset.Name!="Clean")Settings.LastDesignedVoiceId=null;
         Settings.VoicePreset = preset.Name;

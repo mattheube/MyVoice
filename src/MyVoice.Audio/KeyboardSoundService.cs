@@ -6,7 +6,7 @@ namespace MyVoice.Audio;
 /// <summary>Only the selected pack is resident. Fixed polyphony; no disk IO in Trigger or Render.</summary>
 public sealed class KeyboardSoundService : IDisposable
 {
-    private struct Voice {public float[]? Samples;public double Position,Step;public float Gain;}
+    private struct Voice {public float[]? Samples;public double Position,Step;public float Gain,Left,Right;}
     private readonly object gate=new();
     private readonly Voice[] voices=new Voice[32];
     private Dictionary<string,float[][]>? samples;
@@ -19,7 +19,7 @@ public sealed class KeyboardSoundService : IDisposable
     public void Load(string root,KeyboardSettings next)
     {
         if(!next.Enabled){Disable();return;}
-        if(!double.IsFinite(next.Volume)||next.Volume is <0 or >2||!double.IsFinite(next.Pitch)||Math.Abs(next.Pitch)>6||!double.IsFinite(next.Intensity)||next.Intensity is <0 or >1||!double.IsFinite(next.SpacebarVolume)||next.SpacebarVolume is <0 or >2)throw new InvalidDataException("Réglages clavier invalides.");
+        if(!next.IsValid())throw new InvalidDataException("Réglages clavier invalides.");
         lock(gate){if(samples!=null&&settings.Pack==next.Pack){settings=next;return;}}
         if(string.IsNullOrWhiteSpace(next.Pack)||next.Pack!=Path.GetFileName(next.Pack))throw new InvalidDataException("Pack invalide.");
         string folder=Path.GetFullPath(Path.Combine(root,next.Pack));var manifest=ReadManifest(Path.Combine(folder,"manifest.json"))??throw new InvalidDataException("Pack clavier introuvable.");
@@ -49,9 +49,14 @@ public sealed class KeyboardSoundService : IDisposable
             if(samples==null)return;
             // A fixed small category identifier; no key codes, text or history enter the audio service.
             var variants=samples[kind.ToString().ToLowerInvariant()+(up?"/up":"/down")];
-            var clip=variants[Random.Shared.Next(variants.Length)];int slot=Array.FindIndex(voices,v=>v.Samples==null);
+            var clip=variants[settings.Variation>0?Random.Shared.Next(variants.Length):0];int slot=Array.FindIndex(voices,v=>v.Samples==null);
             if(slot<0){slot=oldest;oldest=(oldest+1)%voices.Length;}
-            voices[slot]=new(){Samples=clip,Step=Math.Pow(2,(settings.Pitch+(Random.Shared.NextDouble()-.5)*.16)/12),Gain=(float)(settings.Volume*(.9+Random.Shared.NextDouble()*.2)*(.7+.6*settings.Intensity)*(kind==KeyboardKeyKind.Space?settings.SpacebarVolume:1))};
+            var pan=(Random.Shared.NextDouble()*2-1)*settings.StereoWidth;
+            voices[slot]=new(){Samples=clip,Step=Math.Pow(2,(settings.Pitch+(Random.Shared.NextDouble()-.5)*.16*settings.Variation)/12),
+                Gain=(float)(settings.Volume*(1+(Random.Shared.NextDouble()-.5)*.2*settings.Variation)*(.7+.6*settings.Intensity)
+                    *(kind==KeyboardKeyKind.Space?settings.SpacebarVolume:kind==KeyboardKeyKind.Enter?settings.EnterVolume:1)
+                    *(up?settings.KeyUpVolume:settings.KeyDownVolume)),
+                Left=(float)Math.Sqrt(1-pan),Right=(float)Math.Sqrt(1+pan)};
         }
     }
     public void Render(Span<float> stereo)
@@ -65,7 +70,7 @@ public sealed class KeyboardSoundService : IDisposable
                 {
                     int at=(int)voice.Position;if(at>=clip.Length-1){voice.Samples=null;break;}
                     float value=(float)(clip[at]+(clip[at+1]-clip[at])*(voice.Position-at))*voice.Gain;
-                    stereo[i]+=value;stereo[i+1]+=value;voice.Position+=voice.Step;
+                    stereo[i]+=value*voice.Left;stereo[i+1]+=value*voice.Right;voice.Position+=voice.Step;
                 }
             }
         }

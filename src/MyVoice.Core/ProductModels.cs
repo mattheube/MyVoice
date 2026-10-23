@@ -10,6 +10,7 @@ public sealed class ProductState
     public List<ProductNotification> Notifications {get;set;}=[];
     public string Bio { get; set; } = "";
     public string? Avatar { get; set; }
+    public string? Banner {get;set;}
     public string PublicationTitle {get;set;}="";
     public string PublicationKind {get;set;}="";
     public string PublicationDescription {get;set;}="";
@@ -18,6 +19,11 @@ public sealed class ProductState
     public string PublicationTags {get;set;}="";
     public string? PublicationCover {get;set;}
     public bool LiquidGlass {get;set;}
+    public double GlassIntensity {get;set;}=.5;
+    public double GlassTransparency {get;set;}=.25;
+    public double GlassDepth {get;set;}=.5;
+    public bool GlassBlur {get;set;}=true;
+    public bool DiscordPresence {get;set;}
     public string Theme { get; set; } = "Midnight";
     public string Accent { get; set; } = "#B7A5FF";
     public string Motion { get; set; } = "Full";

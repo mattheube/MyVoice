@@ -15,6 +15,8 @@ os.environ['HF_HUB_DISABLE_TELEMETRY']='1'
 os.environ['DO_NOT_TRACK']='1'
 os.environ['OMP_NUM_THREADS']='4'
 os.environ['TQDM_DISABLE']='1'
+from model_assets import install_pins
+install_pins(args.repository)
 def reply(data):
     protocol.write(json.dumps(data)+'\n'); protocol.flush()
 if args.model=='conversation':
@@ -43,6 +45,9 @@ try:
     inference.device=device
     checkpoint,config=load_custom_model_from_hf('Plachta/Seed-VC','DiT_uvit_tat_xlsr_ema.pth','config_dit_mel_seed_uvit_xlsr_tiny.yml')
     model,semantic,_,vocoder,style_encoder,mel_fn,mel_args=inference.load_models(SimpleNamespace(checkpoint=checkpoint,config=config,fp16=device.type=='cuda',f0_condition=False))
+    if device.type=='cpu':
+        from cpu_semantics import adapt
+        semantic=adapt(semantic,torch)
     sr=mel_args['sampling_rate']
     prompt=None
     loaded_path=None

@@ -51,6 +51,12 @@ public partial class MainViewModel
     }
     [RelayCommand] private void RemoveMixerOutput()
     {if(SelectedMixerOutput is {CanRemove:true} b)SetMixerProfile(mixerState.Current with{Outputs=mixerState.Current.Outputs.Where(x=>x.Id!=b.Id).ToList(),Routes=mixerState.Current.Routes.Where(r=>r.BusId!=b.Id).ToList()});}
+    [RelayCommand] private void RestoreDefaultMixer()
+    {
+        if(!Services.Dialogs.Confirm(T["MixerRestoreHint"]))return;
+        SetMixerProfile(MixerReset.Essentials(mixerState.Current,Settings));
+        MixerStatus=T["MixerRestored"];
+    }
     private void InitializeMixerControls()
     {
         RefreshMidiDevices();SelectedMidiDevice=mixerState.MidiDevice;RefreshMidiAssignments();

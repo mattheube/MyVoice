@@ -6,6 +6,15 @@ public static class TextVoiceBackend
     public static string Root => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),"MyVoice","TextVoice");
     public static string Python => Path.Combine(Root,"venv","Scripts","python.exe");
     public static bool Installed => File.Exists(Python)&&File.Exists(Path.Combine(Root,"ready-0.1.7"));
+    public static async Task EnsureAsync(string existingPython,Action<string> progress,CancellationToken token)
+    {
+        if(Installed)
+        {
+            try{await Run(Python,["-c","import importlib.metadata; from chatterbox.mtl_tts import ChatterboxMultilingualTTS; assert importlib.metadata.version('chatterbox-tts')=='0.1.7'"],progress,token);return;}
+            catch(Exception e) when(e is IOException or InvalidOperationException or System.ComponentModel.Win32Exception){progress("REPAIRING · Text to Voice");}
+        }
+        await InstallAsync(existingPython,progress,token);
+    }
     public static async Task InstallAsync(string existingPython,Action<string> progress,CancellationToken token)
     {
         Directory.CreateDirectory(Root);

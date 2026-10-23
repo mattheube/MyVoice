@@ -1,0 +1,2 @@
+revoke all on function myvoice_private.edit_publication(uuid,text,text,text[],text,text,text,text,text),public.edit_publication(uuid,text,text,text[],text,text,text,text,text) from public,anon,authenticated;
+grant execute on function myvoice_private.edit_publication(uuid,text,text,text[],text,text,text,text,text),public.edit_publication(uuid,text,text,text[],text,text,text,text,text) to authenticated;

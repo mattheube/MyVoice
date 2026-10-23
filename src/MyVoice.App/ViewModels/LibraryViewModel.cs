@@ -121,7 +121,7 @@ public partial class MainViewModel
         sounds.Save();
     }
     public void DropImage(string target,string path){try{MyVoice.Core.MediaValidation.RequireImage(path);if(target=="voice"&&SelectedAiVoice==null||target=="sound"&&SelectedSound==null||target=="folder"&&SelectedFolder==null)return;var cover=ImportCover(target is "voice" or "avatar",path);if(cover==null)return;switch(target){case "publication":SetPublicationCover(cover);break;case "avatar":Product.Avatar=cover;SaveProduct();OnPropertyChanged(nameof(ProfileAvatar));break;case "voice":SelectedAiVoice!.Cover=cover;SaveVoices();ReloadVoices();break;case "sound":SelectedSound!.Item.Cover=cover;SelectedSound.Refresh();sounds.Save();break;case "folder":SelectedFolder!.Cover=cover;sounds.Save();break;}}catch(Exception e){ShowToast(e.Message);}}
-    private string? ImportCover(bool circular = false, string? existing = null)
+    private string? ImportCover(bool circular = false, string? existing = null, double aspectRatio=1)
     {
         string? source = existing;
         if (source != null && File.Exists(source + ".source.txt")) source = File.ReadAllText(source + ".source.txt");
@@ -132,7 +132,7 @@ public partial class MainViewModel
             source = dialog.FileName;
         }
         MyVoice.Core.MediaValidation.RequireImage(source);
-        var crop = new MyVoice.App.ImageCropWindow(source, circular) { Owner = System.Windows.Application.Current.MainWindow };
+        var crop = new MyVoice.App.ImageCropWindow(source, circular, aspectRatio) { Owner = System.Windows.Application.Current.MainWindow };
         if (crop.ShowDialog() != true || crop.Result == null) return null;
         var id = Guid.NewGuid().ToString("N");
         var dest = crop.SaveExport(Path.Combine(store.Root, "images", id));

@@ -17,7 +17,12 @@ public partial class MainViewModel
     private string KeyboardRoot=>Path.Combine(AppContext.BaseDirectory,"KeyboardPacks");
     public KeyboardPack[] KeyboardPacks {get;private set;}=[];
     [ObservableProperty] private string keyboardStatus="Désactivé · aucun texte enregistré";
-    public string SelectedKeyboardPack=>mixerState.Current.Keyboard.Pack;
+    public string SelectedKeyboardPack{get=>mixerState.Current.Keyboard.Pack;set{if(value!=SelectedKeyboardPack&&KeyboardPacks.Any(p=>p.Id==value))SetKeyboard(mixerState.Current.Keyboard with{Pack=value});}}
+    public double KeyboardDownVolume{get=>mixerState.Current.Keyboard.KeyDownVolume*100;set{if(double.IsFinite(value))SetKeyboard(mixerState.Current.Keyboard with{KeyDownVolume=Math.Clamp(value/100,0,2)});}}
+    public double KeyboardUpVolume{get=>mixerState.Current.Keyboard.KeyUpVolume*100;set{if(double.IsFinite(value))SetKeyboard(mixerState.Current.Keyboard with{KeyUpVolume=Math.Clamp(value/100,0,2)});}}
+    public double KeyboardEnterVolume{get=>mixerState.Current.Keyboard.EnterVolume*100;set{if(double.IsFinite(value))SetKeyboard(mixerState.Current.Keyboard with{EnterVolume=Math.Clamp(value/100,0,2)});}}
+    public double KeyboardVariation{get=>mixerState.Current.Keyboard.Variation*100;set{if(double.IsFinite(value))SetKeyboard(mixerState.Current.Keyboard with{Variation=Math.Clamp(value/100,0,1)});}}
+    public double KeyboardStereoWidth{get=>mixerState.Current.Keyboard.StereoWidth*100;set{if(double.IsFinite(value))SetKeyboard(mixerState.Current.Keyboard with{StereoWidth=Math.Clamp(value/100,0,1)});}}
     public string SelectedKeyboardName=>KeyboardPacks.FirstOrDefault(p=>p.Id==SelectedKeyboardPack)?.Name??SelectedKeyboardPack;
     public bool KeyboardEnabled {get=>mixerState.Current.Keyboard.Enabled;set=>SetKeyboard(mixerState.Current.Keyboard with{Enabled=value});}
     public double KeyboardVolume {get=>mixerState.Current.Keyboard.Volume*100;set{if(double.IsFinite(value))SetKeyboard(mixerState.Current.Keyboard with{Volume=Math.Clamp(value/100,0,2)});}}
@@ -46,7 +51,7 @@ public partial class MainViewModel
         if(settings.Enabled&&!EnsureKeyboardChannel()){NotifyKeyboard();return;}
         mixerState.Current=mixerState.Current with{Keyboard=settings};NotifyKeyboard();ScheduleSave();_=ApplyKeyboardAsync();
     }
-    private void NotifyKeyboard(){foreach(var p in new[]{nameof(KeyboardEnabled),nameof(KeyboardVolume),nameof(KeyboardPitch),nameof(KeyboardIntensity),nameof(KeyboardSpaceVolume),nameof(KeyboardRepeat),nameof(KeyboardExcludeModifiers),nameof(KeyboardExcludeFunctions),nameof(SelectedKeyboardPack),nameof(SelectedKeyboardName),nameof(KeyboardMonitor),nameof(KeyboardVirtual),nameof(KeyboardStream),nameof(KeyboardRecording)})OnPropertyChanged(p);}
+    private void NotifyKeyboard(){foreach(var p in new[]{nameof(KeyboardDownVolume),nameof(KeyboardUpVolume),nameof(KeyboardEnterVolume),nameof(KeyboardVariation),nameof(KeyboardStereoWidth),nameof(KeyboardEnabled),nameof(KeyboardVolume),nameof(KeyboardPitch),nameof(KeyboardIntensity),nameof(KeyboardSpaceVolume),nameof(KeyboardRepeat),nameof(KeyboardExcludeModifiers),nameof(KeyboardExcludeFunctions),nameof(SelectedKeyboardPack),nameof(SelectedKeyboardName),nameof(KeyboardMonitor),nameof(KeyboardVirtual),nameof(KeyboardStream),nameof(KeyboardRecording)})OnPropertyChanged(p);}
     private async Task ApplyKeyboardAsync()
     {
         int revision=++keyboardRevision;var settings=mixerState.Current.Keyboard;

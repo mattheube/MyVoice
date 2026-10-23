@@ -10,6 +10,21 @@ using CommunityToolkit.Mvvm.Input;
 namespace MyVoice.App.ViewModels;
 public partial class MainViewModel
 {
+    private string? CacheCreatorImage(JsonElement profile,string field){
+        if(!profile.TryGetProperty(field,out var image)||image.GetString() is not string value||value.Length>180000||!value.StartsWith("data:image/jpeg;base64,"))return null;
+        var directory=Path.Combine(store.Root,"cache","creator-images");Directory.CreateDirectory(directory);
+        var key=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(value)));
+        var file=Path.Combine(directory,key+".jpg");if(!File.Exists(file))File.WriteAllBytes(file,Convert.FromBase64String(value.Split(',')[1]));return file;
+    }
+    public string? ProfileBanner=>Product.Banner;
+    [RelayCommand] private void ChangeBanner(){try{var path=ImportCover(false,Product.Banner,3);if(path==null)return;Product.Banner=path;SaveProduct();OnPropertyChanged(nameof(ProfileBanner));}catch(Exception e){ShowToast(e.Message);}}
+    [RelayCommand] private void RemoveBanner(){Product.Banner=null;SaveProduct();OnPropertyChanged(nameof(ProfileBanner));}
+    private string? ProfileBannerData(){
+        if(ProfileBanner==null||!File.Exists(ProfileBanner))return null;
+        var image=MyVoice.App.Services.CoverDecoder.Read(ProfileBanner,1024,false).Frames[0];var encoder=new JpegBitmapEncoder{QualityLevel=75};encoder.Frames.Add(BitmapFrame.Create(image));using var output=new MemoryStream();encoder.Save(output);
+        var value="data:image/jpeg;base64,"+Convert.ToBase64String(output.ToArray());if(value.Length>180000)throw new InvalidDataException(T["ProfileBannerTooLarge"]);return value;
+    }
+    public Task<bool> CheckUsername(string value)=>community.UsernameAvailable(value);
     [ObservableProperty] private string profileUsername="";
     [ObservableProperty] private string profileEmail="";
     [ObservableProperty] private string profileMetrics="Chargement des statistiques…";
@@ -22,12 +37,15 @@ public partial class MainViewModel
     public System.Collections.Generic.IEnumerable<CommunityCard> ProfilePublications=>OwnPublications.Where(c=>ProfilePublicationKind=="all"||c.Kind==ProfilePublicationKind);
     partial void OnProfilePublicationKindChanged(string value)=>OnPropertyChanged(nameof(ProfilePublications));
     internal static CommunityCard ReadCommunityCard(JsonElement c)=>new(){Id=c.GetProperty("id").GetString()!,Title=c.GetProperty("title").GetString()!,Description=c.GetProperty("description").GetString()!,Kind=c.GetProperty("kind").GetString()!,Owner=c.GetProperty("owner_id").GetString()!,Username=c.GetProperty("username").GetString()!,Official=c.GetProperty("official").GetBoolean(),Liked=c.GetProperty("liked").GetBoolean(),Visibility=c.GetProperty("visibility").GetString()!,Tags=c.GetProperty("tags").EnumerateArray().Select(t=>t.GetString()!).ToArray()};
-    [RelayCommand] private async Task RefreshOwnPublicationsAsync(){if(!SignedIn)return;try{var data=await community.Publications(true);OwnPublications.Clear();foreach(var c in data.EnumerateArray())OwnPublications.Add(ReadCommunityCard(c));OnPropertyChanged(nameof(ProfilePublications));await LoadCommunityCovers(OwnPublications.ToArray());}catch(Exception e){AccountStatus=e.Message;}}
+    [RelayCommand] private async Task RefreshOwnPublicationsAsync(){if(!SignedIn)return;try{var data=await community.Publications(true);OwnPublications.Clear();foreach(var c in data.EnumerateArray())OwnPublications.Add(ReadCommunityCard(c));OnPropertyChanged(nameof(ProfilePublications));}catch(Exception e){AccountStatus=e.Message;}}
     [RelayCommand] private async Task RefreshPublicProfileAsync(){
         if(!SignedIn)return;
         try{
             var p=(await community.OwnProfile()).EnumerateArray().First();ProfileUsername=p.GetProperty("username").GetString()!;ProfileName=p.GetProperty("display_name").GetString()!;ProfileBio=p.GetProperty("bio").GetString()!;ProfilePrivate=p.GetProperty("private").GetBoolean();ProfileVerified=p.GetProperty("verified").GetBoolean();
             var avatar=p.GetProperty("avatar").GetString();if(avatar?.StartsWith("data:image/jpeg;base64,")==true){var path=Path.Combine(store.Root,"cache","profile-avatar.jpg");Directory.CreateDirectory(Path.GetDirectoryName(path)!);await File.WriteAllBytesAsync(path,Convert.FromBase64String(avatar.Split(',')[1]));Product.Avatar=path;OnPropertyChanged(nameof(ProfileAvatar));}
+            var banner=p.TryGetProperty("banner",out var b)?b.GetString():null;
+            if(banner?.StartsWith("data:image/jpeg;base64,")==true){var path=Path.Combine(store.Root,"cache","profile-banner.jpg");Directory.CreateDirectory(Path.GetDirectoryName(path)!);await File.WriteAllBytesAsync(path,Convert.FromBase64String(banner.Split(',')[1]));Product.Banner=path;}else Product.Banner=null;
+            OnPropertyChanged(nameof(ProfileBanner));
             ProfileEmail=(await community.User()).GetProperty("email").GetString()??"";
             var totals=await community.Rpc("profile_totals",new{target=community.Session!.UserId});ProfileMetrics=$"{totals.GetProperty("followers")} abonnés · {totals.GetProperty("following")} abonnements · {totals.GetProperty("likes")} likes reçus";ProfileFollowerCount=totals.GetProperty("followers").GetInt64();ProfileFollowingCount=totals.GetProperty("following").GetInt64();ProfileLikeCount=totals.GetProperty("likes").GetInt64();
             await RefreshOwnPublicationsAsync();await RefreshSocialAsync();
@@ -41,7 +59,21 @@ public partial class MainViewModel
     }
     public async Task ChangeAccountPassword(string password,string confirmation){try{await community.ChangePassword(password,confirmation);AccountStatus=T["Runtime61"];}catch(Exception e){AccountStatus=e.Message;}}
     private readonly System.Threading.SemaphoreSlim communityCoverGate=new(2,2);
-    private async Task LoadCommunityCovers(CommunityCard[] cards){await Task.WhenAll(cards.Select(async card=>{await communityCoverGate.WaitAsync();try{if(!lifetime.IsCancellationRequested)card.Cover=await community.DownloadCover(card.Id,Path.Combine(store.Root,"cache","community-covers"));}catch{/* Older publications may not have a cover. */}finally{communityCoverGate.Release();}}));}
+    public async Task LoadCommunityCover(CommunityCard card,bool retry=false)
+    {
+        if(card.CoverLoading||(!retry&&card.CoverRequested))return;
+        card.CoverRequested=true;card.CoverLoading=true;card.CoverFailed=false;
+        bool entered=false;
+        try{await communityCoverGate.WaitAsync(lifetime.Token);entered=true;card.Cover=await community.DownloadCover(card.Id,Path.Combine(store.Root,"cache","community-covers"),lifetime.Token);}
+        catch(OperationCanceledException){}
+        catch{card.CoverFailed=true;}
+        finally{if(entered)communityCoverGate.Release();card.CoverLoading=false;}
+    }
+    public async Task PreviewCommunityExcerpt(CommunityCard card)
+    {
+        try{var file=await community.DownloadPreview(card.Id,Path.Combine(store.Root,"cache","community-previews"),lifetime.Token);if(file!=null){PreviewLocalFile(file);return;}await PreviewCommunity(card);}
+        catch(Exception e){ShowToast(e.Message);}
+    }
     private MyVoice.Core.VoiceReference? communityTrialVoice;
     public async Task PreviewCommunity(CommunityCard card)
     {
@@ -51,7 +83,7 @@ public partial class MainViewModel
             var file=await community.Download(card.Id,Path.Combine(store.Root,"cache","community"));
             var result=await Task.Run(()=>MyVoice.Infrastructure.CreationPackage.Extract(file,Path.Combine(store.Root,"cache","community-preview")));
             File.Delete(file);var manifest=result.Manifest;
-            card.Cover=manifest.Cover==null?null:Path.Combine(result.Directory,manifest.Cover);
+            card.Cover??=manifest.Cover==null?null:Path.Combine(result.Directory,manifest.Cover);
             if(manifest.Kind=="ai-voice" && manifest.AiVoice is {} voice)
             {
                 voice.Id="trial-"+card.Id;voice.Name=card.Title;
@@ -73,7 +105,7 @@ public partial class MainViewModel
         catch(Exception e){CommunityStatus=e.Message;}
         finally{CommunityBusy=false;}
     }
-    public void InspectCommunity(CommunityCard card){SelectedCreation=card;var panel=new System.Windows.Controls.StackPanel{Margin=new System.Windows.Thickness(24)};panel.Children.Add(new System.Windows.Controls.TextBlock{Text=card.Title,FontSize=24});panel.Children.Add(new System.Windows.Controls.TextBlock{Text=card.CreatorLabel+"\n"+card.Description+"\n"+string.Join(" · ",card.Tags),TextWrapping=System.Windows.TextWrapping.Wrap});var preview=new System.Windows.Controls.Button{Content="Preview · casque"};preview.Click+=async(_,_)=>await PreviewCommunity(card);panel.Children.Add(preview);var window=new System.Windows.Window{Title="Inspector",Owner=System.Windows.Application.Current.MainWindow,Icon=System.Windows.Application.Current.MainWindow?.Icon,Width=550,Height=360,Content=panel,WindowStartupLocation=System.Windows.WindowStartupLocation.CenterOwner};window.SetResourceReference(System.Windows.Window.BackgroundProperty,"SurfaceBrush");window.SetResourceReference(System.Windows.Window.ForegroundProperty,"TextBrush");window.ShowDialog();}
+    public void InspectCommunity(CommunityCard card){SelectedCreation=card;var panel=new System.Windows.Controls.StackPanel{Margin=new System.Windows.Thickness(24)};panel.Children.Add(new System.Windows.Controls.TextBlock{Text=card.Title,FontSize=24});panel.Children.Add(new System.Windows.Controls.TextBlock{Text=card.CreatorLabel+"\n"+card.Description+"\n"+string.Join(" · ",card.Tags),TextWrapping=System.Windows.TextWrapping.Wrap});var preview=new System.Windows.Controls.Button{Content="Preview · casque"};preview.Click+=async(_,_)=>await PreviewCommunityExcerpt(card);panel.Children.Add(preview);var window=new System.Windows.Window{Title="Inspector",Owner=System.Windows.Application.Current.MainWindow,Icon=System.Windows.Application.Current.MainWindow?.Icon,Width=550,Height=360,Content=panel,WindowStartupLocation=System.Windows.WindowStartupLocation.CenterOwner};window.SetResourceReference(System.Windows.Window.BackgroundProperty,"SurfaceBrush");window.SetResourceReference(System.Windows.Window.ForegroundProperty,"TextBrush");window.ShowDialog();}
     public async Task ViewCommunityCreator(CommunityCard card){Page=5;CommunitySearch=card.Username;await FindCreatorAsync();}
     public async Task AddCommunityCollection(CommunityCard card,MyVoice.Core.LibraryCollection? target=null){
         var entries=InstalledEntries(card).ToArray();

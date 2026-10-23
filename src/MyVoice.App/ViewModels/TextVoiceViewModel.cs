@@ -28,10 +28,18 @@ public partial class MainViewModel
     [RelayCommand] private async Task GenerateVoiceTextAsync()
     {
         if(AiBusy)return;if(SelectedAiVoice==null){TextVoiceStatus=T["SelectVoiceFirst"];return;}if(string.IsNullOrWhiteSpace(VoiceText)){TextVoiceStatus=T["EnterVoiceText"];return;}
-        if(!TextVoiceInstalled){TextVoiceStatus=T["TextVoiceInstallFirst"];return;}
         var reference=SelectedAiVoice.ReferenceFile;var text=VoiceText;StopAi();if(liveWorker!=null)await liveWorker;
         AiBusy=true;BeginStudio();TextVoiceStatus=T["TextVoiceGenerating"];
-        try{var output=WorkflowFile("text.wav");await TextVoiceBackend.GenerateAsync(Path.Combine(AppContext.BaseDirectory,"voice-engine","text_voice.py"),text,TextVoiceLanguage,reference,output,AiDevice,AiCpuThreads,TextVoiceExpression,TextVoiceProgress,StudioToken);lastConvertedFile=output;OnPropertyChanged(nameof(HasAudioResult));TextVoiceStatus=T["AudioResultReady"];}
+        try
+        {
+            var runtime=await EngineBootstrapper.EnsureRuntimeAsync(AiPython,AiRepository,Path.Combine(AppContext.BaseDirectory,"voice-engine","SetupEngine.ps1"),TextVoiceProgress,StudioToken);
+            AiPython=runtime.Python;AiRepository=runtime.Repository;
+            await TextVoiceBackend.EnsureAsync(AiPython,TextVoiceProgress,StudioToken);
+            await ModelProvisioner.EnsureAsync(AiPython,AiRepository,"tts",TextVoiceProgress,StudioToken);
+            OnPropertyChanged(nameof(TextVoiceInstalled));
+            var output=WorkflowFile("text.wav");await TextVoiceBackend.GenerateAsync(Path.Combine(AppContext.BaseDirectory,"voice-engine","text_voice.py"),text,TextVoiceLanguage,reference,output,AiDevice,AiCpuThreads,TextVoiceExpression,TextVoiceProgress,StudioToken);
+            lastConvertedFile=output;OnPropertyChanged(nameof(HasAudioResult));TextVoiceStatus=T["AudioResultReady"];
+        }
         catch(OperationCanceledException){TextVoiceStatus=T["WorkflowCancelled"];}catch(Exception e){TextVoiceStatus=e.Message;}finally{EndStudio();AiBusy=false;}
     }
 }

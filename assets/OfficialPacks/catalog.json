@@ -1,0 +1,215 @@
+[
+  {
+    "id": "starter",
+    "title": "MyVoice Starter",
+    "description": "Les essentiels, prêts à jouer.",
+    "sounds": [
+      {
+        "name": "Notification",
+        "file": "starter/01.wav",
+        "sha256": "1fc42d711966dad588721bb9d6e439d2711df302773ea0a81393bfd7ecb98128"
+      },
+      {
+        "name": "Buzzer",
+        "file": "starter/02.wav",
+        "sha256": "31af6131308a111720535d227657b0aaa74e964acb5770eeec627e4a7716b8a5"
+      },
+      {
+        "name": "Correct",
+        "file": "starter/03.wav",
+        "sha256": "d5b73a8414cff868b6d8225f59e1502dae79d8a0fef96b9bc751d5bc27b4898b"
+      },
+      {
+        "name": "Wrong",
+        "file": "starter/04.wav",
+        "sha256": "f83dcf5411a7ce4b90101e298f58ad9146526e3fb9d0ac45fc69646bca4944bb"
+      },
+      {
+        "name": "Drum hit",
+        "file": "starter/05.wav",
+        "sha256": "aa90f9453dc1f9ad92df454ca2f80a49c7bc3661c395039323445faee74a39a0"
+      },
+      {
+        "name": "Pop",
+        "file": "starter/06.wav",
+        "sha256": "29a3579b8b3677301dec3a7befdec42849c38aaa5774f12181c62f9a05f5dfb4"
+      },
+      {
+        "name": "Whoosh",
+        "file": "starter/07.wav",
+        "sha256": "d795beca1b1ad43059914032857cfc1b31a2b1849288e73100f33b96e9816ec4"
+      },
+      {
+        "name": "Impact",
+        "file": "starter/08.wav",
+        "sha256": "4c23ff247ae4dc112bdaa2818f274e133379ab6fc2608a4630bc37104fc879ce"
+      },
+      {
+        "name": "Door knock",
+        "file": "starter/09.wav",
+        "sha256": "15ac74b8553822f8fd09308d1484fefe52e34e3b5d96d8e0890784cb09bc35dd"
+      },
+      {
+        "name": "Phone vibration",
+        "file": "starter/10.wav",
+        "sha256": "fe5ced601fd1b296427f714bb07993ccc50ed5bfd8231b16ddc60b4403ffd7dd"
+      }
+    ]
+  },
+  {
+    "id": "prankster",
+    "title": "Prankster",
+    "description": "Des surprises et des bruitages décalés.",
+    "sounds": [
+      {
+        "name": "Bubble burst",
+        "file": "prankster/01.wav",
+        "sha256": "2e134eff355f542e8c756fd88033a26e6d212f994cebd113ebdfe988e3a7bcfa"
+      },
+      {
+        "name": "Door slam",
+        "file": "prankster/02.wav",
+        "sha256": "4ba1dcb490d892c0b4f094d493fd6a32b9340324429426bae2cbca48f6826846"
+      },
+      {
+        "name": "Knocking",
+        "file": "prankster/03.wav",
+        "sha256": "90b259b9085e399b8359132e5b417e2044940f1ace4a54d5b48d6fb572962a71"
+      },
+      {
+        "name": "Pocket buzz",
+        "file": "prankster/04.wav",
+        "sha256": "e99939d7c1af19f9b87329d1dd70cc823edcfe8adfcf1638b7eae6a86ad92b3d"
+      },
+      {
+        "name": "Fake notification",
+        "file": "prankster/05.wav",
+        "sha256": "ced210c77a344b899641759f79f8f4d890e1c1559ef8467b97017b206ae83481"
+      },
+      {
+        "name": "Suspicious noise",
+        "file": "prankster/06.wav",
+        "sha256": "aa3b3d7decc9a005af1eec1376479450614e95ed63ea3675c6a6ad54136c61be"
+      },
+      {
+        "name": "Squeak",
+        "file": "prankster/07.wav",
+        "sha256": "7dd7ffda04ee8337f314dd4f5688243bdd6cec82039f38e72704551233a1e32e"
+      },
+      {
+        "name": "Spring",
+        "file": "prankster/08.wav",
+        "sha256": "e91061f64c81450bd9dc12ec721bb490e905e7e83dc8635aab8648aad345ef8b"
+      },
+      {
+        "name": "Dramatic silence",
+        "file": "prankster/09.wav",
+        "sha256": "b0c66b7a3abebddcf7e41f101cd6dcad734e2190709b04db0943955e4331cc7a"
+      },
+      {
+        "name": "Comedic impact",
+        "file": "prankster/10.wav",
+        "sha256": "ca3349de33120c0b048e7eb2b63568213a8e140b60e0c44a83c23244aacf08bb"
+      }
+    ]
+  },
+  {
+    "id": "memes",
+    "title": "Memes",
+    "description": "Réactions originales, énergie cartoon.",
+    "sounds": [
+      {
+        "name": "Exaggerated fail",
+        "file": "memes/01.wav",
+        "sha256": "d1d22541c9bb150f54dca72612af6fb6f221dc595097ab703a8bc9ba99306774"
+      },
+      {
+        "name": "Awkward pause",
+        "file": "memes/02.wav",
+        "sha256": "bdc6c9f77a51d0304a48ed9abfc6cafd78240a0b93f3e4a1d5cf3ba7d49b2243"
+      },
+      {
+        "name": "Cartoon bonk",
+        "file": "memes/03.wav",
+        "sha256": "d145001415c4c1da8aaa10fbc8bafdba716a43583da0de88242c7ee2f2bc9418"
+      },
+      {
+        "name": "Dramatic sting",
+        "file": "memes/04.wav",
+        "sha256": "23d528fb1efa95fe3183c2ff3d5526afe9ba6689783d63bc6c6ea4f17141ca64"
+      },
+      {
+        "name": "Tiny applause",
+        "file": "memes/05.wav",
+        "sha256": "e94616e7058de5c9d5efa7dc21a46a537c301503fa2114ead451dd8d042ba67a"
+      },
+      {
+        "name": "Confusion",
+        "file": "memes/06.wav",
+        "sha256": "88f9a3275ecbbb1617fd68dca03214d403f28e33dd1dabfd491b1ffa26a30d15"
+      },
+      {
+        "name": "Really",
+        "file": "memes/07.wav",
+        "sha256": "67fff10880d72b9ec1387e94f80ff78cddddd754df64123c607faa2d8f5d1d4d"
+      },
+      {
+        "name": "Victory wink",
+        "file": "memes/08.wav",
+        "sha256": "0a5ea7e2f8b3ecca1ea369785f150b4fc2fe47bb5c20fc575fb5166aec773c1c"
+      }
+    ]
+  },
+  {
+    "id": "anime-inspired",
+    "title": "Anime-Inspired",
+    "description": "Magie et énergie, créations originales.",
+    "sounds": [
+      {
+        "name": "Magical sparkle",
+        "file": "anime-inspired/01.wav",
+        "sha256": "47c2b7172ce61e4abec463cb90a2572077ec5016e1ee9662c7a72da8931efac9"
+      },
+      {
+        "name": "Transformation",
+        "file": "anime-inspired/02.wav",
+        "sha256": "1da504dd213c4e406fdb7f00df8e0f4cab502355b25c73f9a48127e6ffaa6ee6"
+      },
+      {
+        "name": "Dramatic slash",
+        "file": "anime-inspired/03.wav",
+        "sha256": "4ba54e3630a7b74c68b185c4cffaea01faf234faa033f5c0e897d30efd955122"
+      },
+      {
+        "name": "Energy charge",
+        "file": "anime-inspired/04.wav",
+        "sha256": "ecc89cdd1042405bcc7d43e107ad44a1a483a3fcbcdc6fc5cb4be5cb77532647"
+      },
+      {
+        "name": "Cute reaction",
+        "file": "anime-inspired/05.wav",
+        "sha256": "34dd2e91c371dcb729496dd027aa6f433366b1d03dfe1af6c7440617ee173b6c"
+      },
+      {
+        "name": "Shocked reaction",
+        "file": "anime-inspired/06.wav",
+        "sha256": "c7fafd2dfb65ba5470b0e5e2db6bd4f6a78a0c2b61b3a4cb5d50fc1e9424f1f9"
+      },
+      {
+        "name": "Dramatic hit",
+        "file": "anime-inspired/07.wav",
+        "sha256": "cf9beac583d6bcb88eb8b1ce7eba5f5e29487e0e53f192e1587a02e1e6950659"
+      },
+      {
+        "name": "Futuristic UI",
+        "file": "anime-inspired/08.wav",
+        "sha256": "fabfe7678fb32772594064d64c363e120225e8d6d2e8db88b23afba2f4c16af7"
+      },
+      {
+        "name": "Comic swoosh",
+        "file": "anime-inspired/09.wav",
+        "sha256": "48b2be792a51c34f05d528aa6d06b3524e286b1446dfa17e86d1568a49a6730f"
+      }
+    ]
+  }
+]

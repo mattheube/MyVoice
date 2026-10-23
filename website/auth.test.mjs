@@ -1,0 +1,21 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {createHash} from 'node:crypto';
+import {createPkce,captureAuthCallback,startDiscord,finishDiscord,verifierKey,readSession} from './auth.js';
+const storage=()=>{const data=new Map();return {getItem:k=>data.get(k)??null,setItem:(k,v)=>data.set(k,v),removeItem:k=>data.delete(k)};};
+const config={url:'https://test.supabase.co',publishableKey:'sb_publishable_test'};
+test('PKCE uses S256 and an unpredictable verifier',async()=>{const a=await createPkce(),b=await createPkce();assert.notEqual(a.verifier,b.verifier);assert.equal(a.challenge,createHash('sha256').update(a.verifier).digest('base64url'));});
+test('callback code is removed from history before any request',()=>{let path;const callback=captureAuthCallback({search:'?code=one-use',hash:'',pathname:'/MyVoice/'},{replaceState:(_,__,p)=>path=p});assert.equal(callback.code,'one-use');assert.equal(path,'/MyVoice/#account');});
+test('disabled Discord cannot create a pending login',async()=>{const tab=storage();await assert.rejects(startDiscord(config,tab,async()=>({ok:true,json:async()=>({external:{discord:false}})})));assert.equal(tab.getItem(verifierKey),null);});
+test('PKCE callback consumes verifier and establishes only the matching session',async()=>{
+ const tab=storage();const url=new URL(await startDiscord(config,tab,async()=>({ok:true,json:async()=>({external:{discord:true}})})));
+ assert.equal(url.searchParams.get('redirect_to'),'https://mattheube.github.io/MyVoice/');const challenge=url.searchParams.get('code_challenge');
+ const value=await finishDiscord(config,{code:'one-use'},tab,async(url,request)=>{assert.match(url,/grant_type=pkce$/);const body=JSON.parse(request.body);assert.equal(body.auth_code,'one-use');assert.equal(createHash('sha256').update(body.code_verifier).digest('base64url'),challenge);return {ok:true,json:async()=>({access_token:'access',refresh_token:'refresh',expires_in:60})};});
+ assert.equal(value.access_token,'access');assert.equal(tab.getItem(verifierKey),null);assert.equal(readSession(tab).refresh_token,'refresh');
+ await assert.rejects(finishDiscord(config,{code:'one-use'},tab));
+});
+test('expired and denied flows remove their pending verifier',async()=>{for(const callback of [{code:'old'},{error:'denied'}]){const tab=storage();tab.setItem(verifierKey,JSON.stringify({created:Date.now()-400000,verifier:'v'}));await assert.rejects(finishDiscord(config,callback,tab));assert.equal(tab.getItem(verifierKey),null);}});
+import {refreshSession,saveSession,username,passwordScore} from './auth.js';
+test('expired session rotates tokens and logout removes persisted credentials',async()=>{const tab=storage();saveSession(tab,{access_token:'old',refresh_token:'rotate',expires_at:1});const value=await refreshSession(config,tab,async(url,options)=>{assert.match(url,/grant_type=refresh_token$/);assert.equal(JSON.parse(options.body).refresh_token,'rotate');return {ok:true,json:async()=>({access_token:'new',refresh_token:'next',expires_in:3600})};});assert.equal(value.access_token,'new');assert.equal(readSession(tab).refresh_token,'next');saveSession(tab,null);assert.equal(readSession(tab),null);});
+test('invalid refresh clears session but transient network failure preserves retry',async()=>{const tab=storage();saveSession(tab,{access_token:'old',refresh_token:'r',expires_at:1});await assert.rejects(refreshSession(config,tab,async()=>{throw Error('offline')}));assert.ok(readSession(tab));assert.equal(await refreshSession(config,tab,async()=>({ok:false,status:400})),null);assert.equal(readSession(tab),null);});
+test('account input rules reject weak passwords and reserved usernames',()=>{assert.throws(()=>username('Admin'));assert.throws(()=>username('bad name'));assert.equal(username(' @My_Name '),'my_name');assert.equal(passwordScore('password12345'),0);assert.equal(passwordScore('a varied phrase with 42 letters'),3);});

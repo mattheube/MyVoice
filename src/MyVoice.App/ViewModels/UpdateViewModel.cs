@@ -14,19 +14,13 @@ public partial class MainViewModel
     public string ApplicationVersion => "MyVoice · " + (Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion.Split('+')[0] ?? "2.6.0-beta.1");
     public string UpdateAvailability => T["Runtime88"];
     private UpdateSession? preparedUpdate;
-    public bool AutomaticUpdates {get=>Settings.AutomaticUpdates;set{Settings.AutomaticUpdates=value;Changed(nameof(AutomaticUpdates));}}
+    public bool AutomaticUpdates => true;
     private string? downloadedUpdate;
     [ObservableProperty] private double updateProgress;
     public string LatestVersion=>string.IsNullOrEmpty(Settings.LastKnownVersion)?T["Runtime63"]:Settings.LastKnownVersion;
     public string LastChecked=>Settings.LastUpdateCheck?.ToLocalTime().ToString("g")??"Jamais";
     public string[] UpdateChannels {get;}=["Stable","Beta"];
     public string UpdateChannel {get=>Settings.UpdateChannel=="beta"?"Beta":"Stable";set{Settings.UpdateChannel=value=="Beta"?"beta":"stable";CanInstallUpdate=false;downloadedUpdate=null;Changed(nameof(UpdateChannel));OnPropertyChanged(nameof(UpdateSource));}}
-    public async Task CheckStartupUpdatesAsync()
-    {
-        if(Settings.LastUpdateSource==UpdateSource && Settings.LastUpdateCheck is {} checkedAt && DateTime.UtcNow-checkedAt<TimeSpan.FromHours(6) && Version.TryParse(Settings.LastKnownVersion,out _) && !ReleaseVersion.IsNewer(Settings.LastKnownVersion,Settings.LastKnownReleaseTag,InstalledRelease))
-        {UpdateStatus=T["Runtime38"]+LastChecked+" · "+LatestVersion;return;}
-        await CheckUpdatesCommand.ExecuteAsync(null);
-    }
     [ObservableProperty] private string updateStatus = "";
     [ObservableProperty] private bool canInstallUpdate;
     public string UpdateSource
@@ -37,14 +31,7 @@ public partial class MainViewModel
             Changed(nameof(UpdateSource));
         }
     }
-    public bool CheckUpdatesAtStartup
-    {
-        get => Settings.CheckUpdatesAtStartup; set
-        {
-            Settings.CheckUpdatesAtStartup = value;
-            Changed(nameof(CheckUpdatesAtStartup));
-        }
-    }
+    public bool CheckUpdatesAtStartup => true;
     public bool Notifications
     {
         get => Settings.Notifications; set

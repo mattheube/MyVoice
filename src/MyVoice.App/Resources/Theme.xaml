@@ -32,7 +32,7 @@
    <ToggleButton x:Name="Toggle" Focusable="False" IsChecked="{Binding IsDropDownOpen,RelativeSource={RelativeSource TemplatedParent},Mode=TwoWay}" ClickMode="Press">
     <ToggleButton.Template><ControlTemplate TargetType="ToggleButton"><Border x:Name="Outline" Background="{DynamicResource RaisedBrush}" BorderBrush="{DynamicResource LineBrush}" BorderThickness="1" CornerRadius="8"><Path Data="M 0,0 L 4,4 8,0" Stroke="{DynamicResource MutedBrush}" StrokeThickness="1.5" Width="8" Height="4" HorizontalAlignment="Right" Margin="0,0,12,0" VerticalAlignment="Center"/></Border><ControlTemplate.Triggers><Trigger Property="IsChecked" Value="True"><Setter TargetName="Outline" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/></Trigger></ControlTemplate.Triggers></ControlTemplate></ToggleButton.Template>
    </ToggleButton>
-   <ContentPresenter IsHitTestVisible="False" Content="{TemplateBinding SelectionBoxItem}" ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}" ContentStringFormat="{TemplateBinding SelectionBoxItemStringFormat}" Margin="10,6,30,6" VerticalAlignment="Center"/>
+   <ContentPresenter IsHitTestVisible="False" Content="{TemplateBinding SelectionBoxItem}" ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}" ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}" ContentStringFormat="{TemplateBinding SelectionBoxItemStringFormat}" Margin="10,6,30,6" VerticalAlignment="Center"/>
    <Popup x:Name="PART_Popup" IsOpen="{Binding IsDropDownOpen,RelativeSource={RelativeSource TemplatedParent},Mode=TwoWay}" PlacementTarget="{Binding ElementName=Root}" Placement="Bottom" AllowsTransparency="True" Focusable="False" PopupAnimation="None">
     <Border Background="{DynamicResource RaisedBrush}" BorderBrush="{DynamicResource AccentBrush}" BorderThickness="1" CornerRadius="8" Padding="3" MinWidth="{Binding ActualWidth,ElementName=Root}" MaxWidth="680">
      <ScrollViewer MaxHeight="{Binding MaxDropDownHeight,RelativeSource={RelativeSource TemplatedParent}}" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" CanContentScroll="True"><ItemsPresenter KeyboardNavigation.DirectionalNavigation="Contained" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/></ScrollViewer>
@@ -62,8 +62,11 @@
  <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}"/>
  <Setter Property="Width" Value="164"/><Setter Property="Height" Value="164"/><Setter Property="Padding" Value="0"/><Setter Property="Margin" Value="0"/><Setter Property="Cursor" Value="Hand"/>
  <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button"><Grid>
-  <Border x:Name="Shadow" CornerRadius="12" Background="{DynamicResource LineBrush}"/>
-  <Border x:Name="Face" CornerRadius="12" Background="{DynamicResource SurfaceBrush}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1"><ContentPresenter Margin="4" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/></Border>
+  <Border x:Name="Shadow" Margin="4,8,4,0" CornerRadius="12" Background="#090B11" BorderBrush="{DynamicResource LineBrush}" BorderThickness="1"/>
+  <Border x:Name="Face" Margin="4,0,4,8" CornerRadius="12" Background="{DynamicResource RaisedBrush}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1.5"><Grid>
+   <Border CornerRadius="{Binding CornerRadius,ElementName=Face}" IsHitTestVisible="False"><Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint=".3,1"><GradientStop Color="#30FFFFFF" Offset="0"/><GradientStop Color="#00FFFFFF" Offset=".35"/><GradientStop Color="#30000000" Offset="1"/></LinearGradientBrush></Border.Background></Border>
+   <ContentPresenter Margin="4" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+  </Grid></Border>
  </Grid><ControlTemplate.Triggers>
  <Trigger Property="Tag" Value="circle"><Setter TargetName="Shadow" Property="CornerRadius" Value="82"/><Setter TargetName="Face" Property="CornerRadius" Value="82"/></Trigger>
  <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Face" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/></Trigger>

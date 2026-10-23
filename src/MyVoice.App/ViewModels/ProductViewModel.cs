@@ -13,13 +13,20 @@ public partial class MainViewModel
 {
     private ProductStore productStore=null!;
     public ProductState Product {get;private set;}=new();
-    public string[] Themes {get;}=["Midnight","Graphite","Deep Ocean","Crimson","Emerald","Warm Dark"];
+    public string[] Themes {get;}=ThemeCatalog.All.Select(p=>p.Id).ToArray();
+    public System.Collections.Generic.IReadOnlyList<ThemePalette> ThemePreviews=>ThemeCatalog.All;
+    [ObservableProperty] private int settingsTab;
+    [RelayCommand] private void OpenAccountSettings(){SettingsTab=1;Page=3;}
     public string[] MotionModes {get;}=["Full","Reduced","Off"];
     public string[] BackgroundModes {get;}=["Minimal","Balanced","Rich"];
     public string[] DensityModes {get;}=["Comfortable","Compact"];
     public bool LiquidGlass {get=>Product.LiquidGlass;set{Product.LiquidGlass=value;ApplyAppearance();OnPropertyChanged();}}
+    public double GlassIntensity {get=>Product.GlassIntensity*100;set{Product.GlassIntensity=double.IsFinite(value)?Math.Clamp(value/100,0,1):.5;ApplyAppearance();OnPropertyChanged();}}
+    public double GlassTransparency {get=>Product.GlassTransparency*100;set{Product.GlassTransparency=double.IsFinite(value)?Math.Clamp(value/100,0,.7):.25;ApplyAppearance();OnPropertyChanged();}}
+    public double GlassDepth {get=>Product.GlassDepth*100;set{Product.GlassDepth=double.IsFinite(value)?Math.Clamp(value/100,0,1):.5;ApplyAppearance();OnPropertyChanged();}}
+    public bool GlassBlur {get=>Product.GlassBlur;set{Product.GlassBlur=value;ApplyAppearance();OnPropertyChanged();}}
     public string Density {get=>Product.Density;set{Product.Density=value;ApplyAppearance();OnPropertyChanged();}}
-    public string Theme {get=>Product.Theme;set{Product.Theme=value;Product.Accent=value switch{"Graphite"=>"#BDCAD5","Deep Ocean"=>"#6ACDFA","Crimson"=>"#FF899B","Emerald"=>"#65DDB2","Warm Dark"=>"#E9BB88",_=>"#B7A5FF"};ApplyAppearance();}}
+    public string Theme {get=>Product.Theme;set{if(!Themes.Contains(value))return;Product.Theme=value;Product.Accent=ThemeCatalog.Find(value).Accent;ApplyAppearance();}}
     public string Accent {get=>Product.Accent;set{if(!System.Text.RegularExpressions.Regex.IsMatch(value??"","^#[0-9a-fA-F]{6}$"))return;Product.Accent=value!;ApplyAppearance();}}
     public string MotionMode {get=>Product.Motion;set{Product.Motion=value;ApplyAppearance();}}
     public string BackgroundMode {get=>Product.Background;set{Product.Background=value;ApplyAppearance();}}
@@ -57,7 +64,7 @@ public partial class MainViewModel
         foreach(var preset in Presets)preset.Selected=!Settings.ActiveAiVoice&&graph.Processor.Designed==null&&preset.Name==CurrentPreset;
         ProductAppearance.Apply(Product);
         ShowWelcome=!Product.OnboardingCompleted;
-        InitializeCommunity();InitializeLibraryCollections();Page=4;
+        InitializeCommunity();InitializeDiscord();InitializeLibraryCollections();Page=4;
     }
     private void SaveProduct(){try{productStore?.Save(Product);}catch(Exception e){Error(e);}}
     private void ApplyAppearance(){ProductAppearance.Apply(Product);Settings.Animations=ProductAppearance.Animate;SaveProduct();OnPropertyChanged(nameof(Theme));OnPropertyChanged(nameof(Accent));OnPropertyChanged(nameof(MotionMode));OnPropertyChanged(nameof(BackgroundMode));}

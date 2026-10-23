@@ -8,6 +8,16 @@ internal static class KeyboardDiscoveryTests
     {
         var dir=new DirectoryInfo(AppContext.BaseDirectory);while(dir!=null&&!Directory.Exists(Path.Combine(dir.FullName,"assets","KeyboardPacks")))dir=dir.Parent;
         var root=Path.Combine(dir?.FullName??throw new Exception("Keyboard test packs missing"),"assets","KeyboardPacks");
+        test("Keyboard edge and Enter volume controls are independent and persist",()=>{
+            using var engine=new KeyboardSoundService();var audio=new float[4800];
+            var options=new KeyboardSettings{Enabled=true,Pack="blue",Variation=0,KeyDownVolume=0,KeyUpVolume=1,EnterVolume=0};
+            engine.Load(root,options);engine.Trigger(KeyboardKeyKind.Normal,false);engine.Render(audio);Check(audio.All(x=>x==0));
+            engine.Trigger(KeyboardKeyKind.Normal,true);engine.Render(audio);Check(audio.Any(x=>x!=0));
+            engine.Disable();engine.Load(root,options);engine.Trigger(KeyboardKeyKind.Enter,true);engine.Render(audio);Check(audio.All(x=>x==0));
+            var copy=System.Text.Json.JsonSerializer.Deserialize<KeyboardSettings>(System.Text.Json.JsonSerializer.Serialize(options))!;
+            Check(copy==options&&copy.IsValid());
+            Check(!(options with{StereoWidth=double.NaN}).IsValid()&&!(options with{KeyUpVolume=3}).IsValid());
+        });
         test("Discovery merges silent windows, multiprocess audio and saved identities",()=>
         {
             ApplicationAudioSource[] data=[new(40,"chrome","Chrome"){ExecutablePath=@"C:\Apps\Chrome.exe",HasWindow=true},new(42,"chrome","Chrome"){ExecutablePath=@"c:\apps\chrome.exe",HasAudio=true},new(0,"chrome","Chrome"){ExecutablePath=@"C:\Apps\Chrome.exe"},new(51,"Discord","Discord"){ExecutablePath=@"C:\Apps\Discord.exe",HasWindow=true},new(0,"Spotify","Spotify"){ExecutablePath=@"C:\Apps\Spotify.exe"}];

@@ -43,7 +43,8 @@ public sealed partial class UpdateService : IDisposable
                 if(location==null)throw new InvalidDataException("Redirection sans destination");
                 uri=location.IsAbsoluteUri?location:new Uri(uri,location);continue;
             }
-            response.EnsureSuccessStatusCode();return response;
+            try { response.EnsureSuccessStatusCode();return response; }
+            catch { response.Dispose();throw; }
         }
         throw new InvalidDataException("Trop de redirections");
     }
@@ -64,7 +65,7 @@ public sealed partial class UpdateService : IDisposable
         }
         return release;
     }
-    public async Task<ReleaseManifest> ReadManifestAsync(string source,CancellationToken token)
+    private async Task<ReleaseManifest> ReadManifestDocumentAsync(string source,CancellationToken token,string? validationSource=null)
     {
         using var limit=CancellationTokenSource.CreateLinkedTokenSource(token);limit.CancelAfter(TimeSpan.FromSeconds(5));
         string json;
@@ -79,7 +80,7 @@ public sealed partial class UpdateService : IDisposable
         }
         else throw new InvalidOperationException("Utilisez une adresse HTTPS ou un manifeste local existant.");
         var release=JsonSerializer.Deserialize<ReleaseManifest>(json.TrimStart('\uFEFF'),new JsonSerializerOptions{PropertyNameCaseInsensitive=true})??throw new InvalidDataException("Manifeste vide");
-        return Validate(release,source);
+        return Validate(release,validationSource??source);
     }
     public async Task<ReleaseManifest?> CheckAsync(string source,Version current,CancellationToken token)
     {

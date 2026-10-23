@@ -45,10 +45,14 @@ public sealed class SeedBackend : IDisposable
         if (ManagedRuntime.RepairLauncher(python)) Log?.Invoke("Python : lanceur local réparé, bibliothèques conservées.");
         if (!File.Exists(python) || !Directory.Exists(repository))
             throw new FileNotFoundException("Configure the local AI runtime first.");
+        await ModelProvisioner.EnsureAsync(python,repository,"seed",line=>Log?.Invoke(line),token);
         var start = new ProcessStartInfo(python) { UseShellExecute = false, CreateNoWindow = true, RedirectStandardInput = true, RedirectStandardOutput = true, RedirectStandardError = true, WorkingDirectory = repository };
         foreach (var arg in new[] { "-u", script, "--repository", repository, "--device", device, "--threads", CpuThreads.ToString(), "--model", Model })
             start.ArgumentList.Add(arg);
         start.Environment["HF_HUB_DISABLE_TELEMETRY"] = "1";
+        start.Environment["PYTHONUTF8"] = "1";
+        start.StandardOutputEncoding=System.Text.Encoding.UTF8;
+        start.StandardErrorEncoding=System.Text.Encoding.UTF8;
         start.Environment.Remove("PYTHONHOME");
         start.Environment.Remove("PYTHONPATH");
         start.Environment.Remove("__PYVENV_LAUNCHER__");

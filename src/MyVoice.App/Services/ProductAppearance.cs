@@ -10,21 +10,16 @@ public static class ProductAppearance
 {
     public static event EventHandler? Changed;
     private static ProductState? current;
+    private static bool nativeGlassAvailable=NativeBackdrop.Supported;
+    public static void DisableNativeGlass(){if(!nativeGlassAvailable)return;nativeGlassAvailable=false;if(current!=null)Apply(current);}
     static ProductAppearance(){UiActivity.Changed+=(_,_)=>{if(current?.LiquidGlass==true)Apply(current);};}
     public static bool GlassActive {get;private set;}
     public static bool Animate {get;private set;}=true;
     public static void Apply(ProductState state)
     {
         current=state;Animate=state.Motion=="Full" && SystemParameters.ClientAreaAnimation && UiActivity.VisualsActive;
-        var palette=state.Theme switch
-        {
-            "Graphite"=>new[]{"#191C20","#23272D","#2D333B","#3A414B"},
-            "Deep Ocean"=>new[]{"#081820","#102732","#193542","#2B4854"},
-            "Crimson"=>new[]{"#1D1119","#2D1B28","#3F2836","#60404E"},
-            "Emerald"=>new[]{"#0C1B18","#152D26","#213D34","#365C4F"},
-            "Warm Dark"=>new[]{"#1C1615","#2A2220","#372C28","#514038"},
-            _=>new[]{"#101117","#191B25","#242735","#353948"}
-        };
+        var theme=ThemeCatalog.Find(state.Theme);
+        string[] palette=[theme.Canvas,theme.Surface,theme.Raised,theme.Line];
         var resources=Application.Current.Resources;
         string[] keys={"CanvasBrush","SurfaceBrush","RaisedBrush","LineBrush"};
         for(int i=0;i<keys.Length;i++)SetBrush(keys[i],Brush(palette[i]));
@@ -42,12 +37,15 @@ public static class ProductAppearance
         SetBrush("AccentSoftBrush",new SolidColorBrush(Color.FromArgb(32,accent.R,accent.G,accent.B)));
         var brightness=.2126*accent.R+.7152*accent.G+.0722*accent.B;
         SetBrush("AccentInkBrush",Brush(brightness>145?"#101117":"#FFFFFF"));
-        GlassActive=state.LiquidGlass && state.Motion=="Full" && SystemParameters.ClientAreaAnimation && !SystemParameters.HighContrast && (RenderCapability.Tier>>16)>0 && UiActivity.VisualsActive;
+        GlassActive=nativeGlassAvailable && state.LiquidGlass && state.GlassBlur && state.Motion=="Full" && SystemParameters.ClientAreaAnimation && !SystemParameters.HighContrast && (RenderCapability.Tier>>16)>0 && UiActivity.VisualsActive;
         if(GlassActive){
-            // Static layered reflections: no per-frame backdrop capture, blur pass or render timer.
-            Brush Glass(string basis){var c=(Color)ColorConverter.ConvertFromString(basis);Color Blend(double amount,byte alpha)=>Color.FromArgb(alpha,(byte)(c.R*(1-amount)+accent.R*amount),(byte)(c.G*(1-amount)+accent.G*amount),(byte)(c.B*(1-amount)+accent.B*amount));var b=new LinearGradientBrush{StartPoint=new Point(0,0),EndPoint=new Point(.75,1)};b.GradientStops.Add(new(Blend(.24,250),0));b.GradientStops.Add(new(Blend(.07,246),.12));b.GradientStops.Add(new(Blend(.02,242),.55));b.GradientStops.Add(new(Blend(.13,250),1));b.Freeze();return b;}
+            double Clamp(double value,double fallback)=>double.IsFinite(value)?Math.Clamp(value,0,1):fallback;
+            double intensity=Clamp(state.GlassIntensity,.5),depth=Clamp(state.GlassDepth,.5),transparency=Math.Min(.7,Clamp(state.GlassTransparency,.25));
+            resources["CanvasBrush"]=new SolidColorBrush(Color.FromArgb((byte)(255*(1-transparency)),canvas.R,canvas.G,canvas.B));
+            // Translucent surfaces expose the native compositor backdrop, with static tinted reflections.
+            Brush Glass(string basis){var c=(Color)ColorConverter.ConvertFromString(basis);Color Blend(double amount,byte alpha)=>Color.FromArgb(alpha,(byte)(c.R*(1-amount)+accent.R*amount),(byte)(c.G*(1-amount)+accent.G*amount),(byte)(c.B*(1-amount)+accent.B*amount));var b=new LinearGradientBrush{StartPoint=new Point(0,0),EndPoint=new Point(.75,1)};byte alpha=(byte)(255*(1-transparency*.8));b.GradientStops.Add(new(Blend(.35*intensity,alpha),0));b.GradientStops.Add(new(Blend(.1*intensity,alpha),.12));b.GradientStops.Add(new(Blend(.02,alpha),.55));b.GradientStops.Add(new(Blend(.2*intensity,alpha),1));b.Freeze();return b;}
             resources["SurfaceBrush"]=Glass(palette[1]);resources["RaisedBrush"]=Glass(palette[2]);
-            var edge=new LinearGradientBrush(Color.FromArgb(130,accent.R,accent.G,accent.B),Color.FromArgb(40,accent.R,accent.G,accent.B),90);edge.Freeze();resources["LineBrush"]=edge;
+            var edge=new LinearGradientBrush(Color.FromArgb((byte)(65+130*depth),accent.R,accent.G,accent.B),Color.FromArgb((byte)(20+40*depth),accent.R,accent.G,accent.B),90);edge.Freeze();resources["LineBrush"]=edge;
         }
         Changed?.Invoke(null,EventArgs.Empty);
         resources["AmbientOpacity"]=state.Background=="Minimal"?0d:state.Background=="Rich"?.15d:.07d;

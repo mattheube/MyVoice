@@ -24,6 +24,7 @@ public sealed class AudioGraph : IDisposable
     public MixerRecorder Recorder {get;}=new();
     public IReadOnlyList<SourceStatus> DeviceStatuses=>devices.Statuses;
     public VoiceProcessor Processor {get;}=new();
+    public MicrophoneEnhancer MicEnhance {get;}=new();
     private VoiceProcessor aiPost {get;}=new();
     public bool HearMyself {get=>Route("mic","monitor");set=>SetRoute("mic","monitor",value);}
     public bool SendMicrophone {get=>Route("mic","virtual");set=>SetRoute("mic","virtual",value);}
@@ -94,8 +95,9 @@ public sealed class AudioGraph : IDisposable
             try
             {
                 mic.Take(voice);for(int i=0;i<480;i++)raw[i*2]=raw[i*2+1]=voice[i];Recorder.Offer("raw-mic",raw);
-                Processor.Process(voice,true,!AiLive,!AiLive);
-                if(AiLive){AiInputTimestamp=mic.LastReadTimestamp;AiInput?.Invoke(voice);converted.Take(ai);if(Interlocked.Exchange(ref convertedDiscontinuity,0)==1)for(int j=0;j<ai.Length;j++){float w=j/(float)(ai.Length-1);ai[j]=lastConvertedSample*(1-w)+ai[j]*w;}lastConvertedSample=ai[^1];aiPost.Settings=Processor.Settings;aiPost.Process(ai,false,true,false);}
+                MicEnhance.Process(voice);
+                Processor.Process(voice,true,!AiLive,!AiLive,MicEnhance.Mode==MicrophoneEnhanceMode.Off||!MicrophoneEnhancer.Available||MicEnhance.Failed);
+                if(AiLive){AiInputTimestamp=mic.LastReadTimestamp;if(AiInputTimestamp>0&&MicEnhance.Mode!=MicrophoneEnhanceMode.Off&&MicrophoneEnhancer.Available&&!MicEnhance.Failed)AiInputTimestamp-=Stopwatch.Frequency/100;AiInput?.Invoke(voice);converted.Take(ai);if(Interlocked.Exchange(ref convertedDiscontinuity,0)==1)for(int j=0;j<ai.Length;j++){float w=j/(float)(ai.Length-1);ai[j]=lastConvertedSample*(1-w)+ai[j]*w;}lastConvertedSample=ai[^1];aiPost.Settings=Processor.Settings;aiPost.Process(ai,false,true,false);}
                 var processed=AiLive?ai:voice;voicePlayback.Take(playback);for(int i=0;i<processed.Length;i++)processed[i]+=playback[i];ProcessedPeak=MixerRouter.Measure(processed).PeakDb;
                 soundQueue.Take(sb);Array.Clear(test);
                 if(testFrames>0){for(int i=0;i<480;i++){var tone=(float)(.025*Math.Sin(testPhase));testPhase+=2*Math.PI*733/48000;test[i*2]=test[i*2+1]=tone;}Interlocked.Add(ref testFrames,-480);}
@@ -111,5 +113,5 @@ public sealed class AudioGraph : IDisposable
             next+=10;var delay=next-clock.ElapsedMilliseconds;if(delay>0)stop.Token.WaitHandle.WaitOne((int)delay);else{Interlocked.Increment(ref lateBlocks);if(delay < -100)next=clock.ElapsedMilliseconds;}
         }
     }
-    public void Dispose(){stop.Cancel();worker.Join(3000);soundWorker.Join(3000);Keyboard.Dispose();Recorder.Dispose();devices.Dispose();stop.Dispose();}
+    public void Dispose(){stop.Cancel();if(worker.Join(3000))MicEnhance.Dispose();soundWorker.Join(3000);Keyboard.Dispose();Recorder.Dispose();devices.Dispose();stop.Dispose();}
 }

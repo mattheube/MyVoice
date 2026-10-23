@@ -14,7 +14,8 @@ public partial class MainViewModel
     {
         automaticAudio = true;
         Refresh(); RefreshOutputs(); EnsureMicrophone();
-        if (Settings.AutoStartAi && !AiBusy && !AiReady) _ = StartAiCommand.ExecuteAsync(null);
+        if (Settings.ActiveAiVoice && VoiceEnabled && !AiBusy && !AiReady)
+            _ = UseAiVoiceCommand.ExecuteAsync(ResumeAiVoice);
     }
     private void EnsureMicrophone()
     {
@@ -38,7 +39,7 @@ public partial class MainViewModel
     }
     private void RecoverAi()
     {
-        if(aiManualStop||AiBusy||AiReady||!Settings.AutoStartAi||DateTime.UtcNow<nextAiRetry||aiRestarts>=2)return;
+        if(aiManualStop||AiBusy||AiReady||!Settings.ActiveAiVoice||!VoiceEnabled||DateTime.UtcNow<nextAiRetry||aiRestarts>=2)return;
         aiRestarts++;nextAiRetry=DateTime.UtcNow.AddSeconds(30*aiRestarts);Status=T["AiRestarting"];
         _=StartAiCommand.ExecuteAsync(null);
     }

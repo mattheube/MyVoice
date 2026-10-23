@@ -1,0 +1,10 @@
+<UserControl x:Class="MyVoice.App.Views.MicrophoneEnhanceView" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+ <Border Style="{StaticResource Card}"><StackPanel>
+  <TextBlock Text="AI Mic Enhance" FontSize="20" />
+  <TextBlock Text="{Binding T[MicEnhanceExplanation]}" Style="{StaticResource MutedText}" TextWrapping="Wrap" Margin="0,6" />
+  <ComboBox SelectedValuePath="Tag" SelectedValue="{Binding MicEnhanceMode}" IsEnabled="{Binding MicEnhanceAvailable}">
+   <ComboBoxItem Tag="Off" Content="{Binding T[MicEnhanceOff]}"/><ComboBoxItem Tag="Light" Content="{Binding T[MicEnhanceLight]}"/><ComboBoxItem Tag="Balanced" Content="{Binding T[MicEnhanceBalanced]}"/><ComboBoxItem Tag="Strong" Content="{Binding T[MicEnhanceStrong]}"/>
+  </ComboBox>
+  <TextBlock Text="{Binding MicEnhanceStatus}" Style="{StaticResource MutedText}" TextWrapping="Wrap" />
+ </StackPanel></Border>
+</UserControl>

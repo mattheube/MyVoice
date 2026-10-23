@@ -123,6 +123,7 @@ public sealed class SoundItem
 }
 public sealed class SoundFolder
 {
+    public string? OfficialPackId {get;set;}
     [System.Text.Json.Serialization.JsonExtensionData] public Dictionary<string,System.Text.Json.JsonElement>? AdditionalData {get;set;}
     public string Name { get; set; } = "My sounds";
     public string? Cover

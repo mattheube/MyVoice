@@ -53,10 +53,6 @@ public partial class App : Application
                     splash?.Stage(StartupPhase.CheckingUpdates,"Vérification des mises à jour…");
                     var source=preferences.UpdateChannel=="beta"?DistributionDefaults.BetaManifestUrl:DistributionDefaults.ManifestUrl;
                     var installed=System.Reflection.Assembly.GetExecutingAssembly().GetCustomAttribute<System.Reflection.AssemblyInformationalVersionAttribute>()?.InformationalVersion.Split('+')[0]??"2.4.0-beta.1";
-                    bool recent=false; // Check the official channel at every startup.
-                    if(recent && !string.IsNullOrEmpty(preferences.LastKnownVersion) && !ReleaseVersion.IsNewer(preferences.LastKnownVersion,preferences.LastKnownReleaseTag,installed))
-                        splash?.Update(new(UpdatePhase.Current,"MyVoice est à jour ✓"));
-                    else
                     {
                         startupUpdate=new UpdateSession();using var skip=new CancellationTokenSource();
                         if(splash!=null)splash.ContinueRequested+=skip.Cancel;
@@ -70,7 +66,7 @@ public partial class App : Application
                         if(splash!=null)splash.ContinueRequested-=skip.Cancel;
                     }
                 }
-                if(!smoke && preferences.AutomaticUpdates && startupUpdate?.DownloadedFile is {} package && startupUpdate.Release is {} release && !string.IsNullOrEmpty(release.PackageUrl))
+                if(!smoke && startupUpdate?.DownloadedFile is {} package && startupUpdate.Release is {} release && !string.IsNullOrEmpty(release.PackageUrl))
                 {
                     if(UpdateHandoff.IsBlocked(release.Tag)){updateProblem="Cette mise à jour a échoué précédemment. Vous pouvez réessayer dans les réglages.";store.Log("Automatic update paused for failed release "+release.Tag);}
                     else
@@ -116,7 +112,7 @@ public partial class App : Application
                 splash?.Stage(StartupPhase.StartingAudioEngine,"Connexion du microphone…");await Task.Yield();vm.StartServices();
                 while(!vm.Running && updateJob==null && splash!=null && await splash.OfferRetryAsync("Le microphone n’est pas disponible. Vérifiez son branchement.",()=>vm.OpenLogsCommand.Execute(null)))
                     vm.StartServices();
-                if(vm.Settings.AutoStartAi)splash?.Stage(StartupPhase.StartingAIEngine,"Préparation de l’IA en arrière-plan…");
+                if(vm.Settings.ActiveAiVoice && vm.VoiceEnabled)splash?.Stage(StartupPhase.StartingAIEngine,"Préparation de votre voix IA…");
             }
             window.Show();
             if(updateJob!=null)
@@ -127,6 +123,7 @@ public partial class App : Application
             }
             if(rollbackJob!=null){vm.UpdateStatus="La mise à jour a échoué. La version précédente a été restaurée.";vm.ShowToast(vm.UpdateStatus);}
             if(splash!=null)await splash.FinishAsync(vm.Running?"Prêt ✓":"MyVoice prêt · microphone indisponible");
+            if(!smoke)_=vm.PrepareEnginesInBackgroundAsync();
             if (vm.StartMinimized && !smoke)
                 window.Hide();
             store.Log("Main window started");
@@ -183,6 +180,7 @@ public partial class App : Application
             if(args.Contains("--ui-details")){await VerifyImageUi(window,folder);VerifyProductUi(folder);await VerifyMixerUi(window,folder);await VerifyStartupUi(window,folder);}
             if(args.Contains("--targeted-update"))await VerifyTargetedUpdate(window,folder);
             if(args.Contains("--appearance-cards"))await VerifyAppearanceCards(window,folder);
+            if(args.Contains("--major-update"))await VerifyMajorUpdate(window,folder);
             if(args.Contains("--focused-community"))await VerifyFocusedCommunity(window,folder);
             if(args.Contains("--revision-ui"))await VerifyRevisionUi(window,folder);
             if(args.Contains("--keyboard-discovery"))await VerifyKeyboardDiscovery(window,folder);

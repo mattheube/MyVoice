@@ -4,8 +4,13 @@
    <Button.ContextMenu><ContextMenu/></Button.ContextMenu>
    <Grid><Path Data="M 0,0 L 0,22 18,11 Z" Fill="{DynamicResource AccentBrush}" Width="18" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center"/><ui:CoverImage FilePath="{Binding Cover}" Circular="{Binding IsVoice}" Stretch="UniformToFill"/></Grid>
   </ui:CreationImageButton>
+  <ProgressBar Height="2" IsIndeterminate="True" Visibility="{Binding CoverLoading,Converter={StaticResource BoolVisibility}}"/>
+  <Button Content="{Binding DataContext.T[CoverRetry],RelativeSource={RelativeSource AncestorType=Window}}" Click="RetryCover" FontSize="11" Padding="4" Visibility="{Binding CoverFailed,Converter={StaticResource BoolVisibility}}"/>
   <TextBlock Text="{Binding Title}" FontWeight="SemiBold" Margin="4,10,4,3" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" ToolTip="{Binding Title}"/>
   <TextBlock Text="{Binding CreatorLabel}" Style="{StaticResource MutedText}" Margin="4,0" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"/>
-  <Button Content="{Binding DataContext.T[CardAddLibrary],RelativeSource={RelativeSource AncestorType=Window}}" Click="Install" Margin="0,7,0,0" Padding="6"/>
+  <Button Content="{Binding DataContext.T[CardAddLibrary],RelativeSource={RelativeSource AncestorType=Window}}" Click="Install" Margin="0,7,0,0" Padding="6">
+   <Button.Style><Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}"><Style.Triggers><DataTrigger Binding="{Binding Installed}" Value="True"><Setter Property="Visibility" Value="Collapsed"/></DataTrigger></Style.Triggers></Style></Button.Style>
+  </Button>
+  <TextBlock Text="{Binding DataContext.T[CommunityAdded],RelativeSource={RelativeSource AncestorType=Window}}" Foreground="{DynamicResource AccentBrush}" Margin="4,10,4,0" Visibility="{Binding Installed,Converter={StaticResource BoolVisibility}}"/>
  </StackPanel>
 </UserControl>

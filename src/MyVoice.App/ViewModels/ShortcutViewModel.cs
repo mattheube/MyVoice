@@ -8,7 +8,8 @@ public partial class MainViewModel
 {
     public string[] HotkeyTargets { get; } = ["Toggle Keyboard Sound", "Mute microphone", "Hear myself", "Stop all sounds", "Voice on/off", "Next voice", "Previous voice", "Open MyVoice", "Selected sound", "Selected voice", "Mixer · mute canal", "Mixer · solo canal", "Mixer · volume +", "Mixer · volume −", "Mixer · mute sortie", "Mixer · profil suivant", "Mixer · enregistrer / arrêter"];
     [ObservableProperty] private string hotkeyTarget = "Mute microphone";
-    partial void OnHotkeyTargetChanged(string value) => OnPropertyChanged(nameof(HotkeyLabel));
+    partial void OnHotkeyTargetChanged(string value) { OnPropertyChanged(nameof(HotkeyLabel));OnPropertyChanged(nameof(EditingShortcutAction)); }
+    public string EditingShortcutAction=>ShortcutAction;
     private string ShortcutAction => HotkeyTarget switch { "Toggle Keyboard Sound"=>"keyboard:toggle", "Mixer · mute canal"=>"mixer:mute:"+SelectedMixerChannel?.Id,"Mixer · solo canal"=>"mixer:solo:"+SelectedMixerChannel?.Id,"Mixer · volume +"=>"mixer:up:"+SelectedMixerChannel?.Id,"Mixer · volume −"=>"mixer:down:"+SelectedMixerChannel?.Id,"Mixer · mute sortie"=>"mixer:output-mute:"+SelectedMixerOutput?.Id,"Mixer · profil suivant"=>"mixer:profile","Mixer · enregistrer / arrêter"=>"mixer:record", "Hear myself" => "monitor", "Stop all sounds" => "stop", "Voice on/off" => "effects", "Next voice" => "next", "Previous voice" => "previous", "Open MyVoice" => "open", "Selected sound" => SelectedSound == null ? "none" : "sound:" + SelectedSound.Item.Id, "Selected voice" => "voice:" + CurrentPreset, _ => "mute" };
     private string ReadShortcutLabel()
     {

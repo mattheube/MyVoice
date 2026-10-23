@@ -21,7 +21,7 @@ public sealed class VoiceProcessor
     private readonly float[] dry = new float[480], delay = new float[48000];
     private int delayIndex, hold;
     private double envelope, gateGain = 1, compressionGain = 1, autoGain = 1, phase;
-    public void Process(float[] samples, bool pre = true, bool post = true, bool effect = true)
+    public void Process(float[] samples, bool pre = true, bool post = true, bool effect = true, bool noiseReduction = true)
     {
         var s = Settings;
         if (applied != s)
@@ -45,7 +45,7 @@ public sealed class VoiceProcessor
             double target = !s.Gate || hold > 0 ? 1 : 0;
             gateGain = target + (gateGain - target) * (target > gateGain ? attack : release);
             x *= gateGain;
-            if (s.NoiseSuppression > 0)
+            if (noiseReduction && s.NoiseSuppression > 0)
                 x = denoiser.Process((float)x, s.NoiseSuppression);
             if (s.AutoGain && envelope > .008)
             {

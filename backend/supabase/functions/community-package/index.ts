@@ -18,8 +18,9 @@ Deno.serve(async req=>{
    const id=new URL(req.url).searchParams.get('id');if(!id||!/^[a-f0-9-]{36}$/i.test(id))return response({error:'Invalid content ID'},400);
    const {data,error}=await userClient.rpc('package_for_download',{target:id});if(error||!data)return response({error:'Content unavailable'},404);
    const coverOnly=new URL(req.url).searchParams.get('cover')==='true';
-   if(coverOnly&&!data.cover_path)return response({url:null});
-   const download=await server.storage.from('community').createSignedUrl(coverOnly?data.cover_path:data.object_path,60);
+   const previewOnly=new URL(req.url).searchParams.get('preview')==='true';
+   if((coverOnly&&!data.cover_path)||(previewOnly&&!data.preview_path))return response({url:null});
+   const download=await server.storage.from('community').createSignedUrl(coverOnly?data.cover_path:previewOnly?data.preview_path:data.object_path,60);
    if(download.error)throw Error('Storage unavailable');
    return response({url:download.data.signedUrl,sha256:data.sha256,size:data.size,version:data.version});
   }
@@ -65,10 +66,26 @@ Deno.serve(async req=>{
   const description=String(info.description||'').slice(0,2000),tags=Array.isArray(info.tags)?info.tags.slice(0,8).map((x:unknown)=>String(x).slice(0,30)):[];
   const title=typeof info.title==='string'?info.title.trim():m.title;if(!title||title.length>100)throw Error('Invalid title');
   const category=['Meme','SFX','Gaming','Anime','Reaction','Music','Voice','Ambient','Movie/TV','Other'].includes(info.category)?info.category:'Other';
-  const id=crypto.randomUUID();const objectPath=`${user.id}/${id}/${m.version}.zip`;
+  let existing:any=null;
+  if(info.edit_id){
+   if(!/^[a-f0-9-]{36}$/i.test(info.edit_id))throw Error('Invalid publication');
+   const lookup=await server.from('content').select('id,kind,audio_locked,visibility').eq('id',info.edit_id).eq('owner_id',user.id).eq('status','published').single();
+   if(lookup.error||lookup.data.audio_locked||lookup.data.visibility!=='private'||lookup.data.kind!==m.kind)throw Error('Shared audio cannot be replaced');
+   const version=await server.from('content_versions').select('sha256').eq('content_id',info.edit_id).order('created_at',{ascending:false}).limit(1).single();if(version.error)throw version.error;
+   existing={...lookup.data,sha256:version.data.sha256};
+  }
+  const id=existing?.id||crypto.randomUUID();const objectPath=`${user.id}/${id}/${crypto.randomUUID()}.zip`;
   const sha256=hex(await crypto.subtle.digest('SHA-256',bytes));
   const upload=await server.storage.from('community').upload(objectPath,bytes,{contentType:'application/zip',upsert:false});if(upload.error)throw Error('Upload failed');
   // Roll back storage on a failed metadata transaction. Only server can publish.
+  if(existing){
+   const hashes=m.kind==='soundboard'?m.sounds.map((s:any)=>String(m.files[normalize(s)!.file as string]).toLowerCase()):m.kind==='ai-voice'?[String(m.files[normalize(m.aivoice)!.referencefile as string]).toLowerCase()]:[];
+   const claims=await server.rpc('claim_publication_assets',{p_owner:user.id,p_hashes:hashes});
+   if(claims.error){await server.storage.from('community').remove([objectPath]);throw claims.error;}
+   const changed=await server.rpc('replace_private_audio',{target:id,actor:user.id,expected_hash:existing.sha256,new_object:objectPath,new_hash:sha256,new_size:bytes.length,new_version:m.version});
+   if(changed.error){await server.storage.from('community').remove([objectPath]);throw changed.error;}
+   return response({id,version:m.version,url:`https://mattheube.github.io/MyVoice/#content/${id}`});
+  }
   const insert=await server.from('content').insert({id,owner_id:user.id,kind:m.kind,title,description,tags,category,language:String(info.language||'und').slice(0,12),visibility:info.visibility,status:'draft'});
   if(insert.error){await server.storage.from('community').remove([objectPath]);throw Error('Metadata rejected');}
   let coverPath:string|null=null;

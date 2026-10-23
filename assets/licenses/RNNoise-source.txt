@@ -1,0 +1,7 @@
+MyVoice microphone enhancement uses RNNoise v0.1.1, including the default
+neural network weights in src/rnn_data.c, under the accompanying BSD license.
+Source: https://github.com/xiph/rnnoise/tree/6cbfd53eb348a8d394e0757b4025c6ded34eb2b6
+Source archive SHA256: 212F0E730DF77C38D9F2F097E75F3602A83FE501697F9E0BD1EB59A90129BC03
+Compiler: Zig 0.15.2, x86_64-windows-gnu, -O3, no external inference runtime.
+Rebuild: publishing/Build-MicEnhance.ps1 (checks source/compiler SHA256).
+The model is bundled; no user audio is transmitted or used for training.

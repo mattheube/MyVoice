@@ -7,3 +7,7 @@ verify_jwt = false
 [functions.community-account]
 verify_jwt = false
 # Auth getUser authenticates every account deletion.
+
+[functions.community-edit]
+verify_jwt = false
+# Auth getUser verifies the caller; the metadata transaction checks ownership again under a row lock.

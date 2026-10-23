@@ -12,6 +12,18 @@ public sealed class HotkeyService : IDisposable
     private readonly HwndSource source;
     private readonly Dictionary<string, (int Id, uint Mods, uint Key)> bindings = new();
     private int nextId = 100;
+    private bool paused;
+    public void Pause()
+    {
+        if(paused)return;paused=true;
+        foreach(var b in bindings.Values)UnregisterHotKey(source.Handle,b.Id);
+    }
+    public bool Resume()
+    {
+        if(!paused)return true;paused=false;bool success=true;
+        foreach(var b in bindings.Values)success&=RegisterHotKey(source.Handle,b.Id,b.Mods|0x4000,b.Key);
+        return success;
+    }
     public event Action? Pressed;
     public event Action<string>? ActionPressed;
     public HotkeyService(IntPtr handle)
@@ -43,7 +55,7 @@ public sealed class HotkeyService : IDisposable
     public void Clear() => Set(0, 0);
     private IntPtr Hook(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
     {
-        if (msg == 0x312)
+        if (msg == 0x312 && !paused)
         {
             var binding = bindings.FirstOrDefault(b => b.Value.Id == wParam.ToInt32());
             if (binding.Key != null)
@@ -57,7 +69,7 @@ public sealed class HotkeyService : IDisposable
         }
         return IntPtr.Zero;
     }
-    public static string Label(uint mods, uint key) => $"{((mods & 2) != 0 ? "Ctrl + " : "")}{((mods & 1) != 0 ? "Alt + " : "")}{((mods & 4) != 0 ? "Shift + " : "")}{KeyInterop.KeyFromVirtualKey((int)key)}";
+    public static string Label(uint mods, uint key) => $"{((mods & 2) != 0 ? "Ctrl + " : "")}{((mods & 1) != 0 ? "Alt + " : "")}{((mods & 4) != 0 ? "Shift + " : "")}{((mods & 8) != 0 ? "Win + " : "")}{KeyInterop.KeyFromVirtualKey((int)key)}";
     public void Dispose()
     {
         foreach (var b in bindings.Values)

@@ -7,6 +7,14 @@ public sealed record KeyboardSettings
     public double Pitch {get;init;}
     public double Intensity {get;init;}=0.5;
     public double SpacebarVolume {get;init;}=0.8;
+    public double KeyDownVolume {get;init;}=1;
+    public double KeyUpVolume {get;init;}=1;
+    public double EnterVolume {get;init;}=1;
+    public double Variation {get;init;}=1;
+    public double StereoWidth {get;init;}
+    public bool IsValid()=>new[]{Volume,SpacebarVolume,KeyDownVolume,KeyUpVolume,EnterVolume}.All(v=>double.IsFinite(v)&&v>=0&&v<=2)
+        && double.IsFinite(Pitch)&&Math.Abs(Pitch)<=6
+        &&new[]{Intensity,Variation,StereoWidth}.All(v=>double.IsFinite(v)&&v>=0&&v<=1);
     public bool Repeat {get;init;}=false;
     public bool ExcludeModifiers {get;init;}
     public bool ExcludeFunctionKeys {get;init;}
